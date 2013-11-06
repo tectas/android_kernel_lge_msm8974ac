@@ -69,7 +69,6 @@ enum {
 struct msm_mpdec_cpudata_t {
     struct mutex hotplug_mutex;
     int online;
-    int device_suspended;
     cputime64_t on_time;
     cputime64_t on_time_total;
     long long unsigned int times_cpu_hotplugged;
@@ -85,8 +84,7 @@ struct msm_mpdec_cpudata_t {
 #endif
 };
 static DEFINE_PER_CPU(struct msm_mpdec_cpudata_t, msm_mpdec_cpudata);
-
-static struct notifier_block msm_mpdec_fb_notif;
+static bool mpdec_suspended = false;
 static struct delayed_work msm_mpdec_work;
 static struct workqueue_struct *msm_mpdec_workq;
 static DEFINE_MUTEX(mpdec_msm_cpu_lock);
@@ -290,7 +288,6 @@ static int mp_decision(void) {
 
 static void msm_mpdec_work_thread(struct work_struct *work) {
     unsigned int cpu = nr_cpu_ids;
-    bool suspended = false;
 
 	if (ktime_to_ms(ktime_get()) <= msm_mpdec_tuners_ins.startdelay)
 			goto out;
@@ -299,13 +296,7 @@ static void msm_mpdec_work_thread(struct work_struct *work) {
 	if (mpdec_paused_until >= ktime_to_ms(ktime_get()))
 			goto out;
 
-	for_each_possible_cpu(cpu) {
-        if ((per_cpu(msm_mpdec_cpudata, cpu).device_suspended == true)) {
-            suspended = true;
-            break;
-        }
-    }
-    if (suspended == true)
+    if (mpdec_suspended == true)
         goto out;
 
     if (!mutex_trylock(&mpdec_msm_cpu_lock))
@@ -583,8 +574,8 @@ static void msm_mpdec_suspend(void) {
         if ((cpu >= 1) && (cpu_online(cpu))) {
             mpdec_cpu_down(cpu);
         }
-        per_cpu(msm_mpdec_cpudata, cpu).device_suspended = true;
     }
+    mpdec_suspended = true;
 
     pr_info(MPDEC_TAG"Screen -> off. Deactivated mpdecision.\n");
 }
@@ -595,8 +586,10 @@ static void msm_mpdec_resume(void) {
     is_screen_on = true;
 #endif
 
-    for_each_possible_cpu(cpu)
-        per_cpu(msm_mpdec_cpudata, cpu).device_suspended = false;
+    if (!mpdec_suspended)
+        return;
+
+    mpdec_suspended = false;
 
     if (msm_mpdec_tuners_ins.scroff_single_core) {
         /* wake up main work thread */
@@ -1151,9 +1144,9 @@ static int __init msm_mpdec_init(void) {
     unsigned long int boost_freq = 0;
 #endif
 
+    mpdec_suspended = false;
     for_each_possible_cpu(cpu) {
         mutex_init(&(per_cpu(msm_mpdec_cpudata, cpu).hotplug_mutex));
-        per_cpu(msm_mpdec_cpudata, cpu).device_suspended = false;
         per_cpu(msm_mpdec_cpudata, cpu).online = true;
         per_cpu(msm_mpdec_cpudata, cpu).on_time_total = 0;
         per_cpu(msm_mpdec_cpudata, cpu).times_cpu_unplugged = 0;
