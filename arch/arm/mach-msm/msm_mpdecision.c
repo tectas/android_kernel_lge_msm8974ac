@@ -117,25 +117,25 @@ static unsigned long get_rate(int cpu)
 
 static int get_slowest_cpu(void)
 {
-        int i, cpu = 0;
-        unsigned long rate, slow_rate = 0;
+	int i, cpu = 0;
+	unsigned long rate, slow_rate = 0;
 
-        for (i = 1; i < CONFIG_NR_CPUS; i++) {
-                if (!cpu_online(i))
-                        continue;
+	for (i = 1; i < CONFIG_NR_CPUS; i++) {
+		if (!cpu_online(i))
+			continue;
+		rate = get_rate(i);
+		if (slow_rate == 0) {
+			cpu = i;
+			slow_rate = rate;
+			continue;
+		}
+		if ((rate <= slow_rate) && (slow_rate != 0)) {
+			cpu = i;
+			slow_rate = rate;
+		}
+	}
 
-                rate = get_rate(i);
-                if (slow_rate == 0) {
-                        slow_rate = rate;
-                }
-
-                if ((rate <= slow_rate) && (slow_rate != 0)) {
-                        cpu = i;
-                        slow_rate = rate;
-                }
-        }
-
-        return cpu;
+    return cpu;
 }
 
 static unsigned long get_slowest_cpu_rate(void)
@@ -148,7 +148,8 @@ static unsigned long get_slowest_cpu_rate(void)
 				continue;
 		rate = get_rate(i);
 		if ((rate < slow_rate) && (slow_rate != 0)) {
-				slow_rate = rate;
+			slow_rate = rate;
+			continue;
 		}
 		if (slow_rate == 0) {
 				slow_rate = rate;
