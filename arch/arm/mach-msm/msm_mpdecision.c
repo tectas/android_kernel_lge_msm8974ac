@@ -417,7 +417,7 @@ static void mpdec_input_callback(struct work_struct *unused) {
             pr_info(MPDEC_TAG"boosted cpu%i to %lu", cpu, per_cpu(msm_mpdec_cpudata, cpu).boost_freq);
 #endif
             per_cpu(msm_mpdec_cpudata, cpu).is_boosted = true;
-            per_cpu(msm_mpdec_cpudata, cpu).boost_until = ktime_to_ms(ktime_get()) + MSM_MPDEC_BOOSTTIME;
+            per_cpu(msm_mpdec_cpudata, cpu).boost_until = ktime_to_ms(ktime_get()) + msm_mpdec_tuners_ins.boost_time;
             boosted = true;
             cpufreq_cpu_put(cpu_policy);
             mutex_unlock(&per_cpu(msm_mpdec_cpudata, cpu).boost_mutex);
@@ -430,9 +430,9 @@ static void mpdec_input_callback(struct work_struct *unused) {
         queue_delayed_work_on(cpu,
                               msm_mpdec_revib_workq,
                               &per_cpu(msm_mpdec_revib_work, cpu),
-                              msecs_to_jiffies(MSM_MPDEC_BOOSTTIME));
+                              msecs_to_jiffies(msm_mpdec_tuners_ins.boost_time));
     } else if (boosted && per_cpu(msm_mpdec_cpudata, cpu).revib_wq_running) {
-        per_cpu(msm_mpdec_cpudata, cpu).boost_until = ktime_to_ms(ktime_get()) + MSM_MPDEC_BOOSTTIME;
+        per_cpu(msm_mpdec_cpudata, cpu).boost_until = ktime_to_ms(ktime_get()) + msm_mpdec_tuners_ins.boost_time;
     }
 
     return;
