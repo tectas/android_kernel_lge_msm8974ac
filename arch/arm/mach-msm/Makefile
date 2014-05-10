@@ -425,3 +425,4 @@ obj-$(CONFIG_PERFMAP) += perfmap.o
 
 obj-$(CONFIG_ARCH_MSM8974) += lge_moca_drv.o
 obj-$(CONFIG_ARCH_MSM8974) += moca_kernel_probe.o
+obj-$(CONFIG_HAS_MACH_MEMUTILS) += memutils/
