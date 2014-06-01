@@ -546,10 +546,14 @@ static void msm_mpdec_suspend(void) {
     is_screen_on = false;
 #endif
 
-    if (!msm_mpdec_tuners_ins.scroff_single_core) {
-        pr_info(MPDEC_TAG"Screen -> off\n");
-        return;
-    }
+	if (!msm_mpdec_tuners_ins.scroff_single_core) {
+#ifdef CONFIG_MSM_MPDEC_INPUTBOOST_CPUMIN
+		for_each_possible_cpu(cpu)
+			unboost_cpu(cpu);
+#endif
+		pr_info(MPDEC_TAG"Screen -> off\n");
+		return;
+	}
 
     /* main work thread can sleep now */
     cancel_delayed_work_sync(&msm_mpdec_work);
