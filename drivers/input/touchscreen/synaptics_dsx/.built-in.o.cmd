@@ -1,1 +1,0 @@
-cmd_drivers/input/touchscreen/synaptics_dsx/built-in.o :=  ../prebuilts/gcc/linux-x86/arm/arm-eabi-4.7/bin/arm-eabi-ld -EL    -r -o drivers/input/touchscreen/synaptics_dsx/built-in.o drivers/input/touchscreen/synaptics_dsx/synaptics_dsx_i2c.o 

@@ -1,1 +1,0 @@
-cmd_drivers/switch/built-in.o :=  ../prebuilts/gcc/linux-x86/arm/arm-eabi-4.7/bin/arm-eabi-ld -EL    -r -o drivers/switch/built-in.o drivers/switch/switch_class.o drivers/switch/hds_max1462x.o drivers/switch/hds_max14688.o 
