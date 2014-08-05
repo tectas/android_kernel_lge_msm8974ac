@@ -1,0 +1,1 @@
+cmd_drivers/broadcast/tdmb/built-in.o :=  ../prebuilts/gcc/linux-x86/arm/arm-eabi-4.7/bin/arm-eabi-ld -EL    -r -o drivers/broadcast/tdmb/built-in.o drivers/broadcast/tdmb/broadcast_tdmb_drv_if.o drivers/broadcast/tdmb/fc8080/built-in.o 

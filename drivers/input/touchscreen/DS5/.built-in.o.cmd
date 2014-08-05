@@ -1,0 +1,1 @@
+cmd_drivers/input/touchscreen/DS5/built-in.o :=  ../prebuilts/gcc/linux-x86/arm/arm-eabi-4.7/bin/arm-eabi-ld -EL    -r -o drivers/input/touchscreen/DS5/built-in.o drivers/input/touchscreen/DS5/RefCode_CustomerImplementation.o drivers/input/touchscreen/DS5/RefCode_F54.o 

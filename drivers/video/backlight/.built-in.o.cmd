@@ -1,0 +1,1 @@
+cmd_drivers/video/backlight/built-in.o :=  ../prebuilts/gcc/linux-x86/arm/arm-eabi-4.7/bin/arm-eabi-ld -EL    -r -o drivers/video/backlight/built-in.o drivers/video/backlight/backlight.o drivers/video/backlight/lm3697.o drivers/video/backlight/lm3631.o 

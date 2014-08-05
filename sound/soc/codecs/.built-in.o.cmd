@@ -1,0 +1,1 @@
+cmd_sound/soc/codecs/built-in.o :=  ../prebuilts/gcc/linux-x86/arm/arm-eabi-4.7/bin/arm-eabi-ld -EL    -r -o sound/soc/codecs/built-in.o sound/soc/codecs/msm_hdmi_codec_rx.o sound/soc/codecs/snd-soc-cs35l32.o sound/soc/codecs/snd-soc-wcd9320.o sound/soc/codecs/snd-soc-msm-stub.o 
