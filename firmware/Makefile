@@ -165,8 +165,8 @@ quiet_cmd_mkdir = MKDIR   $(patsubst $(objtree)/%,%,$@)
 quiet_cmd_ihex  = IHEX    $@
       cmd_ihex  = $(OBJCOPY) -Iihex -Obinary $< $@
 
-quiet_cmd_copy  = COPY    $@
-      cmd_copy  = cp $(srctree)/$@ $@
+#quiet_cmd_copy  = COPY    $@
+#      cmd_copy  = cp $(srctree)/$@ $@
 
 quiet_cmd_ihex2fw  = IHEX2FW $@
       cmd_ihex2fw  = $(objtree)/$(obj)/ihex2fw $< $@
