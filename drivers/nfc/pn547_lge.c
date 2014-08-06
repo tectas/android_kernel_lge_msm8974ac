@@ -246,8 +246,8 @@ wait:
 #endif
         if (ret == -ERESTARTSYS) {
             if (pn547_dev->count_irq <= 0) {
-                //pr_err("%s: pass wait_event_interruptible by signal. Skip!\n", __func__); // for debug
-                return -ENOTCONN;
+                //pr_err("%s: pass wait_event_interruptible by signal. Skip 999!\n", __func__); // for debug
+                return -0xFF;
             }
 #ifdef CONFIG_LGE_NFC_USE_TIMEOUT_WAKELOCK
             else {

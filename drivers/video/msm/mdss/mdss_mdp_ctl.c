@@ -201,7 +201,11 @@ int mdss_mdp_perf_calc_pipe(struct mdss_mdp_pipe *pipe,
 		pinfo = &mixer->ctl->panel_data->panel_info;
 #ifdef CONFIG_LGE_DEVFREQ_DFPS
 		fps = (pinfo->type!=MIPI_VIDEO_PANEL) ? mdss_panel_get_framerate(pinfo) : 60;
+#ifdef CONFIG_MACH_MSM8974_G3_USC_US
+		v_total = (pinfo->type!=MIPI_VIDEO_PANEL) ? mdss_panel_get_vtotal(pinfo) : 2647;
+#else
 		v_total = (pinfo->type!=MIPI_VIDEO_PANEL) ? mdss_panel_get_vtotal(pinfo) : 2571;
+#endif
 #else
 		fps = mdss_panel_get_framerate(pinfo);
 		v_total = mdss_panel_get_vtotal(pinfo);
@@ -271,7 +275,11 @@ static void mdss_mdp_perf_mixer_update(struct mdss_mdp_mixer *mixer,
 			pinfo = &mixer->ctl->panel_data->panel_info;
 #ifdef CONFIG_LGE_DEVFREQ_DFPS
 			fps = (pinfo->type!=MIPI_VIDEO_PANEL) ? mdss_panel_get_framerate(pinfo) : 60;
+#ifdef CONFIG_MACH_MSM8974_G3_USC_US
+			v_total = (pinfo->type!=MIPI_VIDEO_PANEL) ? mdss_panel_get_vtotal(pinfo) : 2647;
+#else
 			v_total = (pinfo->type!=MIPI_VIDEO_PANEL) ? mdss_panel_get_vtotal(pinfo) : 2571;
+#endif
 #else
 			fps = mdss_panel_get_framerate(pinfo);
 			v_total = mdss_panel_get_vtotal(pinfo);

@@ -592,6 +592,10 @@ void hdmi_rx_initialization(void)
 	sp_write_reg_or(RX_P0, RX_VID_DATA_RNG, R2Y_INPUT_LIMIT);
 	sp_write_reg(RX_P0, RX_CEC_CTRL, CEC_RST);
 	sp_write_reg(RX_P0, RX_CEC_SPEED, CEC_SPEED_27M);
+
+	sp_write_reg(RX_P0, 0x65, 0xc4);
+	sp_write_reg(RX_P0, 0x66, 0x18);
+
 	/* sp_write_reg(RX_P0, RX_CEC_CTRL, CEC_RX_EN); */
 	hdmi_rx_tmds_phy_initialization();
 	hdmi_rx_set_hpd(0);
