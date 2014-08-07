@@ -601,6 +601,7 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 			mdss_mdp_display_wait4comp(ctl);
 		} else if (pdata->panel_info.dfps_update
 				== DFPS_IMMEDIATE_PORCH_UPDATE_MODE){
+			unsigned long flags;
 			if (!ctx->timegen_en) {
 				pr_err("TG is OFF. DFPS mode invalid\n");
 				return -EINVAL;
@@ -622,15 +623,18 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 			video_vsync_irq_disable(ctl);
 
 #ifdef CONFIG_LGE_DEVFREQ_DFPS
+			spin_lock_irqsave(&ctx->dfps_lock, flags);
 			line_count = mdss_mdp_video_line_count(ctl);
 			if(line_count >= pdata->panel_info.yres/3){
 				pr_err("Too few lines left line_cnt = %d y_res/3 = %d \n", line_count, pdata->panel_info.yres/3);
+				spin_unlock_irqrestore(&ctx->dfps_lock, flags);
 				return -EPERM;
 			}
 #endif
 			rc = mdss_mdp_video_vfp_fps_update(ctl, new_fps);
 			if (rc < 0) {
 				pr_err("%s: Error during DFPS\n", __func__);
+				spin_unlock_irqrestore(&ctx->dfps_lock, flags);
 				return rc;
 			}
 			if (sctl) {
@@ -638,12 +642,14 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 								new_fps);
 				if (rc < 0) {
 					pr_err("%s: DFPS error\n", __func__);
+					spin_unlock_irqrestore(&ctx->dfps_lock, flags);
 					return rc;
 				}
 			}
 			rc = mdss_mdp_ctl_intf_event(ctl,
 						MDSS_EVENT_PANEL_UPDATE_FPS,
 						(void *)new_fps);
+			spin_unlock_irqrestore(&ctx->dfps_lock, flags);
 			WARN(rc, "intf %d panel fps update error (%d)\n",
 							ctl->intf_num, rc);
 		} else {

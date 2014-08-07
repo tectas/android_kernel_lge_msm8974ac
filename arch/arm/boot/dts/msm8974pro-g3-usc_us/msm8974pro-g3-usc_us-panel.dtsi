@@ -18,6 +18,26 @@
 	status = "ok";
 };
 
+&dsi_lgd_sic_1440_vid0 {
+	qcom,mdss-dsi-v-back-porch = <81>;
+	qcom,mdss-dsi-v-front-porch = <5>;
+	qcom,mdss-dsi-v-pulse-width = <1>;
+	qcom,mdss-dsi-panel-timings = [C9 2E 20 00 5C 5E
+		24 32 27 03 04 00];
+	qcom,mdss-dsi-t-clk-post = <0x03>;
+	qcom,mdss-dsi-t-clk-pre = <0x26>;
+};
+
+&dsi_lgd_sic_1440_vid1 {
+	qcom,mdss-dsi-v-back-porch = <81>;
+	qcom,mdss-dsi-v-front-porch = <5>;
+	qcom,mdss-dsi-v-pulse-width = <1>;
+	qcom,mdss-dsi-panel-timings = [C9 2E 20 00 5C 5E
+		24 32 27 03 04 00];
+	qcom,mdss-dsi-t-clk-post = <0x03>;
+	qcom,mdss-dsi-t-clk-pre = <0x26>;
+};
+
 &soc {
 	i2c@f9967000 {
 		lm3631@29{
