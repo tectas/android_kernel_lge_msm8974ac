@@ -44,8 +44,6 @@
 /*  Global Variable Definitions                                         */
 /*----------------------------------------------------------------------*/
 
-extern FS_STRUCT_T      fs_struct[];
-
 #define sm_P(s)
 #define sm_V(s)
 
@@ -77,7 +75,7 @@ s32 buf_init(struct super_block *sb)
 {
 	FS_INFO_T *p_fs = &(EXFAT_SB(sb)->fs_info);
 
-	s32 i;
+	int i;
 
 	/* LRU list */
 	p_fs->FAT_cache_lru_list.next = p_fs->FAT_cache_lru_list.prev = &p_fs->FAT_cache_lru_list;
@@ -780,5 +778,3 @@ static void move_to_lru(BUF_CACHE_T *bp, BUF_CACHE_T *list)
 	bp->next->prev = bp->prev;
 	push_to_lru(bp, list);
 } /* end of buf_cache_move_to_lru */
-
-/* end of exfat_cache.c */
