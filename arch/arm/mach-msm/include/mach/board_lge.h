@@ -1,7 +1,24 @@
 #ifndef __ASM_ARCH_MSM_BOARD_LGE_H
 #define __ASM_ARCH_MSM_BOARD_LGE_H
 
-#if defined (CONFIG_MACH_MSM8974_G3_GLOBAL_COM) || defined (CONFIG_MACH_MSM8974_G3_KDDI)
+#if defined (CONFIG_MACH_MSM8974_G3_GLOBAL_COM)
+typedef enum {
+	HW_REV_EVB1 = 0,
+	HW_REV_EVB2,
+	HW_REV_A,
+	HW_REV_A1,
+	HW_REV_B,
+	HW_REV_C,
+	HW_REV_D,
+	HW_REV_E,
+	HW_REV_G,
+	HW_REV_H,
+	HW_REV_1_0,
+	HW_REV_1_1,
+	HW_REV_1_2,
+	HW_REV_MAX
+} hw_rev_type;
+#elif defined (CONFIG_MACH_MSM8974_G3_KDDI)
 typedef enum {
 	HW_REV_EVB1 = 0,
 	HW_REV_EVB2,

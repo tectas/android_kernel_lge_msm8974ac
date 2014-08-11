@@ -3738,7 +3738,7 @@ static void set_knockOn_param(struct synaptics_ts_data *ts, int mode) //0: pocke
 	touch_i2c_read(ts->client, wakeup_address, 7, udata);
 
 	if(mode) {
-#ifdef CONFIG_MACH_MSM8974_G3_KR
+#if defined(CONFIG_MACH_MSM8974_G3_KR) || defined(CONFIG_MACH_MSM8974_G3_CA)
 		udata[2] = 0x03;
 #else
 		udata[2] = 0x0C;
@@ -3755,7 +3755,7 @@ static void set_knockOn_param(struct synaptics_ts_data *ts, int mode) //0: pocke
 		else
 			udata[2] = 0x06;
 		udata[4] = 0x00; //timer1
-#ifdef CONFIG_MACH_MSM8974_G3_KR
+#if defined(CONFIG_MACH_MSM8974_G3_KR) || defined(CONFIG_MACH_MSM8974_G3_CA)
 		udata[5] = 0x1E; //max activation timeout
 #else
 		udata[5] = 0x0A; //max activation timeout

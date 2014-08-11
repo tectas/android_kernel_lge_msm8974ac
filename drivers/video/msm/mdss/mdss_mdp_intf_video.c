@@ -813,7 +813,7 @@ int mdss_mdp_video_start(struct mdss_mdp_ctl *ctl)
 	ctx->intf_type = ctl->intf_type;
 	init_completion(&ctx->vsync_comp);
 	spin_lock_init(&ctx->vsync_lock);
-#ifdef CONFIG_MACH_MSM8974_G3_SPR_US
+#if definded(CONFIG_MACH_MSM8974_G3_SPR_US) || defined(CONFIG_MACH_MSM8974_G3_CA)
 	spin_lock_init(&ctx->dfps_lock);
 #endif
 	mutex_init(&ctx->vsync_mtx);
