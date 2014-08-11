@@ -3738,7 +3738,11 @@ static void set_knockOn_param(struct synaptics_ts_data *ts, int mode) //0: pocke
 	touch_i2c_read(ts->client, wakeup_address, 7, udata);
 
 	if(mode) {
+#ifdef CONFIG_MACH_MSM8974_G3_KR
+		udata[2] = 0x03;
+#else
 		udata[2] = 0x0C;
+#endif
 		udata[4] = 0x0A;
 		udata[5] = 0x0A;
 		if(touch_i2c_write(ts->client, wakeup_address, 7, udata) < 0) {
@@ -3751,7 +3755,11 @@ static void set_knockOn_param(struct synaptics_ts_data *ts, int mode) //0: pocke
 		else
 			udata[2] = 0x06;
 		udata[4] = 0x00; //timer1
+#ifdef CONFIG_MACH_MSM8974_G3_KR
+		udata[5] = 0x1E; //max activation timeout
+#else
 		udata[5] = 0x0A; //max activation timeout
+#endif
 		if(touch_i2c_write(ts->client, wakeup_address, 7, udata) < 0) {
 			TOUCH_ERR_MSG("%s : Touch i2c write fail !! \n", __func__);
 		}
