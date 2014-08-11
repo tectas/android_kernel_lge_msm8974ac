@@ -252,7 +252,11 @@ static struct max14688_button_match max14688_button_matches[] = {
                        impedence          impedence      type    code */
     BUTTON_MATCH("MEDIA",  Z(0,      150000), DONTCARE,    EV_KEY, KEY_MEDIA),
     BUTTON_MATCH("VOLUP",  Z(150000, 400000), DONTCARE,    EV_KEY, KEY_VOLUMEUP),
+#ifdef CONFIG_MACH_MSM8974_G3_VZW
+    BUTTON_MATCH("VOLDN",  Z(400000, 650000), DONTCARE,    EV_KEY, KEY_VOLUMEDOWN),
+#else
     BUTTON_MATCH("VOLDN",  Z(400000, 600000), DONTCARE,    EV_KEY, KEY_VOLUMEDOWN),
+#endif
 };
 
 static int max14688_log_level = 1;

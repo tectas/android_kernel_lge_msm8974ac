@@ -683,6 +683,9 @@ static int dwc3_otg_set_power(struct usb_phy *phy, unsigned mA)
 	power_supply_set_supply_type(dotg->psy, power_supply_type);
 #endif
 
+#if defined(CONFIG_DWC3_MSM_BC_12_VZW_SUPPORT) && defined(CONFIG_LGE_PM)
+	if (dotg->charger->max_power <= IUNIT && mA > 2) {
+#else
 	if (dotg->charger->max_power <= 2 && mA > 2) {
 		/* Enable charging */
 		if (power_supply_set_online(dotg->psy, true))

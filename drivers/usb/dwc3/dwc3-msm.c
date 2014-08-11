@@ -61,11 +61,14 @@
 extern void send_drv_state_uevent(int usb_drv_state);
 #define DWC3_VZW_DRV_CHECK_DELAY msecs_to_jiffies(1000)
 #define DWC3_VZW_DRV_CHECK_MAX_RETRIES 20
-#define DWC3_VZW_FC_CHECK_MAX_RETRIES 6
+#define DWC3_VZW_FC_CHECK_MAX_RETRIES 10
 enum usb_drv_state {
 	USB_DRV_STATE_UNDEFINED = 0,
 	USB_DRV_STATE_WAIT_FOR_CONNECTED,
 	USB_DRV_STATE_WAIT_FOR_CONFIGURED,
+#ifdef CONFIG_MACH_MSM8974_G3_VZW
+	USB_DRV_STATE_DISCONNECTED,
+#endif
 	USB_DRV_STATE_DONE,
 };
 #endif
@@ -337,13 +340,22 @@ static void vzw_drv_check_work(struct work_struct *w)
 			if (mdwc->charger.chg_type == DWC3_FLOATED_CHARGER) {
 				pr_info("%s: %s Send driver uninstalled uevent.\n",
 						__func__, "Floated charger Connected.");
+#ifdef CONFIG_MACH_MSM8974_G3_VZW
+				power_supply_set_online(&mdwc->usb_psy, 1);
+				power_supply_set_floated_charger(&mdwc->usb_psy, 1);
+#else
 				send_drv_state_uevent(0);
+#endif
 				mdwc->drv_state = USB_DRV_STATE_DONE;
 				delay = 0;
 			} else if (tmout) {
 				pr_info("%s: %s Send driver uninstalled uevent.\n",
 						__func__, "SDP? charger Connected, but not connected");
+#ifdef CONFIG_MACH_MSM8974_G3_VZW
+				power_supply_set_usb_driver_uninstall(&mdwc->usb_psy, 1);
+#else
 				send_drv_state_uevent(0);
+#endif
 				mdwc->drv_state = USB_DRV_STATE_DONE;
 				delay = 0;
 			} else {
@@ -361,17 +373,33 @@ static void vzw_drv_check_work(struct work_struct *w)
 		if (tmout) {
 			pr_info("%s: %s Send driver uninstalled uevent.\n",
 					__func__, "USB connected, but not configured.");
+#ifdef CONFIG_MACH_MSM8974_G3_VZW
+			power_supply_set_usb_driver_uninstall(&mdwc->usb_psy, 1);
+#else
 			send_drv_state_uevent(0);
+#endif
 			mdwc->drv_state = USB_DRV_STATE_DONE;
 			delay = 0;
 		} else if (mdwc->charger.vzw_usb_config_state == VZW_USB_STATE_CONFIGURED) {
 			pr_info("%s: USB configured. Send driver installed uevent.\n", __func__);
+#ifdef CONFIG_MACH_MSM8974_G3_VZW
+			power_supply_set_usb_driver_uninstall(&mdwc->usb_psy, 0);
+#else
 			send_drv_state_uevent(1);
+#endif
 			mdwc->drv_state = USB_DRV_STATE_DONE;
 			delay = 0;
 		} else
 			delay = DWC3_VZW_DRV_CHECK_DELAY;
 		break;
+
+	case USB_DRV_STATE_DISCONNECTED:
+		pr_info("%s: USB charger is disconnected.\n", __func__);
+		power_supply_set_usb_driver_uninstall(&mdwc->usb_psy, 0);
+		power_supply_set_online(&mdwc->usb_psy, 0);
+		power_supply_set_floated_charger(&mdwc->usb_psy, 0);
+		mdwc->drv_state = USB_DRV_STATE_DONE;
+		delay = 0;
 
 	case USB_DRV_STATE_DONE:
 		return;
@@ -384,8 +412,16 @@ static void vzw_drv_check_state_work(struct work_struct *w)
 	struct dwc3_msm *mdwc = container_of(w, struct dwc3_msm, drv_check_state_work.work);
 
 	pr_info("%s: vzw_drv_check_work ++ \n", __func__);
+#ifdef CONFIG_MACH_MSM8974_G3_VZW
+	if (mdwc->vbus_active)
+		mdwc->drv_state = USB_DRV_STATE_UNDEFINED;
+	else
+		mdwc->drv_state = USB_DRV_STATE_DISCONNECTED;
+#endif
 	cancel_delayed_work_sync(&mdwc->drv_check_work);
+#ifndef CONFIG_MACH_MSM8974_G3_VZW
 	mdwc->drv_state = USB_DRV_STATE_UNDEFINED;
+#endif
 	queue_delayed_work(system_nrt_wq, &mdwc->drv_check_work, 0);
 }
 #endif
@@ -2550,6 +2586,10 @@ static int dwc3_msm_power_set_property_usb(struct power_supply *psy,
 				init = true;
 		}
 		mdwc->vbus_active = val->intval;
+#ifdef CONFIG_DWC3_MSM_BC_12_VZW_SUPPORT
+		if (!mdwc->vbus_active)
+			queue_delayed_work(system_nrt_wq, &mdwc->drv_check_state_work, 0);
+#endif
 		break;
 	case POWER_SUPPLY_PROP_ONLINE:
 		mdwc->online = val->intval;
@@ -2581,6 +2621,9 @@ static int dwc3_msm_power_set_event_property_usb(struct power_supply *psy,
 	switch (psp) {
 	case POWER_SUPPLY_PROP_FLOATED_CHARGER:
 		psy->is_floated_charger = val->intval;
+		break;
+	case POWER_SUPPLY_PROP_DRIVER_UNINSTALL:
+		psy->is_usb_driver_uninstall = val->intval;
 		break;
 	default:
 		return -EINVAL;

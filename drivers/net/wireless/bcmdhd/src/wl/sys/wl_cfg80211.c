@@ -7657,7 +7657,7 @@ fail:
 #endif /* LINUX_VERSION < VERSION(3,4,0) || WL_COMPAT_WIRELESS */
 
 #ifdef WL_SCHED_SCAN
-#define PNO_TIME		120 //30
+#define PNO_TIME		12 //30
 #define PNO_REPEAT		2 // 4
 #define PNO_FREQ_EXPO_MAX	5 // 2
 static int

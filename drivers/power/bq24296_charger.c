@@ -2228,6 +2228,7 @@ static void bq24296_decide_otg_mode(struct bq24296_chip *chip)
 
 #define	ADC_TO_IINMAX(x) (((int)(x)*198)/100)
 #define VZW_UNDER_CURRENT_CHARGING_MA	400000
+#define VZW_UNDER_CURRENT_CHARGING_A	(VZW_UNDER_CURRENT_CHARGING_MA/1000)
 #define VZW_UNDER_CURRENT_CHARGING_DETECT_MV	4200000
 static void VZW_CHG_director(struct bq24296_chip *chip)
 {
@@ -2240,10 +2241,21 @@ static void VZW_CHG_director(struct bq24296_chip *chip)
 		goto normal_charger;
 
 	/* Invalid charger detect */
+#ifdef CONFIG_MACH_MSM8974_G3_VZW
+	if (chip->usb_psy->is_usb_driver_uninstall) {
+		chip->vzw_chg_mode = VZW_USB_DRIVER_UNINSTALLED;
+		pr_info("VZW usb driver uninstall detected!!\n");
+		goto exit;
+	}
+#endif
 	if (lge_get_board_revno() < HW_REV_1_0)
 		goto normal_charger;
+#ifdef CONFIG_MACH_MSM8974_G3_VZW
+	if (chip->usb_psy->is_floated_charger) {
+#else
 	bq24296_charger_psy_getprop(chip, usb_psy, ONLINE, &val);
 	if (chip->usb_psy->is_floated_charger && !val.intval) {
+#endif
 		chip->vzw_chg_mode = VZW_NOT_CHARGING;
 		pr_info("VZW invalid charging detected!!\n");
 		goto exit;
@@ -2257,13 +2269,27 @@ static void VZW_CHG_director(struct bq24296_chip *chip)
 	else
 		goto normal_charger;
 	if (val.intval > VZW_UNDER_CURRENT_CHARGING_DETECT_MV)
+#ifdef CONFIG_MACH_MSM8974_G3_VZW
+		goto normal_charger;
+	bq24296_charger_psy_getprop(chip, psy_this, CURRENT_MAX, &val);
+	if (val.intval < VZW_UNDER_CURRENT_CHARGING_A)
+		goto normal_charger;
+#else
 		//goto normal_charger;
 		goto exit;
 	qpnp_vadc_read(chip->vadc_dev, LR_MUX4_AMUX_THM1, &result);
+#endif
 	bq24296_charger_psy_getprop(chip, usb_psy, TYPE, &val);
+#ifdef CONFIG_MACH_MSM8974_G3_VZW
+	if (val.intval != POWER_SUPPLY_TYPE_USB_DCP)
+		goto normal_charger;
+	qpnp_vadc_read(chip->vadc_dev, LR_MUX4_AMUX_THM1, &result);
+	if (ADC_TO_IINMAX(result.physical) < VZW_UNDER_CURRENT_CHARGING_MA) {
+#else
 	if ((val.intval == POWER_SUPPLY_TYPE_USB_DCP) &&
 			(ADC_TO_IINMAX(result.physical) <
 				VZW_UNDER_CURRENT_CHARGING_MA)) {
+#endif
 		chip->vzw_chg_mode = VZW_UNDER_CURRENT_CHARGING;
 		pr_info("VZW slow charging detected!!\n");
 		goto exit;
@@ -2545,7 +2571,9 @@ static int bq24296_power_get_event_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_FLOATED_CHARGER:
 		val->intval = psy->is_floated_charger;
 		break;
-
+	case POWER_SUPPLY_PROP_DRIVER_UNINSTALL:
+		val->intval = psy->is_usb_driver_uninstall;
+		break;
 	default:
 		break;
 	}
@@ -3354,7 +3382,11 @@ static int bq24296_parse_dt(struct device_node *dev_node,
 				chip->pre_input_current_ma);
 	if (ret) {
 		pr_err("Unable to read pre-fastchg-current-ma. Set 0.\n");
+#ifdef CONFIG_MACH_MSM8974_G3_VZW
+		chip->pre_input_current_ma = 0;
+#else
 		chip->pre_input_current_ma = 1000;
+#endif
 	}
 #endif
 	ret = of_property_read_u32(dev_node, "ti,term-current-ma",
