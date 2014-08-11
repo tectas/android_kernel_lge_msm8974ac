@@ -2571,9 +2571,11 @@ static int bq24296_power_get_event_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_FLOATED_CHARGER:
 		val->intval = psy->is_floated_charger;
 		break;
+#ifdef CONFIG_MACH_MSM8974_G3_VZW
 	case POWER_SUPPLY_PROP_DRIVER_UNINSTALL:
 		val->intval = psy->is_usb_driver_uninstall;
 		break;
+#endif
 	default:
 		break;
 	}
