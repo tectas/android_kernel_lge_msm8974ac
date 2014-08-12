@@ -351,13 +351,16 @@ CHECK		= sparse
 CC		= $(srctree)/scripts/gcc-wrapper.py $(REAL_CC)
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
-		  -Wbitwise -Wno-return-void $(CF)
-CFLAGS_MODULE   =
-AFLAGS_MODULE   =
-LDFLAGS_MODULE  =
-CFLAGS_KERNEL	= -Wno-array-bounds -Wframe-larger-than=2048 # -O3
-AFLAGS_KERNEL	=
+		  -Wbitwise -Wno-return-void -Wno-array-bounds -Wframe-larger-than=2048 $(CF)
+
+CFLAGS_KERNEL	= -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -mcpu=cortex-a15 -mtune=cortex-a15 -marm -mfpu=neon -ftree-vectorize -mvectorize-with-neon-quad -funroll-loops # -O3
+AFLAGS_KERNEL	= $(CFLAGS_KERNEL)
+
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
+
+CFLAGS_MODULE   = -DMODULE $(CFLAGS_KERNEL)
+AFLAGS_MODULE   = $(CFLAGS_MODULE)
+LDFLAGS_MODULE  = $(CFLAGS_MODULE)
 
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
@@ -373,7 +376,11 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
-		   -fno-delete-null-pointer-checks
+		   -fno-delete-null-pointer-checks \
+		   -mcpu=cortex-a15 -mtune=cortex-a15 -mfpu=neon-vfpv4 -marm \
+		   -ffast-math -fsingle-precision-constant \
+		   -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr
+
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
@@ -566,7 +573,7 @@ all: vmlinux
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
 else
-KBUILD_CFLAGS	+= -O3
+KBUILD_CFLAGS	+= -O3 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize
 endif
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
