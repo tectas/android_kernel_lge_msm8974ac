@@ -2743,7 +2743,7 @@ out:
 static long do_rmdir(int dfd, const char __user *pathname)
 {
 	int error = 0;
-	char * name;
+	char * name = NULL;
 	struct dentry *dentry;
 	struct nameidata nd;
 
@@ -2838,9 +2838,9 @@ int vfs_unlink(struct inode *dir, struct dentry *dentry)
  */
 static long do_unlinkat(int dfd, const char __user *pathname)
 {
-	int error;
-	char *name;
-	struct dentry *dentry;
+	int error = 0;
+	char *name = NULL;
+	struct dentry *dentry = NULL;
 	struct nameidata nd;
 	struct inode *inode = NULL;
 
@@ -3235,13 +3235,13 @@ int vfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 SYSCALL_DEFINE4(renameat, int, olddfd, const char __user *, oldname,
 		int, newdfd, const char __user *, newname)
 {
-	struct dentry *old_dir, *new_dir;
-	struct dentry *old_dentry, *new_dentry;
-	struct dentry *trap;
+	struct dentry *old_dir = NULL, *new_dir = NULL;
+	struct dentry *old_dentry = NULL, *new_dentry = NULL;
+	struct dentry *trap = NULL;
 	struct nameidata oldnd, newnd;
-	char *from;
-	char *to;
-	int error;
+	char *from = NULL;
+	char *to = NULL;
+	int error = 0;
 
 	error = user_path_parent(olddfd, oldname, &oldnd, &from);
 	if (error)

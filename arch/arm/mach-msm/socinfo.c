@@ -755,8 +755,8 @@ efuse_info_type vddgfx_rd = {
 
 efuse_addr rbcpr_read_efuse(efuse_info_type efuse_info, avs_mode_type mode)
 {
-	efuse_addr efuse_addr_info;
-	fuse_setting_type fuse_set;
+	efuse_addr efuse_addr_info = { .fuse_base = 0, .offset = 0 };
+	fuse_setting_type fuse_set = { 	.fuse_index = 0, .offset = 0 };
 
 	switch(mode) {
 	case TURBO_MODE:
