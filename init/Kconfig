@@ -954,13 +954,22 @@ source "usr/Kconfig"
 
 endif
 
-config CC_OPTIMIZE_FOR_SIZE
-	bool "Optimize for size"
+config CC_OPTIMIZE_DEFAULT
+	bool "Default Optimization"
 	help
-	  Enabling this option will pass "-Os" instead of "-O2" to gcc
-	  resulting in a smaller kernel.
+	  Enabling this option will pass "-O2" instead of "-Os" to gcc
+	  resulting in a bigger, better optimized kernel.
 
-	  If unsure, say Y.
+	  If unsure, say N.
+
+config CC_OPTIMIZE_SPEED
+	bool "Optimize for speed"
+	help
+	  Enabling this option will pass "-O3" instead of "-Os" to gcc
+	  resulting in a bigger, better optimized kernel.
+
+	  If unsure, say N.
+
 
 config SYSCTL
 	bool
