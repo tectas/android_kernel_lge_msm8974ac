@@ -482,9 +482,9 @@ static int worker_pool_pri(struct worker_pool *pool)
 
 static struct global_cwq *get_gcwq(unsigned int cpu)
 {
-	if (cpu != WORK_CPU_UNBOUND)
+	if (cpu != WORK_CPU_UNBOUND && cpu) {
 		return &per_cpu(global_cwq, cpu);
-	else
+	} else
 		return &unbound_global_cwq;
 }
 
@@ -3699,7 +3699,7 @@ EXPORT_SYMBOL_GPL(work_on_cpu);
  */
 void freeze_workqueues_begin(void)
 {
-	unsigned int cpu;
+	unsigned int cpu = 0;
 
 	spin_lock(&workqueue_lock);
 

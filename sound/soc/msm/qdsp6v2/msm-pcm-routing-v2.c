@@ -153,7 +153,7 @@ static void msm_send_eq_values(int eq_idx);
  * If new back-end is defined, add new back-end DAI ID at the end of enum
  */
 
-#define SRS_TRUMEDIA_INDEX 2
+#define SRS_TRUMEDIA_INDEX 5
 union srs_trumedia_params_u {
 	struct srs_trumedia_params srs_params;
 	unsigned short int raw_params[1];
@@ -1210,9 +1210,9 @@ static int msm_routing_set_srs_trumedia_control_(struct snd_kcontrol *kcontrol,
 					__func__, i, i>>1);
 				break;
 			}
-			pr_debug("SRS %s: param_index %d index %d val %d",
+			/*pr_debug("SRS %s: param_index %d index %d val %d",
 				__func__, index, i,
-				msm_srs_trumedia_params[index].raw_params[i]);
+				msm_srs_trumedia_params[index].raw_params[i]); */
 		}
 	}
 	return 0;
