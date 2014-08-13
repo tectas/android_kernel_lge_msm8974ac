@@ -482,7 +482,7 @@ static int worker_pool_pri(struct worker_pool *pool)
 
 static struct global_cwq *get_gcwq(unsigned int cpu)
 {
-	if (cpu != WORK_CPU_UNBOUND && cpu) {
+	if (cpu != WORK_CPU_UNBOUND) {
 		return &per_cpu(global_cwq, cpu);
 	} else
 		return &unbound_global_cwq;
