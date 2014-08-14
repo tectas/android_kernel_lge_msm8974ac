@@ -63,7 +63,7 @@ config IOSCHED_FIFO
 config IOSCHED_BFQ
 	tristate "BFQ I/O scheduler"
 	depends on EXPERIMENTAL
-	default n
+	default y
 	---help---
 	  The BFQ I/O scheduler tries to distribute bandwidth among
 	  all processes according to their weights.
@@ -114,12 +114,12 @@ config IOSCHED_TRIPNDROID
 	  The Trip N Droid scheduler
 
 config IOSCHED_FIOPS
-tristate "IOPS based I/O scheduler"
-default y
----help---
-This is an IOPS based I/O scheduler. It will try to distribute
-          IOPS equally among all processes in the system. It's mainly for
-          Flash based storage.
+	tristate "IOPS based I/O scheduler"
+	default y
+	---help---
+	This is an IOPS based I/O scheduler. It will try to distribute
+		  IOPS equally among all processes in the system. It's mainly for
+		  Flash based storage.
 
 choice
 	prompt "Default I/O scheduler"
