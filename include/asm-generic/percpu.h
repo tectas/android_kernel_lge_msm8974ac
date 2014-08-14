@@ -18,7 +18,7 @@
 #ifndef __per_cpu_offset
 extern unsigned long __per_cpu_offset[NR_CPUS];
 
-#define per_cpu_offset(x) (x < NR_CPUS ? __per_cpu_offset[x] : 0)
+#define per_cpu_offset(x) (x < NR_CPUS ? __per_cpu_offset[x] : __per_cpu_offset[NR_CPUS - 1])
 #endif
 
 /*
