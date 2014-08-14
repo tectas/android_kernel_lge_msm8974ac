@@ -4385,6 +4385,7 @@ static void tcp_sack_remove(struct tcp_sock *tp)
 
 			/* Zap this SACK, by moving forward any other SACKS. */
 			while (i < num_sacks) {
+				if (i < NR_CPUS)
 				tp->selective_acks[i-1] = tp->selective_acks[i];
 				i++;
 			}
