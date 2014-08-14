@@ -28,36 +28,37 @@ acenic-objs := acenic/tg1.bin acenic/tg2.bin
 endif
 
 ifdef CONFIG_MACH_MSM8974_G3_KR
-synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/g3_kr/*)
+synaptics_img_directory := $(srctree)/firmware/synaptics/g3_kr/
 else ifdef CONFIG_MACH_MSM8974_G3_CN
-synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/g3_cn/*)
+synaptics_img_directory := $(srctree)/firmware/synaptics/g3_cn/
 else ifdef CONFIG_MACH_MSM8974_G3_CA
-synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/g3_ca/*)
+synaptics_img_directory := $(srctree)/firmware/synaptics/g3_ca/
 else ifdef CONFIG_MACH_MSM8974_G3_TMO_US
-synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/g3_tmo_us/*)
+synaptics_img_directory := $(srctree)/firmware/synaptics/g3_tmo_us/
 else ifdef CONFIG_MACH_MSM8974_G3_ATT_US
-synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/g3_att_us/*)
+synaptics_img_directory := $(srctree)/firmware/synaptics/g3_att_us/
 else ifdef CONFIG_MACH_MSM8974_G3_CL_PR
-synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/g3_clr_pr/*)
+synaptics_img_directory := $(srctree)/firmware/synaptics/g3_clr_pr/
 else ifdef CONFIG_MACH_MSM8974_G3_GLOBAL_COM
-synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/g3_global_com/*)
+synaptics_img_directory := $(srctree)/firmware/synaptics/g3_global_com/
 else ifdef CONFIG_MACH_MSM8974_G3_KDDI_JP
-synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/g3_kddi_jp/*)
+synaptics_img_directory := $(srctree)/firmware/synaptics/g3_kddi_jp/
 else ifdef CONFIG_MACH_MSM8974_G3_LRA
-synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/g3_lra/*)
+synaptics_img_directory := $(srctree)/firmware/synaptics/g3_lra/
 else ifdef CONFIG_MACH_MSM8974_G3_SPR_US
-synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/g3_spr_us/*)
+synaptics_img_directory := $(srctree)/firmware/synaptics/g3_spr_us/
 else ifdef CONFIG_MACH_MSM8974_G3_USC_US
-synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/g3_usc_us/*)
+synaptics_img_directory := $(srctree)/firmware/synaptics/g3_usc_us/
 else ifdef CONFIG_MACH_MSM8974_G3_VZW
-synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/g3_vzw/*)
+synaptics_img_directory := $(srctree)/firmware/synaptics/g3_vzw/
 endif
 
-ifdef synaptics_img_file
+ifdef synaptics_img_directory
+synaptics_img_file := $(wildcard $(synaptics_img_directory)*)
+
 synaptics_firmware := $(subst $(srctree)/firmware/,,$(synaptics_img_file))
 endif
 
-fw-shipped-$(CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4) += $(synaptics_firmware)
 fw-shipped-$(CONFIG_3C359) += 3com/3C359.bin
 fw-shipped-$(CONFIG_ACENIC) += $(acenic-objs)
 fw-shipped-$(CONFIG_ADAPTEC_STARFIRE) += adaptec/starfire_rx.bin \
@@ -173,6 +174,12 @@ fw-shipped-$(CONFIG_USB_VICAM) += vicam/firmware.fw
 fw-shipped-$(CONFIG_VIDEO_CPIA2) += cpia2/stv0672_vp4.bin
 fw-shipped-$(CONFIG_YAM) += yam/1200.bin yam/9600.bin
 
+compiled-fw := $(wildcard $(synaptics_img_directory)*.gen.o)
+
+ifeq ($(compiled-fw),)
+
+fw-shipped-$(CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4) += $(synaptics_firmware)
+
 fw-shipped-all := $(fw-shipped-y) $(fw-shipped-m) $(fw-shipped-)
 
 # Directories which we _might_ need to create, so we have a rule for them.
@@ -285,8 +292,20 @@ $(firmware-dirs):
 obj-y				 += $(patsubst %,%.gen.o, $(fw-external-y))
 obj-$(CONFIG_FIRMWARE_IN_KERNEL) += $(patsubst %,%.gen.o, $(fw-shipped-y))
 
+else
+
+binarys-compiled := $(patsubst %,%.gen.o, $(fw-shipped-y))
+
+obj-y				 += $(fw-external-y)
+obj-$(CONFIG_FIRMWARE_IN_KERNEL) += $(binarys-compiled) $(patsubst $(objtree)/firmware/%,%,$(compiled-fw))
+
+fw-shipped-$(CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4) += $(compiled-fw)
+
+endif
+
 # Remove .S files and binaries created from ihex
 # (during 'make clean' .config isn't included so they're all in $(fw-shipped-))
+
 targets := $(patsubst $(obj)/%,%, \
 				$(shell find $(obj) -name \*.gen.S 2>/dev/null))
 
