@@ -372,15 +372,6 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include \
 
 KBUILD_CPPFLAGS := -D__KERNEL__
 
-KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
-		   -fno-strict-aliasing -fno-common \
-		   -Werror-implicit-function-declaration \
-		   -Wno-format-security \
-		   -fno-delete-null-pointer-checks \
-		   -mcpu=cortex-a15 -mtune=cortex-a15 -mfpu=neon-vfpv4 -marm \
-		   -ffast-math -fsingle-precision-constant \
-		   -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr
-
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
@@ -404,6 +395,32 @@ export KBUILD_AFLAGS AFLAGS_KERNEL AFLAGS_MODULE
 export KBUILD_AFLAGS_MODULE KBUILD_CFLAGS_MODULE KBUILD_LDFLAGS_MODULE
 export KBUILD_AFLAGS_KERNEL KBUILD_CFLAGS_KERNEL
 export KBUILD_ARFLAGS
+
+KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
+		   -fno-strict-aliasing -fno-common \
+		   -Werror-implicit-function-declaration \
+		   -Wno-format-security \
+		   -mcpu=cortex-a15 -mtune=cortex-a15 -mfpu=neon-vfpv4 -marm
+
+ifeq ($(CONFIG_CC_OPTIMIZE_FULL),y)
+$(warning "full")
+KBUILD_CFLAGS	+= -Ofast
+else
+ifeq ($(CONFIG_CC_OPTIMIZE_SPEED),y)
+KBUILD_CFLAGS	+= -O3
+else
+ifeq ($(CONFIG_CC_OPTIMIZE_DEFAULT),y)
+KBUILD_CFLAGS	+= -O2
+else
+KBUILD_CFLAGS	+= -Os
+endif
+endif
+endif
+
+KBUILD_CFLAGS	+= -ffast-math -ftree-vectorize -funsafe-math-optimizations \
+		   -fno-delete-null-pointer-checks
+
+KBUILD_CFLAGS	+=  $(call cc-disable-warning,maybe-uninitialized)
 
 # When compiling out-of-tree modules, put MODVERDIR in the module
 # tree rather than in the kernel tree. The kernel tree might
@@ -569,18 +586,6 @@ endif # $(dot-config)
 # This allow a user to issue only 'make' to build a kernel including modules
 # Defaults to vmlinux, but the arch makefile usually adds further targets
 all: vmlinux
-
-ifeq ($(CONFIG_CC_OPTIMIZE_SPEED),y)
-KBUILD_CFLAGS	+= -O3
-else
-ifeq ($(CONFIG_CC_OPTIMIZE_DEFAULT),y)
-KBUILD_CFLAGS	+= -O2
-else
-KBUILD_CFLAGS	+= -Os
-endif
-endif
-
-KBUILD_CFLAGS	+=  $(call cc-disable-warning,maybe-uninitialized)
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
 

@@ -970,6 +970,14 @@ config CC_OPTIMIZE_SPEED
 
 	  If unsure, say N.
 
+config CC_OPTIMIZE_FULL
+	bool "Use all default optimizations"
+	help
+	  Enabling this option will pass "-Ofast" instead of "-Os" to gcc
+	  resulting in a bigger, better optimized kernel.
+
+	  If unsure, say N
+
 
 config SYSCTL
 	bool
