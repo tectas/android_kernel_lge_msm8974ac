@@ -94,8 +94,38 @@ static int voice_free_oob_shared_mem(void);
 static int voice_alloc_oob_mem_table(void);
 static int voice_alloc_and_map_cal_mem(struct voice_data *v);
 static int voice_alloc_and_map_oob_mem(struct voice_data *v);
+static int voc_disable_cvp(uint32_t session_id);
+static int voc_enable_cvp(uint32_t session_id);
 
 static struct voice_data *voice_get_session_by_idx(int idx);
+
+
+//[AUDIO_BSP_START]minyoung1.kim@lge.com
+static uint32_t audio_start = 0;
+//static String audio_start = "/sys/module/q6voice/parameters/audio_start";
+static int set_start_call(const char *buf, struct kernel_param *kp)
+{
+	audio_start = buf[0] - '0';
+	pr_info("%s: LG audio bsp: set  %d \n", __func__, audio_start);
+
+	return 1;
+}
+
+
+
+static int get_start_call(char *buf, struct kernel_param *kp)
+{
+	int ret = 0;
+
+	ret = sprintf(buf, "%d\n", audio_start);
+	pr_info("%s:LG audio bsp: get  %d \n", __func__, audio_start);
+
+	return ret;
+}
+module_param_call(audio_start,set_start_call, get_start_call, NULL, 0664);
+//[AUDIO_BSP_END]minyoung1.kim@lge.com
+
+
 
 static void voice_itr_init(struct voice_session_itr *itr,
 			   u32 session_id)
@@ -1052,39 +1082,37 @@ static int voice_send_tty_mode_cmd(struct voice_data *v)
 	}
 	mvm_handle = voice_get_mvm_handle(v);
 
-	if (v->tty_mode) {
-		/* send tty mode cmd to mvm */
-		mvm_tty_mode_cmd.hdr.hdr_field = APR_HDR_FIELD(
-						APR_MSG_TYPE_SEQ_CMD,
-						APR_HDR_LEN(APR_HDR_SIZE),
-						APR_PKT_VER);
-		mvm_tty_mode_cmd.hdr.pkt_size = APR_PKT_SIZE(APR_HDR_SIZE,
-						sizeof(mvm_tty_mode_cmd) -
-						APR_HDR_SIZE);
-		pr_debug("%s: pkt size = %d\n",
-			 __func__, mvm_tty_mode_cmd.hdr.pkt_size);
-		mvm_tty_mode_cmd.hdr.src_port =
-				voice_get_idx_for_session(v->session_id);
-		mvm_tty_mode_cmd.hdr.dest_port = mvm_handle;
-		mvm_tty_mode_cmd.hdr.token = 0;
-		mvm_tty_mode_cmd.hdr.opcode = VSS_ISTREAM_CMD_SET_TTY_MODE;
-		mvm_tty_mode_cmd.tty_mode.mode = v->tty_mode;
-		pr_debug("tty mode =%d\n", mvm_tty_mode_cmd.tty_mode.mode);
+	/* send tty mode cmd to mvm */
+	mvm_tty_mode_cmd.hdr.hdr_field = APR_HDR_FIELD(
+					APR_MSG_TYPE_SEQ_CMD,
+					APR_HDR_LEN(APR_HDR_SIZE),
+					APR_PKT_VER);
+	mvm_tty_mode_cmd.hdr.pkt_size = APR_PKT_SIZE(APR_HDR_SIZE,
+					sizeof(mvm_tty_mode_cmd) -
+					APR_HDR_SIZE);
+	pr_debug("%s: pkt size = %d\n",
+		 __func__, mvm_tty_mode_cmd.hdr.pkt_size);
+	mvm_tty_mode_cmd.hdr.src_port =
+			voice_get_idx_for_session(v->session_id);
+	mvm_tty_mode_cmd.hdr.dest_port = mvm_handle;
+	mvm_tty_mode_cmd.hdr.token = 0;
+	mvm_tty_mode_cmd.hdr.opcode = VSS_ISTREAM_CMD_SET_TTY_MODE;
+	mvm_tty_mode_cmd.tty_mode.mode = v->tty_mode;
+	pr_debug("tty mode =%d\n", mvm_tty_mode_cmd.tty_mode.mode);
 
-		v->mvm_state = CMD_STATUS_FAIL;
-		ret = apr_send_pkt(apr_mvm, (uint32_t *) &mvm_tty_mode_cmd);
-		if (ret < 0) {
-			pr_err("%s: Error %d sending SET_TTY_MODE\n",
-			       __func__, ret);
-			goto fail;
-		}
-		ret = wait_event_timeout(v->mvm_wait,
-					 (v->mvm_state == CMD_STATUS_SUCCESS),
-					 msecs_to_jiffies(TIMEOUT_MS));
-		if (!ret) {
-			pr_err("%s: wait_event timeout\n", __func__);
-			goto fail;
-		}
+	v->mvm_state = CMD_STATUS_FAIL;
+	ret = apr_send_pkt(apr_mvm, (uint32_t *) &mvm_tty_mode_cmd);
+	if (ret < 0) {
+		pr_err("%s: Error %d sending SET_TTY_MODE\n",
+			   __func__, ret);
+		goto fail;
+	}
+	ret = wait_event_timeout(v->mvm_wait,
+				 (v->mvm_state == CMD_STATUS_SUCCESS),
+				 msecs_to_jiffies(TIMEOUT_MS));
+	if (!ret) {
+		pr_err("%s: wait_event timeout\n", __func__);
+		goto fail;
 	}
 	return 0;
 fail:
@@ -3108,8 +3136,8 @@ static int voice_setup_vocproc(struct voice_data *v)
 		voice_send_netid_timing_cmd(v);
 	}
 
-	/* enable slowtalk if st_enable is set */
-	if (v->st_enable)
+	/* enable slowtalk if st_enable is set and tty_mode is 0 */
+	if (v->st_enable && !v->tty_mode)
 		voice_send_set_pp_enable_cmd(v,
 					     MODULE_ID_VOICE_MODULE_ST,
 					     v->st_enable);
@@ -3691,6 +3719,56 @@ static int voice_send_cvs_data_exchange_mode_cmd(struct voice_data *v)
 fail:
 	return -EINVAL;
 }
+
+//[Audio][BSP] sehwan.lee@lge.com phonememo initial code [START]
+static int voice_send_phonememo_mute_cmd(struct voice_data *v)
+{
+	struct cvp_set_mute_cmd cvp_mute_cmd;
+	int ret = 0;
+
+	if (v == NULL) {
+		pr_err("%s: v is NULL\n", __func__);
+		goto fail;
+	}
+
+	if (!common.apr_q6_cvp) {
+		pr_err("%s: apr_cvp is NULL.\n", __func__);
+		goto fail;
+	}
+
+	cvp_mute_cmd.hdr.hdr_field = APR_HDR_FIELD(APR_MSG_TYPE_SEQ_CMD,
+						APR_HDR_LEN(APR_HDR_SIZE),
+						APR_PKT_VER);
+	cvp_mute_cmd.hdr.pkt_size = APR_PKT_SIZE(APR_HDR_SIZE,
+					sizeof(cvp_mute_cmd) - APR_HDR_SIZE);
+	cvp_mute_cmd.hdr.src_port = v->session_id;
+	cvp_mute_cmd.hdr.dest_port = voice_get_cvp_handle(v);
+	cvp_mute_cmd.hdr.token = 0;
+	cvp_mute_cmd.hdr.opcode = VSS_IVOLUME_CMD_MUTE_V2;
+	cvp_mute_cmd.cvp_set_mute.direction = VSS_IVOLUME_DIRECTION_TX;
+	cvp_mute_cmd.cvp_set_mute.mute_flag = v->stream_tx.stream_mute;
+	cvp_mute_cmd.cvp_set_mute.ramp_duration_ms = DEFAULT_MUTE_RAMP_DURATION;
+
+	v->cvp_state = CMD_STATUS_FAIL;
+	ret = apr_send_pkt(common.apr_q6_cvp, (uint32_t *) &cvp_mute_cmd);
+	if (ret < 0) {
+		pr_err("%s: Error %d sending rx device cmd\n", __func__, ret);
+		goto fail;
+	}
+	ret = wait_event_timeout(v->cvp_wait,
+				(v->cvp_state == CMD_STATUS_SUCCESS),
+				msecs_to_jiffies(TIMEOUT_MS));
+	if (!ret) {
+		pr_err("%s: Command timeout\n", __func__);
+		goto fail;
+	}
+
+	return 0;
+
+fail:
+	return -EINVAL;
+}
+//[Audio][BSP] sehwan.lee@lge.com phonememo initial code [END]
 
 static int voice_send_stream_mute_cmd(struct voice_data *v, uint16_t direction,
 				     uint16_t mute_flag, uint32_t ramp_duration)
@@ -4430,8 +4508,8 @@ int voc_enable_cvp(uint32_t session_id)
 
 		/* Send tty mode if tty device is used */
 		voice_send_tty_mode_cmd(v);
-		/* enable slowtalk */
-		if (v->st_enable)
+		/* enable slowtalk if st_enable is set and tty_mode is 0 */
+		if (v->st_enable && !v->tty_mode)
 			voice_send_set_pp_enable_cmd(v,
 					     MODULE_ID_VOICE_MODULE_ST,
 					     v->st_enable);
@@ -4511,6 +4589,33 @@ int voc_set_tx_mute(uint32_t session_id, uint32_t dir, uint32_t mute,
 
 	return ret;
 }
+
+//[Audio][BSP] sehwan.lee@lge.com phonememo initial code [START]
+int voc_set_phonememo_tx_mute(uint32_t session_id, uint32_t dir, uint32_t mute)
+{
+        struct voice_data *v = voice_get_session(session_id);
+        int ret = 0;
+
+        if (v == NULL) {
+                pr_err("%s: invalid session_id 0x%x\n", __func__, session_id);
+
+                return -EINVAL;
+        }
+
+        mutex_lock(&v->lock);
+
+        v->stream_tx.stream_mute = mute;
+
+        if ((v->voc_state == VOC_RUN) ||
+            (v->voc_state == VOC_CHANGE) ||
+            (v->voc_state == VOC_STANDBY))
+                ret = voice_send_phonememo_mute_cmd(v);
+
+        mutex_unlock(&v->lock);
+
+        return ret;
+}
+//[Audio][BSP] sehwan.lee@lge.com phonememo initial code [END]
 
 int voc_set_rx_device_mute(uint32_t session_id, uint32_t mute,
 					uint32_t ramp_duration)
@@ -4624,8 +4729,8 @@ int voc_set_pp_enable(uint32_t session_id, uint32_t module_id, uint32_t enable)
 				v->st_enable = enable;
 
 			if (v->voc_state == VOC_RUN) {
-				if (module_id ==
-				    MODULE_ID_VOICE_MODULE_ST)
+				if ((module_id == MODULE_ID_VOICE_MODULE_ST) &&
+				    (!v->tty_mode))
 					ret = voice_send_set_pp_enable_cmd(v,
 						MODULE_ID_VOICE_MODULE_ST,
 						enable);
@@ -4767,6 +4872,10 @@ int voc_end_voice_call(uint32_t session_id)
 {
 	struct voice_data *v = voice_get_session(session_id);
 	int ret = 0;
+  //[AUDIO_BSP_START]minyoung1.kim@lge.com
+	char temp_buf[2] = "0";
+	set_start_call(temp_buf,NULL);
+  //[AUDIO_BSP_END]minyoung1.kim@lge.com
 
 	if (v == NULL) {
 		pr_err("%s: invalid session_id 0x%x\n", __func__, session_id);
@@ -4848,6 +4957,100 @@ fail:
 	return ret;
 }
 
+int voc_disable_device(uint32_t session_id)
+{
+	struct voice_data *v = voice_get_session(session_id);
+	int ret = 0;
+
+	pr_debug("%s: voc state=%d", __func__, v->voc_state);
+	if (v == NULL) {
+		pr_err("%s: v is NULL\n", __func__);
+		return -EINVAL;
+	}
+
+	mutex_lock(&v->lock);
+	if (v->voc_state == VOC_RUN) {
+		ret = voice_pause_voice_call(v);
+		if (ret < 0) {
+			pr_err("%s: Pause Voice Call failed for session 0x%x, err %d!\n",
+				__func__, v->session_id, ret);
+			goto done;
+		}
+		rtac_remove_voice(voice_get_cvs_handle(v));
+		voice_send_cvp_deregister_vol_cal_cmd(v);
+		voice_send_cvp_deregister_cal_cmd(v);
+		voice_send_cvp_deregister_dev_cfg_cmd(v);
+
+		v->voc_state = VOC_CHANGE;
+	}
+
+	if (common.ec_ref_ext)
+		voc_set_ext_ec_ref(AFE_PORT_INVALID, false);
+done:
+	mutex_unlock(&v->lock);
+
+	return ret;
+}
+
+int voc_enable_device(uint32_t session_id)
+{
+	struct voice_data *v = voice_get_session(session_id);
+	int ret = 0;
+
+	pr_debug("%s: voc state=%d", __func__, v->voc_state);
+	if (v == NULL) {
+		pr_err("%s: v is NULL\n", __func__);
+		return -EINVAL;
+	}
+
+	mutex_lock(&v->lock);
+	if (v->voc_state == VOC_CHANGE) {
+		ret = voice_send_tty_mode_cmd(v);
+		if (ret < 0) {
+			pr_err("%s: Sending TTY mode failed\n", __func__);
+			goto done;
+		}
+
+		if (v->tty_mode) {
+			/* diable slowtalk */
+			voice_send_set_pp_enable_cmd(v,
+						     MODULE_ID_VOICE_MODULE_ST,
+						     0);
+		} else {
+			/* restore slowtalk */
+			voice_send_set_pp_enable_cmd(v,
+						     MODULE_ID_VOICE_MODULE_ST,
+						     v->st_enable);
+		}
+
+		ret = voice_send_set_device_cmd(v);
+		if (ret < 0) {
+			pr_err("%s: Set device failed\n", __func__);
+			goto done;
+		}
+
+		voice_send_cvp_register_dev_cfg_cmd(v);
+		voice_send_cvp_register_cal_cmd(v);
+		voice_send_cvp_register_vol_cal_cmd(v);
+
+		rtac_add_voice(voice_get_cvs_handle(v),
+			       voice_get_cvp_handle(v),
+			       v->dev_rx.port_id, v->dev_tx.port_id,
+			       v->session_id);
+
+		ret = voice_send_start_voice_cmd(v);
+		if (ret < 0) {
+			pr_err("%s: Fail in sending START_VOICE\n", __func__);
+			goto done;
+		}
+		v->voc_state = VOC_RUN;
+	}
+done:
+	mutex_unlock(&v->lock);
+
+	return ret;
+}
+
 int voc_set_lch(uint32_t session_id, enum voice_lch_mode lch_mode)
 {
 	struct voice_data *v = voice_get_session(session_id);
@@ -4911,6 +5114,7 @@ int voc_start_voice_call(uint32_t session_id)
 {
 	struct voice_data *v = voice_get_session(session_id);
 	int ret = 0;
+	char temp_buf[2] = "1";  //[AUDIO_BSP_START]minyoung1.kim@lge.com
 
 	if (v == NULL) {
 		pr_err("%s: invalid session_id 0x%x\n", __func__, session_id);
@@ -4977,6 +5181,12 @@ int voc_start_voice_call(uint32_t session_id)
 			goto fail;
 		}
 		ret = voice_setup_vocproc(v);
+		//[AUDIO_BSP_START]minyoung1.kim@lge.com
+		if(ret == 0){
+			set_start_call(temp_buf,NULL);
+			pr_info("LG audio bsp - stated voice call \n");
+		}
+		//[AUDIO_BSP_END]minyoung1.kim@lge.com
 		if (ret < 0) {
 			pr_err("setup voice failed\n");
 			goto fail;

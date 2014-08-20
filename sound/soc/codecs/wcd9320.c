@@ -1251,6 +1251,43 @@ static int taiko_mad_input_put(struct snd_kcontrol *kcontrol,
 
 static const struct snd_kcontrol_new taiko_snd_controls[] = {
 
+#if defined(CONFIG_MACH_LGE)
+	SOC_SINGLE_S8_TLV("RX1 Digital Volume", TAIKO_A_CDC_RX1_VOL_CTL_B2_CTL,
+		-60, 40, digital_gain),
+	SOC_SINGLE_S8_TLV("RX2 Digital Volume", TAIKO_A_CDC_RX2_VOL_CTL_B2_CTL,
+		-60, 40, digital_gain),
+	SOC_SINGLE_S8_TLV("RX3 Digital Volume", TAIKO_A_CDC_RX3_VOL_CTL_B2_CTL,
+		-60, 40, digital_gain),
+	SOC_SINGLE_S8_TLV("RX4 Digital Volume", TAIKO_A_CDC_RX4_VOL_CTL_B2_CTL,
+		-60, 40, digital_gain),
+	SOC_SINGLE_S8_TLV("RX5 Digital Volume", TAIKO_A_CDC_RX5_VOL_CTL_B2_CTL,
+		-60, 40, digital_gain),
+	SOC_SINGLE_S8_TLV("RX6 Digital Volume", TAIKO_A_CDC_RX6_VOL_CTL_B2_CTL,
+		-60, 40, digital_gain),
+	SOC_SINGLE_S8_TLV("RX7 Digital Volume", TAIKO_A_CDC_RX7_VOL_CTL_B2_CTL,
+		-60, 40, digital_gain),
+
+	SOC_SINGLE_S8_TLV("DEC1 Volume", TAIKO_A_CDC_TX1_VOL_CTL_GAIN, -60, 40,
+		digital_gain),
+	SOC_SINGLE_S8_TLV("DEC2 Volume", TAIKO_A_CDC_TX2_VOL_CTL_GAIN, -60, 40,
+		digital_gain),
+	SOC_SINGLE_S8_TLV("DEC3 Volume", TAIKO_A_CDC_TX3_VOL_CTL_GAIN, -60, 40,
+		digital_gain),
+	SOC_SINGLE_S8_TLV("DEC4 Volume", TAIKO_A_CDC_TX4_VOL_CTL_GAIN, -60, 40,
+		digital_gain),
+	SOC_SINGLE_S8_TLV("DEC5 Volume", TAIKO_A_CDC_TX5_VOL_CTL_GAIN, -60, 40,
+		digital_gain),
+	SOC_SINGLE_S8_TLV("DEC6 Volume", TAIKO_A_CDC_TX6_VOL_CTL_GAIN, -60, 40,
+		digital_gain),
+	SOC_SINGLE_S8_TLV("DEC7 Volume", TAIKO_A_CDC_TX7_VOL_CTL_GAIN, -60, 40,
+		digital_gain),
+	SOC_SINGLE_S8_TLV("DEC8 Volume", TAIKO_A_CDC_TX8_VOL_CTL_GAIN, -60, 40,
+		digital_gain),
+	SOC_SINGLE_S8_TLV("DEC9 Volume", TAIKO_A_CDC_TX9_VOL_CTL_GAIN, -60, 40,
+		digital_gain),
+	SOC_SINGLE_S8_TLV("DEC10 Volume", TAIKO_A_CDC_TX10_VOL_CTL_GAIN, -60,
+		40, digital_gain),
+#else
 	SOC_SINGLE_S8_TLV("RX1 Digital Volume", TAIKO_A_CDC_RX1_VOL_CTL_B2_CTL,
 		-84, 40, digital_gain),
 	SOC_SINGLE_S8_TLV("RX2 Digital Volume", TAIKO_A_CDC_RX2_VOL_CTL_B2_CTL,
@@ -1286,6 +1323,7 @@ static const struct snd_kcontrol_new taiko_snd_controls[] = {
 		digital_gain),
 	SOC_SINGLE_S8_TLV("DEC10 Volume", TAIKO_A_CDC_TX10_VOL_CTL_GAIN, -84,
 		40, digital_gain),
+#endif
 
 	SOC_SINGLE_S8_TLV("IIR1 INP1 Volume", TAIKO_A_CDC_IIR1_GAIN_B1_CTL, -84,
 		40, digital_gain),
@@ -6254,7 +6292,7 @@ static const struct wcd9xxx_reg_mask_val taiko_reg_defaults[] = {
 	TAIKO_REG_VAL(TAIKO_A_CDC_CONN_MAD, 0x01),
 
 	/* Set HPH Path to low power mode */
-	TAIKO_REG_VAL(TAIKO_A_RX_HPH_BIAS_PA, 0x55),
+	TAIKO_REG_VAL(TAIKO_A_RX_HPH_BIAS_PA, 0x7a),
 
 	/* BUCK default */
 	TAIKO_REG_VAL(WCD9XXX_A_BUCK_CTRL_CCL_4, 0x51),
@@ -6297,8 +6335,11 @@ static const struct wcd9xxx_reg_mask_val taiko_1_0_reg_defaults[] = {
 
 	/* Disable TX7 internal biasing path which can cause leakage */
 	TAIKO_REG_VAL(TAIKO_A_TX_SUP_SWITCH_CTRL_1, 0xBF),
+
+#ifndef CONFIG_MACH_LGE
 	/* Enable MICB 4 VDDIO switch to prevent leakage */
 	TAIKO_REG_VAL(TAIKO_A_MICB_4_MBHC, 0x81),
+#endif
 
 	/* Close leakage on the spkdrv */
 	TAIKO_REG_VAL(TAIKO_A_SPKR_DRV_DBG_PWRSTG, 0x24),
@@ -6439,6 +6480,12 @@ static const struct wcd9xxx_reg_mask_val taiko_codec_reg_init_val[] = {
 	{TAIKO_A_CDC_COMP1_B5_CTL, 0x7F, 0x7F},
 	{TAIKO_A_CDC_COMP2_B5_CTL, 0x7F, 0x7F},
 
+	/* Set the MICBIAS default output as pull down*/
+	{TAIKO_A_MICB_1_CTL, 0x01, 0x01},
+	{TAIKO_A_MICB_2_CTL, 0x01, 0x01},
+	{TAIKO_A_MICB_3_CTL, 0x01, 0x01},
+	{TAIKO_A_MICB_4_CTL, 0x01, 0x01},
+
 	/*
 	 * Setup wavegen timer to 20msec and disable chopper
 	 * as default. This corresponds to Compander OFF
@@ -6456,6 +6503,11 @@ static const struct wcd9xxx_reg_mask_val taiko_codec_reg_init_val[] = {
 
 	/* set MAD input MIC to DMIC1 */
 	{TAIKO_A_CDC_CONN_MAD, 0x0F, 0x08},
+
+#ifndef CONFIG_ENABLE_MBHC
+    /* if not CONFIG_ENABLE_MBHC, restore the value from 0x44 */
+    {TAIKO_A_MBHC_HPH, 0x45, 0x45},
+#endif
 };
 
 static void taiko_codec_init_reg(struct snd_soc_codec *codec)
@@ -7005,6 +7057,7 @@ static int taiko_codec_probe(struct snd_soc_codec *codec)
 	else
 		rco_clk_rate = TAIKO_MCLK_CLK_9P6MHZ;
 
+#ifdef CONFIG_ENABLE_MBHC
 	/* init and start mbhc */
 	ret = wcd9xxx_mbhc_init(&taiko->mbhc, &taiko->resmgr, codec,
 				taiko_enable_mbhc_micbias,
@@ -7014,6 +7067,7 @@ static int taiko_codec_probe(struct snd_soc_codec *codec)
 		pr_err("%s: mbhc init failed %d\n", __func__, ret);
 		goto err_init;
 	}
+#endif  // CONFIG_ENABLE_MBHC
 
 	taiko->codec = codec;
 	for (i = 0; i < COMPANDER_MAX; i++) {
@@ -7153,8 +7207,11 @@ static int taiko_codec_remove(struct snd_soc_codec *codec)
 
 	taiko_cleanup_irqs(taiko);
 
+#ifdef CONFIG_ENABLE_MBHC
 	/* cleanup MBHC */
 	wcd9xxx_mbhc_deinit(&taiko->mbhc);
+#endif // CONFIG_ENABLE_MBHC
+
 	/* cleanup resmgr */
 	wcd9xxx_resmgr_deinit(&taiko->resmgr);
 

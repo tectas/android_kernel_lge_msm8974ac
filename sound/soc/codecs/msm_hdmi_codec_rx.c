@@ -93,6 +93,10 @@ static int msm_hdmi_audio_codec_rx_dai_startup(
 	if (IS_ERR_VALUE(rv)) {
 		dev_err(dai->dev,
 			"%s() HDMI core is not ready\n", __func__);
+	} else if (!rv) {
+		dev_err(dai->dev,
+			"%s() HDMI cable is not connected\n", __func__);
+		rv = -ENODEV;
 	}
 
 	return rv;
@@ -118,6 +122,10 @@ static int msm_hdmi_audio_codec_rx_dai_hw_params(
 		dev_err(dai->dev,
 			"%s() HDMI core is not ready\n", __func__);
 		return rv;
+	} else if (!rv) {
+		dev_err(dai->dev,
+			"%s() HDMI cable is not connected\n", __func__);
+		return -ENODEV;
 	}
 
 	switch (num_channels) {

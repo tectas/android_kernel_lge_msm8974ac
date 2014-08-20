@@ -11,6 +11,8 @@ menuconfig INPUT_TOUCHSCREEN
 
 if INPUT_TOUCHSCREEN
 
+source "drivers/input/touchscreen/synaptics_dsx/Kconfig"
+
 config TOUCHSCREEN_88PM860X
 	tristate "Marvell 88PM860x touchscreen"
 	depends on MFD_88PM860X
@@ -502,6 +504,11 @@ config SYNA_MULTI_TOUCH
 	depends on TOUCHSCREEN_SYNAPTICS_RMI4_I2C
 	default y
 
+config TOUCHSCREEN_SYNAPTICS_3404S
+	tristate "Synaptics 3404S chip(G2)"
+	help
+	  This enables support for Synaptics 3404S chip for Touch Dirver.
+
 config TOUCHSCREEN_TOUCHRIGHT
 	tristate "Touchright serial touchscreen"
 	select SERIO
@@ -970,6 +977,30 @@ config TOUCHSCREEN_GEN_VKEYS
          module will be called gen_vkeys.
 
 config TOUCHSCREEN_SYNAPTICS_I2C_RMI4
+	tristate "Synaptics DSX I2C touchscreen"
+	depends on I2C
+	help
+	  Say Y here if you have a Synaptics DSX I2C touchscreen
+	  connected to your system.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called synaptics_i2c_rmi4.
+
+config TOUCHSCREEN_SYNAPTICS_I2C_RMI4_EVB
+	tristate "Synaptics DSX I2C touchscreen for EVB"
+	depends on I2C
+	help
+	  Say Y here if you have a Synaptics DSX I2C EVB for LGU touchscreen
+	  connected to your system.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called synaptics_i2c_rmi4_evb.
+
+config TOUCHSCREEN_SYNAPTICS_I2C_VU3EVB
 	tristate "Synaptics DSX I2C touchscreen"
 	depends on I2C
 	help

@@ -52,6 +52,9 @@ CREATE_IPV4_FILE(tcp_wmem_max, sysctl_tcp_wmem[2]);
 CREATE_IPV4_FILE(tcp_rmem_min, sysctl_tcp_rmem[0]);
 CREATE_IPV4_FILE(tcp_rmem_def, sysctl_tcp_rmem[1]);
 CREATE_IPV4_FILE(tcp_rmem_max, sysctl_tcp_rmem[2]);
+/* 2013-10-30 beney.kim@lge.com LGP_DATA_TCPIP_DATASCHEDULER [START] */
+CREATE_IPV4_FILE(ds_enable, sysctl_ds_enable);
+/* 2013-10-30 beney.kim@lge.com LGP_DATA_TCPIP_DATASCHEDULER [END] */
 
 static struct attribute *ipv4_attrs[] = {
 	&tcp_wmem_min_attr.attr,
@@ -60,6 +63,9 @@ static struct attribute *ipv4_attrs[] = {
 	&tcp_rmem_min_attr.attr,
 	&tcp_rmem_def_attr.attr,
 	&tcp_rmem_max_attr.attr,
+/* 2013-10-30 beney.kim@lge.com LGP_DATA_TCPIP_DATASCHEDULER [START] */
+    &ds_enable_attr.attr,
+/* 2013-10-30 beney.kim@lge.com LGP_DATA_TCPIP_DATASCHEDULER [END] */
 	NULL
 };
 

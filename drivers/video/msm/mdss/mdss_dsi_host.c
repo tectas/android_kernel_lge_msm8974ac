@@ -29,7 +29,12 @@
 
 #define VSYNC_PERIOD 17
 
+#ifdef CONFIG_MACH_LGE
+struct mdss_dsi_ctrl_pdata *left_ctrl_pdata;
+struct mdss_dsi_ctrl_pdata *right_ctrl_pdata;
+#else
 static struct mdss_dsi_ctrl_pdata *left_ctrl_pdata;
+#endif
 
 static struct mdss_dsi_ctrl_pdata *ctrl_list[DSI_CTRL_MAX];
 
@@ -72,6 +77,18 @@ static int dsi_event_thread(void *data);
 
 void mdss_dsi_ctrl_init(struct mdss_dsi_ctrl_pdata *ctrl)
 {
+#ifdef CONFIG_MACH_LGE
+	if (ctrl->shared_pdata.broadcast_enable) {
+		if (ctrl->panel_data.panel_info.pdest
+					== DISPLAY_1) {
+			pr_debug("%s: Broadcast mode enabled.\n",
+				 __func__);
+			left_ctrl_pdata = ctrl;
+		} else if(ctrl->panel_data.panel_info.pdest==DISPLAY_2) {
+			right_ctrl_pdata = ctrl;
+		}
+	}
+#else
 	if (ctrl->shared_pdata.broadcast_enable)
 		if (ctrl->panel_data.panel_info.pdest
 					== DISPLAY_1) {
@@ -79,6 +96,7 @@ void mdss_dsi_ctrl_init(struct mdss_dsi_ctrl_pdata *ctrl)
 				 __func__);
 			left_ctrl_pdata = ctrl;
 		}
+#endif
 
 	if (ctrl->panel_data.panel_info.pdest == DISPLAY_1) {
 		mdss_dsi0_hw.ptr = (void *)(ctrl);
@@ -376,6 +394,10 @@ void mdss_dsi_host_init(struct mipi_panel_info *pinfo,
 	/* DSI_ERR_INT_MASK0 */
 	MIPI_OUTP((ctrl_pdata->ctrl_base) + 0x010c, 0x13ff3fe0);
 
+#ifdef CONFIG_MACH_LGE
+	/* disable force_mipi_clk_hs until panel initializing */
+	MIPI_OUTP((ctrl_pdata->ctrl_base) + 0xac, 0x0);
+#endif
 	intr_ctrl |= DSI_INTR_ERROR_MASK;
 	MIPI_OUTP((ctrl_pdata->ctrl_base) + 0x0110,
 				intr_ctrl); /* DSI_INTL_CTRL */
@@ -765,6 +787,9 @@ int mdss_dsi_cmds_tx(struct mdss_dsi_ctrl_pdata *ctrl,
 	if (ctrl->shared_pdata.broadcast_enable) {
 		if ((ctrl->ndx == DSI_CTRL_1)
 		  && (left_ctrl_pdata != NULL)) {
+#ifdef CONFIG_MACH_LGE
+			mdelay(5);
+#endif
 			left_dsi_ctrl = MIPI_INP(left_ctrl_pdata->ctrl_base
 								+ 0x0004);
 			video_mode =
@@ -1329,7 +1354,15 @@ static int dsi_event_thread(void *data)
 				ctrl->recovery->fxn(ctrl->recovery->data);
 			}
 		}
-
+#ifdef CONFIG_LGE_DEVFREQ_DFPS
+		if (todo & DSI_EV_DSI_FIFO_EMPTY) {
+			mdss_dsi_sw_reset_restore(ctrl);
+			if(left_ctrl_pdata)
+				mdss_dsi_sw_reset_restore(left_ctrl_pdata);
+			/*TO DO*/
+			/* Can do MDP Here*/
+		}
+#endif
 		if (todo & DSI_EV_MDP_BUSY_RELEASE) {
 			spin_lock(&ctrl->mdp_lock);
 			ctrl->mdp_busy = false;
@@ -1408,6 +1441,10 @@ void mdss_dsi_fifo_status(struct mdss_dsi_ctrl_pdata *ctrl)
 		pr_err("%s: status=%x\n", __func__, status);
 		if (status & 0x0080)  /* CMD_DMA_FIFO_UNDERFLOW */
 			dsi_send_events(ctrl, DSI_EV_MDP_FIFO_UNDERFLOW);
+#ifdef CONFIG_LGE_DEVFREQ_DFPS
+		if (status & 0x11110000) /* DLN_FIFO_EMPTY */
+			dsi_send_events(ctrl, DSI_EV_DSI_FIFO_EMPTY);
+#endif
 	}
 }
 

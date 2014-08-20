@@ -6,7 +6,7 @@
  *  GK 2/5/95  -  Changed to support mounting root fs via NFS
  *  Added initrd & change_root: Werner Almesberger & Hans Lermen, Feb '96
  *  Moan early if gcc is old, avoiding bogus kernels - Paul Gortmaker, May '96
- *  Simplified starting of init:  Michael A. Griffith <grif@acm.org> 
+ *  Simplified starting of init:  Michael A. Griffith <grif@acm.org>
  */
 
 #include <linux/types.h>
@@ -79,6 +79,10 @@
 #include <asm/smp.h>
 #endif
 
+#ifdef CONFIG_LGE_PM
+#include <linux/qpnp/power-on.h>
+#endif
+
 static int kernel_init(void *);
 
 extern void init_IRQ(void);
@@ -112,6 +116,10 @@ EXPORT_SYMBOL(system_state);
  */
 #define MAX_INIT_ARGS CONFIG_INIT_ENV_ARG_LIMIT
 #define MAX_INIT_ENVS CONFIG_INIT_ENV_ARG_LIMIT
+
+#ifdef CONFIG_LGE_PM
+static void smpl_count(void);
+#endif
 
 extern void time_init(void);
 /* Default late time init is NULL. archs can override this later. */
@@ -385,6 +393,65 @@ static noinline void __init_refok rest_init(void)
 	/* Call into cpu_idle with preempt disabled */
 	cpu_idle();
 }
+
+#ifdef CONFIG_LGE_PM
+#define PWR_ON_EVENT_KEYPAD           0x80
+#define PWR_ON_EVENT_CABLE            0x40
+#define PWR_ON_EVENT_PON1             0x20
+#define PWR_ON_EVENT_USB              0x10
+#define PWR_ON_EVENT_DC               0x08
+#define PWR_ON_EVENT_RTC              0x04
+#define PWR_ON_EVENT_SMPL             0x02
+#define PWR_ON_EVENT_HARD_RESET       0x01
+
+extern struct file *fget(unsigned int fd);
+extern void fput(struct file *);
+extern uint16_t power_on_status_info_get(void);
+
+static void write_file(char *filename, char* data)
+{
+	int fd = -1;
+	loff_t pos = 0;
+	struct file* file;
+	mm_segment_t old_fs = get_fs();
+	set_fs(KERNEL_DS);
+
+	fd = sys_open((const char __user *)filename, O_WRONLY | O_CREAT, 0644);
+	printk("[SMPL_CNT] ===> write() : fd is %d\n", fd);
+
+	if (fd >= 0) {
+		file = fget(fd);
+
+		if (file) {
+			vfs_write(file, data, strlen(data), &pos);
+			fput(file);
+		}
+		sys_close(fd);
+	} else {
+		printk("[SMPL_CNT] === > write : sys_open error!!!!\n");
+	}
+	set_fs(old_fs);
+}
+
+static void smpl_count(void)
+{
+	char* file_name = "/smpl_boot";
+	uint16_t boot_cause = 0;
+	int warm_reset = 0;
+
+	boot_cause = power_on_status_info_get();
+	warm_reset = qpnp_pon_is_warm_reset();
+	printk("[BOOT_CAUSE] %d, warm_reset = %d \n", boot_cause, warm_reset);
+
+	if ((boot_cause &= PWR_ON_EVENT_SMPL) && (warm_reset == 0)) {
+		printk("[SMPL_CNT] ===> is smpl boot\n");
+		write_file(file_name, "1");
+	} else {
+		write_file(file_name, "0");
+		printk("[SMPL_CNT] ===> not smpl boot!!!!!\n");
+	}
+}
+#endif
 
 /* Check for early params. */
 static int __init do_early_param(char *param, char *val)
@@ -888,7 +955,9 @@ static int __init kernel_init(void * unused)
 	 * we're essentially up and running. Get rid of the
 	 * initmem segments and start the user-mode stuff..
 	 */
-
+#ifdef CONFIG_LGE_PM
+	smpl_count();
+#endif
 	init_post();
 	return 0;
 }

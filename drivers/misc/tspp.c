@@ -239,6 +239,10 @@
 #define TSPP_TSP_BUFF_WORD(_n)      (0xC10 + (_n << 2))
 #define TSPP_DATA_KEY               0xCD0
 
+// Modified by harold.kim 20140402 for case 01500814 {
+#define DEBUG
+// Modified by harold.kim 20140402 for case 01500814 }
+
 struct debugfs_entry {
 	const char *name;
 	mode_t mode;
@@ -538,7 +542,22 @@ static irqreturn_t tspp_isr(int irq, void *dev)
 static irqreturn_t tsif_isr(int irq, void *dev)
 {
 	struct tspp_tsif_device *tsif_device = dev;
+
+// Modified by harold.kim 20140402 for case 01500814 {
+#if 0
 	u32 sts_ctl = ioread32(tsif_device->base + TSIF_STS_CTL_OFF);
+#else // 0
+	u32 sts_ctl = 0;
+
+    if (tsif_device->ref_count == 0)
+    {
+        //panic("%s, trigger panic",__func__);
+        pr_err("%s is called, but already ref_count = 0",__func__);
+    }
+    
+	sts_ctl = ioread32(tsif_device->base + TSIF_STS_CTL_OFF);
+#endif // 0
+// Modified by harold.kim 20140402 for case 01500814 }
 
 	if (!(sts_ctl & (TSIF_STS_CTL_PACK_AVAIL |
 			 TSIF_STS_CTL_OVERFLOW |
@@ -770,6 +789,10 @@ static int tspp_clock_start(struct tspp_device *device)
 {
 	int rc;
 
+    // Modified by harold.kim 20140402 for case 01500814 {
+    pr_err("%s is called",__func__);
+    // Modified by harold.kim 20140402 for case 01500814 }
+
 	if (device == NULL) {
 		pr_err("tspp: Can't start clocks, invalid device\n");
 		return -EINVAL;
@@ -835,6 +858,10 @@ static void tspp_clock_stop(struct tspp_device *device)
 {
 	int rc;
 
+    // Modified by harold.kim 20140402 for case 01500814 {
+    pr_err("%s is called",__func__);
+    // Modified by harold.kim 20140402 for case 01500814 }
+
 	if (device == NULL) {
 		pr_err("tspp: Can't stop clocks, invalid device\n");
 		return;
@@ -860,6 +887,20 @@ static void tspp_clock_stop(struct tspp_device *device)
 		if (rc)
 			pr_err("tspp: Can't disable bus\n");
 	}
+
+    // Modified by harold.kim 20140402 for case 01500814 {
+    /*
+	{
+        unsigned long pclk_rate = 0;
+        unsigned long ref_clk_rate = 0;
+
+        pclk_rate = clk_get_rate(device->tsif_pclk);
+        ref_clk_rate = clk_get_rate(device->tsif_ref_clk);
+    
+        pr_err("[full-seg] tspp_clock_stop(pclk rate : %lu, ref_clk rate : %lu) requested!!!\n", pclk_rate, ref_clk_rate);
+	}
+    */
+    // Modified by harold.kim 20140402 for case 01500814 }
 }
 
 /*** TSIF functions ***/
@@ -867,6 +908,10 @@ static int tspp_start_tsif(struct tspp_tsif_device *tsif_device)
 {
 	int start_hardware = 0;
 	u32 ctl;
+
+    // Modified by harold.kim 20140402 for case 01500814 {
+    pr_err("%s is called",__func__);
+    // Modified by harold.kim 20140402 for case 01500814 }
 
 	if (tsif_device->ref_count == 0) {
 		start_hardware = 1;
@@ -931,6 +976,13 @@ static int tspp_start_tsif(struct tspp_tsif_device *tsif_device)
 
 static void tspp_stop_tsif(struct tspp_tsif_device *tsif_device)
 {
+    // Modified by harold.kim 20140402 for case 01500814 {
+    if(tsif_device != NULL)
+    {
+        pr_err("%s is called, ref_count=%d",__func__, tsif_device->ref_count);
+    }
+    // Modified by harold.kim 20140402 for case 01500814 }
+
 	if (tsif_device->ref_count == 0)
 		return;
 
@@ -1339,6 +1391,66 @@ static void tspp_destroy_buffers(u32 channel_id, struct tspp_channel *channel)
 	}
 }
 
+/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+static int msm_tspp_req_irqs(struct tspp_device *device)
+{
+	int rc;
+	int i;
+	int j;
+
+    /* Modified by harold.kim 20140402 for case 01500814 { */
+    pr_err("%s is called",__func__);
+    /* Modified by harold.kim 20140402 for case 01500814 } */
+
+	rc = request_irq(device->tspp_irq, tspp_isr, IRQF_SHARED,
+		dev_name(&device->pdev->dev), device);
+	if (rc) {
+		dev_err(&device->pdev->dev,
+			"failed to request TSPP IRQ %d : %d",
+			device->tspp_irq, rc);
+		return rc;
+	}
+
+	for (i = 0; i < TSPP_TSIF_INSTANCES; i++) {
+		rc = request_irq(device->tsif[i].tsif_irq,
+			tsif_isr, IRQF_SHARED, dev_name(&device->pdev->dev),
+			&device->tsif[i]);
+		if (rc) {
+			dev_err(&device->pdev->dev,
+				"failed to request TSIF%d IRQ: %d",
+				i, rc);
+			goto failed;
+		}
+	}
+
+	return 0;
+
+failed:
+	free_irq(device->tspp_irq, device);
+	for (j = 0; j < i; j++)
+		free_irq(device->tsif[j].tsif_irq, device);
+
+	return rc;
+}
+
+static inline void msm_tspp_free_irqs(struct tspp_device *device)
+{
+	int i;
+
+    /* Modified by harold.kim 20140402 for case 01500814 { */
+    pr_err("%s is called",__func__);
+    /* Modified by harold.kim 20140402 for case 01500814 } */
+
+	for (i = 0; i < TSPP_TSIF_INSTANCES; i++) {
+		if (device->tsif[i].tsif_irq)
+			free_irq(device->tsif[i].tsif_irq,  &device->tsif[i]);
+	}
+
+	if (device->tspp_irq)
+		free_irq(device->tspp_irq, device);
+}
+/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
+
 /*** TSPP API functions ***/
 
 /**
@@ -1355,8 +1467,18 @@ int tspp_open_stream(u32 dev, u32 channel_id,
 			struct tspp_select_source *source)
 {
 	u32 val;
+	
+    /* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+	int rc;
+	bool req_irq = false;
+    /* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */	
+
 	struct tspp_device *pdev;
 	struct tspp_channel *channel;
+
+    /* Modified by harold.kim 20140402 for case 01500814 { */
+    pr_err("%s is called",__func__);
+    /* Modified by harold.kim 20140402 for case 01500814 } */
 
 	TSPP_DEBUG("tspp_open_stream %i %i %i %i",
 		dev, channel_id, source->source, source->mode);
@@ -1382,17 +1504,51 @@ int tspp_open_stream(u32 dev, u32 channel_id,
 	tspp_set_signal_inversion(channel, source->clk_inverse,
 			source->data_inverse, source->sync_inverse,
 			source->enable_inverse);
+ 
+	/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+	/* Request IRQ resources on first open */
+	if ((source->source == TSPP_SOURCE_TSIF0 ||
+		source->source == TSPP_SOURCE_TSIF1) &&
+		(pdev->tsif[0].ref_count + pdev->tsif[1].ref_count) == 0) {
+		rc = msm_tspp_req_irqs(pdev);
+		if (rc) {
+			pr_err("tspp: error requesting irqs\n");
+			return rc;
+		}
+		req_irq = true;
+	}
+	/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
 
 	switch (source->source) {
 	case TSPP_SOURCE_TSIF0:
 		if (tspp_config_gpios(pdev, channel->src, 1) != 0) {
+
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+			rc = -EBUSY;
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
+
 			pr_err("tspp: error enabling tsif0 GPIOs\n");
-			return -EBUSY;
+
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+			//return -EBUSY;
+			goto free_irq;
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
+
 		}
 		/* make sure TSIF0 is running & enabled */
 		if (tspp_start_tsif(&pdev->tsif[0]) != 0) {
+
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+			rc = -EBUSY;			
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
+
 			pr_err("tspp: error starting tsif0");
-			return -EBUSY;
+
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+			//return -EBUSY;
+			goto free_irq;
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
+
 		}
 		if (pdev->tsif[0].ref_count == 1) {
 			val = readl_relaxed(pdev->base + TSPP_CONTROL);
@@ -1401,15 +1557,36 @@ int tspp_open_stream(u32 dev, u32 channel_id,
 			wmb();
 		}
 		break;
+		
 	case TSPP_SOURCE_TSIF1:
 		if (tspp_config_gpios(pdev, channel->src, 1) != 0) {
+
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+			rc = -EBUSY;			
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
+
 			pr_err("tspp: error enabling tsif1 GPIOs\n");
-			return -EBUSY;
+
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+			//return -EBUSY;
+			goto free_irq;
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
+
 		}
 		/* make sure TSIF1 is running & enabled */
 		if (tspp_start_tsif(&pdev->tsif[1]) != 0) {
+
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+			rc = -EBUSY;			
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
+
 			pr_err("tspp: error starting tsif1");
-			return -EBUSY;
+
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+			//return -EBUSY;
+			goto free_irq;
+			/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
+
 		}
 		if (pdev->tsif[1].ref_count == 1) {
 			val = readl_relaxed(pdev->base + TSPP_CONTROL);
@@ -1427,6 +1604,14 @@ int tspp_open_stream(u32 dev, u32 channel_id,
 	}
 
 	return 0;
+ 
+/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+free_irq:
+	if (req_irq)
+		msm_tspp_free_irqs(pdev);
+	
+	return rc;
+/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
 }
 EXPORT_SYMBOL(tspp_open_stream);
 
@@ -1442,9 +1627,18 @@ EXPORT_SYMBOL(tspp_open_stream);
 int tspp_close_stream(u32 dev, u32 channel_id)
 {
 	u32 val;
-	u32 prev_ref_count;
+
+    /* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+	//u32 prev_ref_count;
+	u32 prev_ref_count = 0;
+    /* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
+
 	struct tspp_device *pdev;
 	struct tspp_channel *channel;
+
+    /* Modified by harold.kim 20140402 for case 01500814 { */
+    pr_err("%s is called",__func__);
+    /* Modified by harold.kim 20140402 for case 01500814 } */
 
 	if (channel_id >= TSPP_NUM_CHANNELS) {
 		pr_err("tspp: channel id out of range");
@@ -1491,6 +1685,15 @@ int tspp_close_stream(u32 dev, u32 channel_id)
 	}
 
 	channel->src = TSPP_SOURCE_NONE;
+
+/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+	/* Free requested interrupts to save power */
+	if ((pdev->tsif[0].ref_count + pdev->tsif[1].ref_count) == 0 && prev_ref_count)
+    {   
+		msm_tspp_free_irqs(pdev);
+    }
+/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
+	
 	return 0;
 }
 EXPORT_SYMBOL(tspp_close_stream);
@@ -1511,6 +1714,10 @@ int tspp_open_channel(u32 dev, u32 channel_id)
 	struct sps_register_event *event;
 	struct tspp_channel *channel;
 	struct tspp_device *pdev;
+
+    // Modified by harold.kim 20140402 for case 01500814 {
+    pr_err("%s is called, channel_id=%d",__func__, channel_id);
+    // Modified by harold.kim 20140402 for case 01500814 }
 
 	if (channel_id >= TSPP_NUM_CHANNELS) {
 		pr_err("tspp: channel id out of range");
@@ -1642,6 +1849,10 @@ int tspp_close_channel(u32 dev, u32 channel_id)
 	struct tspp_device *pdev;
 	struct tspp_channel *channel;
 
+    // Modified by harold.kim 20140402 for case 01500814 {
+    pr_err("%s is called, channel_id=%d",__func__, channel_id);
+    // Modified by harold.kim 20140402 for case 01500814 }
+
 	if (channel_id >= TSPP_NUM_CHANNELS) {
 		pr_err("tspp: channel id out of range");
 		return -ECHRNG;
@@ -1725,7 +1936,12 @@ int tspp_close_channel(u32 dev, u32 channel_id)
 
 	if (tspp_channels_in_use(pdev) == 0) {
 		wake_unlock(&pdev->wake_lock);
+
 		tspp_clock_stop(pdev);
+
+        // Modified by harold.kim 20140402 for case 01500814 {
+        pr_err("[full-seg] tspp_close_channel() : tspp_clock_stop() requested!!!\n");
+        // Modified by harold.kim 20140402 for case 01500814 }
 	}
 
 	pm_runtime_put(&pdev->pdev->dev);
@@ -2812,14 +3028,20 @@ static int msm_tspp_map_irqs(struct platform_device *pdev,
 				struct tspp_device *device)
 {
 	int rc;
-	int i;
 
+	/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+	//int i;
+	/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
+		
 	/* get IRQ numbers from platform information */
 
 	/* map TSPP IRQ */
 	rc = platform_get_irq_byname(pdev, "TSIF_TSPP_IRQ");
 	if (rc > 0) {
 		device->tspp_irq = rc;
+
+		/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+		/*
 		rc = request_irq(device->tspp_irq, tspp_isr, IRQF_SHARED,
 				 dev_name(&pdev->dev), device);
 		if (rc) {
@@ -2829,6 +3051,9 @@ static int msm_tspp_map_irqs(struct platform_device *pdev,
 			device->tspp_irq = 0;
 			return -EINVAL;
 		}
+		*/
+		/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
+
 	} else {
 		dev_err(&pdev->dev, "failed to get TSPP IRQ");
 		return -EINVAL;
@@ -2851,6 +3076,8 @@ static int msm_tspp_map_irqs(struct platform_device *pdev,
 		return -EINVAL;
 	}
 
+	/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG { */
+	/*
 	for (i = 0; i < TSPP_TSIF_INSTANCES; i++) {
 		rc = request_irq(device->tsif[i].tsif_irq,
 				tsif_isr, IRQF_SHARED,
@@ -2861,6 +3088,8 @@ static int msm_tspp_map_irqs(struct platform_device *pdev,
 			device->tsif[i].tsif_irq = 0;
 		}
 	}
+	*/
+	/* QCT SR(case 01500814) LGE_BROADCAST_JFULLSEG } */
 
 	/* map BAM IRQ */
 	rc = platform_get_irq_byname(pdev, "TSIF_BAM_IRQ");
@@ -3109,6 +3338,10 @@ static int __devinit msm_tspp_probe(struct platform_device *pdev)
 	/* stop the clocks for power savings */
 	tspp_clock_stop(device);
 
+    // Modified by harold.kim 20140402 for case 01500814 {
+    pr_err("[full-seg] msm_tspp_probe() : tspp_clock_stop() requested!!!\n");
+    // Modified by harold.kim 20140402 for case 01500814 }
+
 	/* everything is ok, so add the device to the list */
 	list_add_tail(&(device->devlist), &tspp_devices);
 
@@ -3173,6 +3406,10 @@ static int __devexit msm_tspp_remove(struct platform_device *pdev)
 
 	struct tspp_device *device = platform_get_drvdata(pdev);
 
+    // Modified by harold.kim 20140402 for case 01500814 {
+    pr_err("%s is called",__func__);
+    // Modified by harold.kim 20140402 for case 01500814 }
+
 	/* free the buffers, and delete the channels */
 	for (i = 0; i < TSPP_NUM_CHANNELS; i++) {
 		channel = &device->channels[i];
@@ -3185,7 +3422,12 @@ static int __devexit msm_tspp_remove(struct platform_device *pdev)
 	rc = tspp_clock_start(device);
 	if (rc == 0) {
 		sps_deregister_bam_device(device->bam_handle);
-		tspp_clock_stop(device);
+
+        tspp_clock_stop(device);
+
+        // Modified by harold.kim 20140402 for case 01500814 {
+        pr_err("[full-seg] msm_tspp_remove() : tspp_clock_stop() requested!!!\n");
+        // Modified by harold.kim 20140402 for case 01500814 }
 	}
 
 	for (i = 0; i < TSPP_TSIF_INSTANCES; i++) {

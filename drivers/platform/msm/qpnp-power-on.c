@@ -404,6 +404,11 @@ qpnp_pon_input_dispatch(struct qpnp_pon *pon, u32 pon_type)
 		return -EINVAL;
 	}
 
+#ifdef CONFIG_LGE_PM
+	pr_info("%s:code(%d), value(%d)\n",
+			__func__, cfg->key_code, (pon_rt_sts & pon_rt_bit));
+#endif
+
 	input_report_key(pon->pon_input, cfg->key_code,
 					(pon_rt_sts & pon_rt_bit));
 	input_sync(pon->pon_input);
@@ -781,6 +786,15 @@ static int __devinit qpnp_pon_config_init(struct qpnp_pon *pon)
 	/* iterate through the list of pon configs */
 	while ((pp = of_get_next_child(pon->spmi->dev.of_node, pp))) {
 
+#ifdef CONFIG_MACH_LGE
+		if (!of_device_is_available(pp))
+			continue;
+		if (!of_device_is_available_revision(pp))
+			continue;
+
+		pr_debug("%s: &pon->pon_cfg[%d]\n", __func__, i);
+#endif
+
 		cfg = &pon->pon_cfg[i++];
 
 		rc = of_property_read_u32(pp, "qcom,pon-type", &cfg->pon_type);
@@ -1011,6 +1025,19 @@ static int __devinit qpnp_pon_config_init(struct qpnp_pon *pon)
 				goto unreg_input_dev;
 			}
 		}
+#ifdef CONFIG_MACH_LGE
+		else {
+			/* disable S2 reset */
+			rc = qpnp_pon_masked_write(pon, cfg->s2_cntl2_addr,
+					QPNP_PON_S2_CNTL_EN, 0);
+			if (rc) {
+				dev_err(&pon->spmi->dev,
+					"Unable to configure S2 enable\n");
+				return rc;
+			}
+			usleep(100);
+		}
+#endif
 		rc = qpnp_pon_request_irqs(pon, cfg);
 		if (rc) {
 			dev_err(&pon->spmi->dev, "Unable to request-irq's\n");
@@ -1059,9 +1086,21 @@ static int __devinit qpnp_pon_probe(struct spmi_device *spmi)
 
 	pon->spmi = spmi;
 
+#ifdef CONFIG_MACH_LGE
+	/* get the total number of pon configurations */
+	while ((itr = of_get_next_child(spmi->dev.of_node, itr))) {
+		if (!of_device_is_available(itr))
+			continue;
+		if (!of_device_is_available_revision(itr))
+			continue;
+		pon->num_pon_config++;
+	}
+	pr_debug("%s: num_pon_config %d\n", __func__, pon->num_pon_config);
+#else
 	/* get the total number of pon configurations */
 	while ((itr = of_get_next_child(spmi->dev.of_node, itr)))
 		pon->num_pon_config++;
+#endif
 
 	if (!pon->num_pon_config) {
 		/* No PON config., do not register the driver */

@@ -495,4 +495,162 @@ config QPNP_BMS
 	  Say Y here to enable support for QPNP chip bms device.
 	  It registers a fuelgauge bms power supply to report
 	  State of Charge.
+
+config LGE_PM
+	tristate "PM8941 LGE Feature"
+	depends on SPMI
+	help
+      Say Y here to enable support for pm8941 chip lge feature.
+	  LGE_PM releasted changed.
+	  Power Management, Battery charging, Battery Monitoring System
+	  with battery FET and fuel gauge.
+
+config LGE_CHARGER_TEMP_SCENARIO
+	depends on LGE_PM
+	default n
+	bool "LGE CHARGING TEMP SCENARIO Configuration"
+	help
+	  LGE CHARGER TEMP SCENARIO Configuration
+
+config LGE_QC_2_0_SCENARIO
+	tristate "LGE CHARGING SCENARIO of QC 2.0"
+	depends on QPNP_CHARGER
+	depends on LGE_PM
+	default n
+	help
+	  LGE CHARGING SCENARIO of QC 2.0
+
+config LGE_QC_2_0_SCENARIO_WITH_VOLTAGE
+	tristate "lge usb input voltage scenario of QC 2.0"
+	depends on QPNP_CHARGER
+	depends on LGE_PM
+	depends on LGE_QC_2_0_SCENARIO
+	default n
+	help
+	  lge usb input voltage scenario of QC 2.0
+
+config MAX17048_FUELGAUGE
+	tristate "Maxim MAX17048 fuel gauging external driver"
+	depends on I2C && LGE_PM
+	default n
+	help
+	  MAX17048 is fuel-gauge systems for lithium-ion (Li+) batteries
+	  in handheld and portable equipment. The MAX17048 is configured
+	  to operate with a single lithium cell
+
+config LGE_PM_BATTERY_ID_CHECKER
+	tristate "Virtual Device for LGE Battery ID Checker"
+	default n
+	help
+	  Say Y here to enable LGE Battery ID Checker
+
+config LGE_CURRENTNOW
+	bool "Virtual Device for LGE current now reading"
+	default n
+	help
+	  Say Y here to enable LGE current now reader
+
+config LGE_ONLY_READ_CURRENT
+	bool "Only use feature that read current of battery at BMS"
+	default n
+	help
+	  Say Y here to enable BMS current now reader
+
+config BQ24296_CHARGER
+	tristate "bq24296 charger"
+	depends on I2C
+	default n
+	help
+	  Say Y to enable support for the BQ24296 switching mode based charger
+	  and sysfs. The driver supports controlling charger-enable and
+	  current limiting capabilities. The driver also lets the
+	  BQ24296 be operated as a slave device via the power supply
+	  framework.
+
+config CHARGER_MAX77819
+	tristate "Maxim MAX77819 PMIC battery charger driver"
+	depends on MFD_MAX77819
+	default n
+	help
+	  Say Y to enable support for the MAX77819 PMIC battery charger.
+config CHARGER_MAX8971
+	tristate "Maxim MAX8971 Charger driver"
+	depends on I2C
+	default n
+	help 
+		Say Y to enable support for the Max8971 switching mode based charger
+		and sysfs. The driver supports controlling charger-enable and current
+		limiting capavilities. The driver also supports dual-charging with
+		Max77819
+config CHARGER_MAX8971_FORCE_SINGLE_CHARGING
+	tristate "Maxim MAX77819 PMIC battery charger driver"
+	depends on CHARGER_MAX8971
+	default n
+	help
+	  Say Y to enable support for the MAX8971 PMIC force-single charger.
+config CHARGER_UNIFIED_WLC
+	tristate "wireless charger control driver"
+	default n
+	help
+		wireless charger control driver
+config CHARGER_UNIFIED_WLC_BQ5102X
+	tristate "wireless charger control driver"
+	depends on CHARGER_UNIFIED_WLC
+	default n
+	help
+		wireless charger control driver
+config CHARGER_UNIFIED_WLC_ALIGNMENT
+	tristate "wireless charger alignment"
+	depends on CHARGER_UNIFIED_WLC
+	default n
+	help
+		wireless charger alignment
+choice
+	prompt "WLC Alignment"
+	depends on CHARGER_UNIFIED_WLC
+
+config CHARGER_UNIFIED_WLC_ALIGNMENT_IDT9025A
+	tristate "wireless charger alignment"
+	select CHARGER_UNIFIED_WLC_ALIGNMENT
+	default n
+	help
+		wireless charger alignment
+config CHARGER_UNIFIED_WLC_ALIGNMENT_BQ5102X
+	tristate "wireless charger alignment"
+	select CHARGER_UNIFIED_WLC_ALIGNMENT
+	default n
+	help
+		wireless charger alignment
+endchoice
+config CHARGER_FACTORY_MODE
+	bool "Enable charger factory mode"
+	depends on BQ24296_CHARGER
+	depends on CHARGER_MAX77819
+	help
+		charger factory mode
+config VZW_POWER_REQ
+    tristate "implementation power requirements of Verizon"
+    depends on BQ24296_CHARGER
+    default n
+    help
+		power requirements for verizon
+config SUPPORT_PHIHONG 
+    tristate "Support Phihong travel charger"
+    depends on BQ24296_CHARGER
+    default n
+    help
+		Chargers which is not support AICL need this feature.
+config LGE_PM_VZW_LLK
+    tristate "implementation power requirements of Verizon"
+	default n
+    help
+		power requirements for verizon
+config LGE_LOW_BATT_LIMIT
+	tristate "to prevent UVLO at low voltage"
+	default n
+config LGE_SMART_CHARGING
+	tristate "smart charging driver"
+	default n
+	help
+		Say Y to enable support for smart charging
 endif # POWER_SUPPLY

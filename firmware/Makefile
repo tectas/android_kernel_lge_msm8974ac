@@ -26,6 +26,19 @@ fw-shipped- += acenic/tg1.bin
 else
 acenic-objs := acenic/tg1.bin acenic/tg2.bin
 endif
+
+ifdef CONFIG_MACH_MSM8974_G3_KR
+synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/g3_kr/*)
+else ifdef CONFIG_MACH_MSM8974_G3_CN
+synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/g3_cn/*)
+else ifdef CONFIG_MACH_MSM8974_G3_CA
+synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/g3_ca/*)
+else
+synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/$(TARGET_PRODUCT)/*)
+endif
+synaptics_firmware := $(subst $(srctree)/firmware/,,$(synaptics_img_file))
+
+fw-shipped-$(CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4) += $(synaptics_firmware)
 fw-shipped-$(CONFIG_3C359) += 3com/3C359.bin
 fw-shipped-$(CONFIG_ACENIC) += $(acenic-objs)
 fw-shipped-$(CONFIG_ADAPTEC_STARFIRE) += adaptec/starfire_rx.bin \
@@ -152,6 +165,9 @@ quiet_cmd_mkdir = MKDIR   $(patsubst $(objtree)/%,%,$@)
 quiet_cmd_ihex  = IHEX    $@
       cmd_ihex  = $(OBJCOPY) -Iihex -Obinary $< $@
 
+quiet_cmd_copy  = COPY    $@
+      cmd_copy  = cp $(srctree)/$@ $@
+
 quiet_cmd_ihex2fw  = IHEX2FW $@
       cmd_ihex2fw  = $(objtree)/$(obj)/ihex2fw $< $@
 
@@ -214,6 +230,12 @@ $(patsubst %,$(obj)/%.gen.o, $(fw-external-y)): $(obj)/%.gen.o: $(fwdir)/%
 # where binaries are frowned upon. They are directly converted with objcopy.
 $(obj)/%: $(obj)/%.ihex | $(objtree)/$(obj)/$$(dir %)
 	$(call cmd,ihex)
+
+$(obj)/%.img: $(objtree)/$(obj)/$$(dir %.img)
+	$(call cmd,copy)
+
+$(obj)/%.txt: $(objtree)/$(obj)/$$(dir %.txt)
+	$(call cmd,copy)
 
 # Don't depend on ihex2fw if we're installing and it already exists.
 # Putting it after | in the dependencies doesn't seem sufficient when

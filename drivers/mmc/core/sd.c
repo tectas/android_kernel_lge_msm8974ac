@@ -1014,6 +1014,18 @@ static int mmc_sd_init_card(struct mmc_host *host, u32 ocr,
 	BUG_ON(!host);
 	WARN_ON(!host->claimed);
 
+	#ifdef CONFIG_MACH_LGE
+	/* LGE_UPDATE
+	 * When uSD is not inserted, return proper error-value.
+	 * 2014/01/16, B2-BSP-FS@lge.com
+	 */
+	if (!mmc_cd_get_status(host)) {
+		printk(KERN_INFO "[LGE][MMC][%-18s( )] sd-no-exist. skip next\n", __func__);
+		err = -ENOMEDIUM;
+		return err;
+	}
+	#endif
+
 	/* The initialization should be done at 3.3 V I/O voltage. */
 	mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_330, 0);
 
@@ -1154,8 +1166,14 @@ static int mmc_sd_alive(struct mmc_host *host)
 static void mmc_sd_detect(struct mmc_host *host)
 {
 	int err = 0;
+#ifdef CONFIG_MACH_LGE
+	/* LGE_UPDATE
+	 * for fixing compile-warning
+	 * 2014-01/16, B2-BSP-FS@lge.com
+	 */
 #ifdef CONFIG_MMC_PARANOID_SD_INIT
         int retries = 5;
+#endif
 #endif
 
 	BUG_ON(!host);
@@ -1167,6 +1185,7 @@ static void mmc_sd_detect(struct mmc_host *host)
 	/*
 	 * Just check if our card has been removed.
 	 */
+
 #ifdef CONFIG_MMC_PARANOID_SD_INIT
 	while(retries) {
 		err = mmc_send_status(host->card, NULL);
@@ -1185,6 +1204,7 @@ static void mmc_sd_detect(struct mmc_host *host)
 #else
 	err = _mmc_detect_card_removed(host);
 #endif
+
 	mmc_release_host(host);
 
 	/*
@@ -1248,6 +1268,17 @@ static int mmc_sd_resume(struct mmc_host *host)
 	retries = 5;
 	while (retries) {
 		err = mmc_sd_init_card(host, host->ocr, host->card);
+
+		#ifdef CONFIG_MACH_LGE
+			/* LGE_CHANGE
+			* Skip below When ENOMEDIUM
+			* 2014-01-16, B2-BSP-FS@lge.com
+			*/
+			if (err == -ENOMEDIUM) {
+				printk(KERN_INFO "[LGE][MMC][%-18s( )] error:ENOMEDIUM\n", __func__);
+				break;
+			}
+		#endif
 
 		if (err) {
 			printk(KERN_ERR "%s: Re-init card rc = %d (retries = %d)\n",
@@ -1401,6 +1432,19 @@ int mmc_attach_sd(struct mmc_host *host)
 	retries = 5;
 	while (retries) {
 		err = mmc_sd_init_card(host, host->ocr, NULL);
+
+		#ifdef CONFIG_MACH_LGE
+		/* LGE_CHANGE
+		* Skip below When ENOMEDIUM
+		* 2014-01-16, B2-BSP-FS@lge.com
+		*/
+		if (err == -ENOMEDIUM) {
+			printk(KERN_INFO "[LGE][MMC][%-18s( )] error:ENOMEDIUM\n", __func__);
+			retries=0;
+			break;
+		}
+		#endif
+
 		if (err) {
 			retries--;
 			mmc_power_off(host);

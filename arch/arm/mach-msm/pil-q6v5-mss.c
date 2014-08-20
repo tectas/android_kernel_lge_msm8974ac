@@ -55,7 +55,18 @@ struct modem_data {
 	struct completion stop_ack;
 };
 
+/* LGE_MODEM_RESET, 2013-12-17, wj1208.jo@lge.com */
+struct lge_hw_smem_id2_type {
+	u32 build_info;             /* build type user:0 userdebug:1 eng:2 */
+	int modem_reset;
+};
+
 #define subsys_to_drv(d) container_of(d, struct modem_data, subsys_desc)
+
+// [START] jin.park@lge.com, SSR FEATURE
+char ssr_noti[MAX_SSR_REASON_LEN];
+// [END] jin.park@lge.com, SSR FEATURE
+
 
 static void log_modem_sfr(void)
 {
@@ -77,6 +88,7 @@ static void log_modem_sfr(void)
 
 	smem_reason[0] = '\0';
 	wmb();
+
 }
 
 static void restart_modem(struct modem_data *drv)
@@ -84,6 +96,30 @@ static void restart_modem(struct modem_data *drv)
 	log_modem_sfr();
 	drv->ignore_errors = true;
 	subsystem_restart_dev(drv->subsys);
+}
+
+static int check_modem_reset(struct modem_data *drv)
+{
+	u32 size;
+	int ret = -EPERM;
+	struct lge_hw_smem_id2_type *smem_id2;
+
+	smem_id2 = smem_get_entry(SMEM_ID_VENDOR2, &size);
+
+	if (smem_id2 == NULL) {
+		pr_err("%s: smem_id2 is NULL.\n", __func__);
+		return ret;
+	}
+
+	if(smem_id2->modem_reset != 1) {
+		ret = 1;
+	} else {
+		wmb();
+		drv->ignore_errors = true;
+		subsys_modem_restart();
+		ret = 0;
+	}
+	return ret;
 }
 
 static irqreturn_t modem_err_fatal_intr_handler(int irq, void *dev_id)
@@ -96,6 +132,10 @@ static irqreturn_t modem_err_fatal_intr_handler(int irq, void *dev_id)
 
 	pr_err("Fatal error on the modem.\n");
 	subsys_set_crash_status(drv->subsys, true);
+
+	if (check_modem_reset(drv) == 0)
+		return IRQ_HANDLED;
+
 	restart_modem(drv);
 	return IRQ_HANDLED;
 }

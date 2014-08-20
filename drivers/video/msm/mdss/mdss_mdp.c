@@ -133,7 +133,6 @@ static int mdss_mdp_parse_dt_handler(struct platform_device *pdev,
 static int mdss_mdp_parse_dt_prop_len(struct platform_device *pdev,
 				       char *prop_name);
 static int mdss_mdp_parse_dt_smp(struct platform_device *pdev);
-static int mdss_mdp_parse_dt_prefill(struct platform_device *pdev);
 static int mdss_mdp_parse_dt_misc(struct platform_device *pdev);
 static int mdss_mdp_parse_dt_ad_cfg(struct platform_device *pdev);
 static int mdss_mdp_parse_dt_bus_scale(struct platform_device *pdev);
@@ -1090,7 +1089,6 @@ static ssize_t mdss_mdp_show_capabilities(struct device *dev,
 	SPRINT("dma_pipes=%d\n", mdata->ndma_pipes);
 	SPRINT("smp_count=%d\n", mdata->smp_mb_cnt);
 	SPRINT("smp_size=%d\n", mdata->smp_mb_size);
-	SPRINT("smp_mb_per_pipe=%d\n", mdata->smp_mb_per_pipe);
 	SPRINT("max_downscale_ratio=%d\n", MAX_DOWNSCALE_RATIO);
 	SPRINT("max_upscale_ratio=%d\n", MAX_UPSCALE_RATIO);
 	if (mdata->max_bw_low)
@@ -1102,8 +1100,6 @@ static ssize_t mdss_mdp_show_capabilities(struct device *dev,
 		SPRINT(" bwc");
 	if (mdata->has_decimation)
 		SPRINT(" decimation");
-	if (mdata->highest_bank_bit)
-		SPRINT(" tile_format");
 	SPRINT("\n");
 
 	return cnt;
@@ -1111,8 +1107,152 @@ static ssize_t mdss_mdp_show_capabilities(struct device *dev,
 
 static DEVICE_ATTR(caps, S_IRUGO, mdss_mdp_show_capabilities, NULL);
 
+#ifdef CONFIG_LGE_VSYNC_SKIP
+static ssize_t fps_store(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	ulong fps;
+
+	if (!count)
+		return -EINVAL;
+
+	fps = simple_strtoul(buf, NULL, 10);
+
+	if (fps == 0 || fps >= 60) {
+		mdss_res->enable_skip_vsync = 0;
+		mdss_res->skip_value = 0;
+		mdss_res->weight = 0;
+		mdss_res->bucket = 0;
+		mdss_res->skip_count = 0;
+		pr_info("Disable frame skip.\n");
+	} else {
+		mdss_res->enable_skip_vsync = 1;
+		mdss_res->skip_value = (60<<16)/fps;
+		mdss_res->weight = (1<<16);
+		mdss_res->bucket = 0;
+		pr_info("Enable frame skip: Set to %lu fps.\n", fps);
+	}
+	return count;
+}
+
+static ssize_t fps_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	int r = 0;
+	r = snprintf(buf, PAGE_SIZE, "enable_skip_vsync=%d\nweight=%lu\nskip_value=%lu\nbucket=%lu\nskip_count=%lu\n",
+		mdss_res->enable_skip_vsync,
+		mdss_res->weight,
+		mdss_res->skip_value,
+		mdss_res->bucket,
+		mdss_res->skip_count);
+	return r;
+}
+
+// Power Save Mode Enable Flag
+int vfps_trigger_boost = 0;
+int vfps_trigger_refresh = 1;
+int vfps_state_type = 0;
+int vfps_boost_flag = 0;
+int vfps_refresh_flag = 0;
+
+static ssize_t vfps_trigger_store(struct device *dev,
+                struct device_attribute *attr, const char *buf, size_t count)
+{
+	int trigger;
+
+	if (!count)
+		return -EINVAL;
+
+	trigger = simple_strtoul(buf, NULL, 10);
+
+	switch ( trigger ){
+		case 1 :
+			vfps_trigger_boost = 1;
+			break;
+		case 2 :
+			vfps_trigger_refresh = 1;
+			break;
+		default :
+			vfps_trigger_boost = 0;
+			vfps_trigger_refresh = 0;
+			break;
+	}
+	return count;
+}
+
+static ssize_t vfps_trigger_show(struct device *dev,
+                struct device_attribute *attr, char *buf)
+{
+        int r = 0;
+        r = snprintf(buf, PAGE_SIZE, "%d %d\n", vfps_trigger_boost, vfps_trigger_refresh);
+
+        return r;
+}
+
+static ssize_t vfps_boost_store(struct device *dev,
+                struct device_attribute *attr, const char *buf, size_t count)
+{
+        if (!count)
+                return -EINVAL;
+	if ( vfps_trigger_boost )
+		vfps_boost_flag = 1;
+	else
+		vfps_boost_flag = 0;
+        return count;
+}
+
+static ssize_t vfps_boost_show(struct device *dev,
+                struct device_attribute *attr, char *buf)
+{
+        int r = 0;
+        r = snprintf(buf, PAGE_SIZE, "%d\n", vfps_boost_flag);
+        return r;
+}
+
+static ssize_t vfps_sts_store(struct device *dev,
+                struct device_attribute *attr, const char *buf, size_t count)
+{
+	int state;
+
+        if (!count)
+                return -EINVAL;
+
+	state = simple_strtoul(buf, NULL, 10);
+
+	if ( state >= 0 && state <= 4 ){
+		if ( state != 1 ){
+			if ( vfps_trigger_refresh ) vfps_refresh_flag = 1;
+			vfps_state_type = state;
+		}
+	}
+        return count;
+}
+
+static ssize_t vfps_sts_show(struct device *dev,
+                struct device_attribute *attr, char *buf)
+{
+        int r = 0;
+        r = snprintf(buf, PAGE_SIZE, "%d %d %d\n", vfps_boost_flag, vfps_refresh_flag, vfps_state_type);
+	// Clear flags these flags would be used only one time
+	vfps_refresh_flag = 0;
+	vfps_boost_flag = 0;
+        return r;
+}
+
+static DEVICE_ATTR(vfps, S_IRUGO | S_IWUSR, fps_show, fps_store);
+static DEVICE_ATTR(vfps_boost, S_IRUGO | S_IWUSR, vfps_boost_show, vfps_boost_store);
+static DEVICE_ATTR(vfps_trigger, S_IRUGO | S_IWUSR, vfps_trigger_show, vfps_trigger_store);
+static DEVICE_ATTR(vfps_sts, S_IRUGO | S_IWUSR, vfps_sts_show, vfps_sts_store);
+#endif
+
 static struct attribute *mdp_fs_attrs[] = {
 	&dev_attr_caps.attr,
+#ifdef CONFIG_LGE_VSYNC_SKIP
+	&dev_attr_vfps.attr,
+	&dev_attr_vfps_boost.attr,
+	&dev_attr_vfps_trigger.attr,
+	&dev_attr_vfps_sts.attr,
+#endif
 	NULL
 };
 
@@ -1541,12 +1681,6 @@ static int mdss_mdp_parse_dt(struct platform_device *pdev)
 	rc = mdss_mdp_parse_dt_smp(pdev);
 	if (rc) {
 		pr_err("Error in device tree : smp\n");
-		return rc;
-	}
-
-	rc = mdss_mdp_parse_dt_prefill(pdev);
-	if (rc) {
-		pr_err("Error in device tree : prefill\n");
 		return rc;
 	}
 
@@ -2031,84 +2165,6 @@ static int mdss_mdp_parse_dt_smp(struct platform_device *pdev)
 	return rc;
 }
 
-static void mdss_mdp_parse_dt_fudge_factors(struct platform_device *pdev,
-	char *prop_name, struct mdss_fudge_factor *ff)
-{
-	int rc;
-	u32 data[2] = {1, 1};
-
-	rc = mdss_mdp_parse_dt_handler(pdev, prop_name, data, 2);
-	if (rc) {
-		pr_err("err reading %s\n", prop_name);
-	} else {
-		ff->numer = data[0];
-		ff->denom = data[1];
-	}
-}
-
-static int mdss_mdp_parse_dt_prefill(struct platform_device *pdev)
-{
-	struct mdss_data_type *mdata = platform_get_drvdata(pdev);
-	struct mdss_prefill_data *prefill = &mdata->prefill_data;
-	int rc;
-
-	rc = of_property_read_u32(pdev->dev.of_node,
-		"qcom,mdss-prefill-outstanding-buffer-bytes",
-		&prefill->ot_bytes);
-	if (rc) {
-		pr_err("prefill outstanding buffer bytes not specified\n");
-		return rc;
-	}
-
-	rc = of_property_read_u32(pdev->dev.of_node,
-		"qcom,mdss-prefill-y-buffer-bytes", &prefill->y_buf_bytes);
-	if (rc) {
-		pr_err("prefill y buffer bytes not specified\n");
-		return rc;
-	}
-
-	rc = of_property_read_u32(pdev->dev.of_node,
-		"qcom,mdss-prefill-scaler-buffer-lines-bilinear",
-		&prefill->y_scaler_lines_bilinear);
-	if (rc) {
-		pr_err("prefill scaler lines for bilinear not specified\n");
-		return rc;
-	}
-
-	rc = of_property_read_u32(pdev->dev.of_node,
-		"qcom,mdss-prefill-scaler-buffer-lines-caf",
-		&prefill->y_scaler_lines_caf);
-	if (rc) {
-		pr_debug("prefill scaler lines for caf not specified\n");
-		return rc;
-	}
-
-	rc = of_property_read_u32(pdev->dev.of_node,
-		"qcom,mdss-prefill-post-scaler-buffer-pixels",
-		&prefill->post_scaler_pixels);
-	if (rc) {
-		pr_err("prefill post scaler buffer pixels not specified\n");
-		return rc;
-	}
-
-	rc = of_property_read_u32(pdev->dev.of_node,
-		"qcom,mdss-prefill-pingpong-buffer-pixels",
-		&prefill->pp_pixels);
-	if (rc) {
-		pr_err("prefill pingpong buffer lines not specified\n");
-		return rc;
-	}
-
-	rc = of_property_read_u32(pdev->dev.of_node,
-		"qcom,mdss-prefill-fbc-lines", &prefill->fbc_lines);
-	if (rc) {
-		pr_err("prefill FBC lines not specified\n");
-		return rc;
-	}
-
-	return 0;
-}
-
 static int mdss_mdp_parse_dt_misc(struct platform_device *pdev)
 {
 	struct mdss_data_type *mdata = platform_get_drvdata(pdev);
@@ -2126,38 +2182,8 @@ static int mdss_mdp_parse_dt_misc(struct platform_device *pdev)
 		"qcom,mdss-has-decimation");
 	mdata->has_wfd_blk = of_property_read_bool(pdev->dev.of_node,
 		"qcom,mdss-has-wfd-blk");
-	mdata->has_no_lut_read = of_property_read_bool(pdev->dev.of_node,
-		"qcom,mdss-no-lut-read");
 	prop = of_find_property(pdev->dev.of_node, "batfet-supply", NULL);
 	mdata->batfet_required = prop ? true : false;
-	rc = of_property_read_u32(pdev->dev.of_node,
-		 "qcom,mdss-highest-bank-bit", &(mdata->highest_bank_bit));
-	if (rc)
-		pr_debug("Could not read optional property: highest bank bit\n");
-
-	/*
-	 * 2x factor on AB because bus driver will divide by 2
-	 * due to 2x ports to BIMC
-	 */
-	mdata->ab_factor.numer = 2;
-	mdata->ab_factor.denom = 1;
-	mdss_mdp_parse_dt_fudge_factors(pdev, "qcom,mdss-ab-factor",
-		&mdata->ab_factor);
-
-	/*
-	 * 1.2 factor on ib as default value. This value is
-	 * experimentally determined and should be tuned in device
-	 * tree.
-	 */
-	mdata->ib_factor.numer = 6;
-	mdata->ib_factor.denom = 5;
-	mdss_mdp_parse_dt_fudge_factors(pdev, "qcom,mdss-ib-factor",
-		&mdata->ib_factor);
-
-	mdata->clk_factor.numer = 1;
-	mdata->clk_factor.denom = 1;
-	mdss_mdp_parse_dt_fudge_factors(pdev, "qcom,mdss-clk-factor",
-		&mdata->clk_factor);
 
 	rc = of_property_read_u32(pdev->dev.of_node,
 			"qcom,max-bandwidth-low-kbps", &mdata->max_bw_low);

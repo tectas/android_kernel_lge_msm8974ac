@@ -17,6 +17,8 @@
 #include "msm_cci.h"
 #include "msm_eeprom.h"
 
+//#define MSM_EEPROM_DEBUG
+
 #undef CDBG
 #ifdef MSM_EEPROM_DEBUG
 #define CDBG(fmt, args...) pr_err(fmt, ##args)
@@ -183,6 +185,7 @@ int32_t read_eeprom_memory(struct msm_eeprom_ctrl_t *e_ctrl)
 				return rc;
 			}
 		}
+#ifdef QULCOMM_ORIGINAL // original (do not use it in LGE)
 		if (emap[j].pageen.valid_size) {
 			e_ctrl->i2c_client.addr_type = emap[j].pageen.addr_t;
 			rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
@@ -194,6 +197,7 @@ int32_t read_eeprom_memory(struct msm_eeprom_ctrl_t *e_ctrl)
 				return rc;
 			}
 		}
+#endif
 		if (emap[j].poll.valid_size) {
 			e_ctrl->i2c_client.addr_type = emap[j].poll.addr_t;
 			rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_poll(
@@ -217,6 +221,7 @@ int32_t read_eeprom_memory(struct msm_eeprom_ctrl_t *e_ctrl)
 			}
 			memptr += emap[j].mem.valid_size;
 		}
+#ifdef QULCOMM_ORIGINAL // original (do not use it in LGE)
 		if (emap[j].pageen.valid_size) {
 			e_ctrl->i2c_client.addr_type = emap[j].pageen.addr_t;
 			rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_write(
@@ -227,6 +232,7 @@ int32_t read_eeprom_memory(struct msm_eeprom_ctrl_t *e_ctrl)
 				return rc;
 			}
 		}
+#endif
 	}
 	return rc;
 }
@@ -237,12 +243,18 @@ static int msm_eeprom_get_dt_data(struct msm_eeprom_ctrl_t *e_ctrl)
 	struct msm_eeprom_board_info *eb_info;
 	struct msm_camera_power_ctrl_t *power_info =
 		&e_ctrl->eboard_info->power_info;
+#ifdef QULCOMM_ORIGINAL
 	struct device_node *of_node = NULL;
+#else
+	struct spi_device *spi = e_ctrl->i2c_client.spi_client->spi_master;
+	struct device_node *of_node = spi->dev.of_node;
+#endif
 	struct msm_camera_gpio_conf *gconf = NULL;
 	uint16_t gpio_array_size = 0;
 	uint16_t *gpio_array = NULL;
 
 	eb_info = e_ctrl->eboard_info;
+#ifdef QULCOMM_ORIGINAL
 	if (e_ctrl->eeprom_device_type == MSM_CAMERA_SPI_DEVICE)
 		of_node = e_ctrl->i2c_client.
 			spi_client->spi_master->dev.of_node;
@@ -261,6 +273,17 @@ static int msm_eeprom_get_dt_data(struct msm_eeprom_ctrl_t *e_ctrl)
 		&power_info->power_setting, &power_info->power_setting_size);
 	if (rc < 0)
 		goto error1;
+#else
+	rc = msm_camera_get_dt_power_setting_data(of_node,
+		&power_info->power_setting, &power_info->power_setting_size);
+	if (rc)
+		return rc;
+
+	rc = msm_camera_get_dt_vreg_data(of_node, &power_info->cam_vreg,
+					     &power_info->num_vreg);
+	if (rc)
+		goto error1;
+#endif
 
 	power_info->gpio_conf = kzalloc(sizeof(struct msm_camera_gpio_conf),
 					GFP_KERNEL);
@@ -345,11 +368,13 @@ static int msm_eeprom_alloc_memory_map(struct msm_eeprom_ctrl_t *e_ctrl,
 			goto out;
 		}
 
+#ifdef QULCOMM_ORIGINAL // original (do not use it in LGE)
 		snprintf(property, 14, "qcom,pageen%d", i);
 		rc = of_property_read_u32_array(of, property,
 			(uint32_t *) &eb->eeprom_map[i].pageen, count);
 		if (rc < 0)
 			pr_err("%s: pageen not needed\n", __func__);
+#endif
 
 		snprintf(property, 12, "qcom,poll%d", i);
 		rc = of_property_read_u32_array(of, property,
@@ -389,7 +414,7 @@ static struct msm_cam_clk_info cam_8960_clk_info[] = {
 };
 
 static struct msm_cam_clk_info cam_8974_clk_info[] = {
-	[SENSOR_CAM_MCLK] = {"cam_src_clk", 19200000},
+	[SENSOR_CAM_MCLK] = {"cam_src_clk", 24000000},
 	[SENSOR_CAM_CLK] = {"cam_clk", 0},
 };
 
@@ -784,10 +809,67 @@ static int32_t msm_eeprom_spi_remove(struct spi_device *sdev)
 	return 0;
 }
 
+/* [LGE_CHANGE_S] youngbae.choi@lge.com, 2013-05-16
+ * extern import eeprom read function  */
+struct msm_eeprom_ctrl_t *global_e_ctrl  = NULL;
+struct msm_eeprom_board_info *global_eb_info = NULL;
+
+int32_t msm_eeprom_read(void)
+{
+	int32_t rc = 0;
+	int i=0, /*j=0,*/ n_res=0;
+	uint8_t af_value1, af_value2;/* LGE_CHANGE, Set EEPROM, kyungjin.min@lge.com, 2013-04-29 */
+
+/* LGE_CHANGE_S, fixed WBT issue., 2013.11.16, youngil.yun[Start] */
+	if(global_e_ctrl == NULL)
+	{
+		printk("%s: global_e_ctrl is NULL\n", __func__);
+		return -EINVAL;
+	}
+/* LGE_CHANGE_E, fixed WBT issue., 2013.11.16, youngil.yun[End] */
+
+	if(global_e_ctrl != NULL){
+		for(i=0;i<3; i++){
+			rc = read_eeprom_memory(global_e_ctrl);
+			if(rc >= 0){
+				n_res = 1;
+				break;
+			}
+		}
+	}
+
+	if(n_res == 1){
+//		for (j = 0; j < global_e_ctrl->num_bytes; j++)
+//			pr_err("memory_data[%d] = 0x%X\n", j, global_e_ctrl->memory_data[j]);
+
+/* LGE_CHANGE_S, Set EEPROM, kyungjin.min@lge.com, 2013-04-29 */
+		af_value1 = (uint8_t)(global_e_ctrl->memory_data[9]<<8) |(global_e_ctrl->memory_data[10]);
+		af_value2 = (uint8_t)(global_e_ctrl->memory_data[11]<<8) |(global_e_ctrl->memory_data[12]);
+
+		CDBG("%s, af_value1 = %d\n", __func__, af_value1);
+		CDBG("%s, af_value2 = %d\n", __func__, af_value2);
+/* LGE_CHANGE_E, Set EEPROM, kyungjin.min@lge.com, 2013-04-29 */
+	}
+	else
+	{
+		if(global_e_ctrl->memory_data != NULL)
+			kfree(global_e_ctrl->memory_data);
+		if(global_eb_info->eeprom_map != NULL)
+			kfree(global_eb_info->eeprom_map);
+	}
+	return rc;
+}
+EXPORT_SYMBOL(msm_eeprom_read);
+
+/* [LGE_CHANGE_E] youngbae.choi@lge.com, 2013-05-16
+ * extern import eeprom read function  */
+
 static int32_t msm_eeprom_platform_probe(struct platform_device *pdev)
 {
 	int32_t rc = 0;
+#ifdef QULCOMM_ORIGINAL
 	int32_t j = 0;
+#endif
 	uint32_t temp;
 
 	struct msm_camera_cci_client *cci_client = NULL;
@@ -884,14 +966,23 @@ static int32_t msm_eeprom_platform_probe(struct platform_device *pdev)
 		goto board_free;
 	}
 
+#ifdef QULCOMM_ORIGINAL
 	rc = msm_eeprom_get_dt_data(e_ctrl);
 	if (rc)
 		goto board_free;
-
+#else
+	if (e_ctrl->eeprom_device_type == MSM_CAMERA_PLATFORM_DEVICE) {
+		rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_util(
+		&e_ctrl->i2c_client, MSM_CCI_INIT);
+		if (rc < 0)
+			pr_err("%s cci_init failed\n", __func__);
+	}
+#endif
 	rc = msm_eeprom_alloc_memory_map(e_ctrl, of_node);
 	if (rc)
 		goto board_free;
 
+#ifdef QULCOMM_ORIGINAL
 	rc = msm_camera_power_up(power_info, e_ctrl->eeprom_device_type,
 		&e_ctrl->i2c_client);
 	if (rc) {
@@ -913,6 +1004,14 @@ static int32_t msm_eeprom_platform_probe(struct platform_device *pdev)
 		pr_err("failed rc %d\n", rc);
 		goto memdata_free;
 	}
+#else
+/* [LGE_CHANGE_S] youngbae.choi@lge.com, 2013-05-16
+ * extern import eeprom read function  */
+	global_e_ctrl = e_ctrl;
+	global_eb_info = eb_info;
+/* [LGE_CHANGE_S] youngbae.choi@lge.com, 2013-05-16
+ * extern import eeprom read function  */
+#endif
 	v4l2_subdev_init(&e_ctrl->msm_sd.sd,
 		e_ctrl->eeprom_v4l2_subdev_ops);
 	v4l2_set_subdevdata(&e_ctrl->msm_sd.sd, e_ctrl);
@@ -927,16 +1026,28 @@ static int32_t msm_eeprom_platform_probe(struct platform_device *pdev)
 	msm_sd_register(&e_ctrl->msm_sd);
 
 
+	if (e_ctrl->eeprom_device_type == MSM_CAMERA_PLATFORM_DEVICE) {
+		rc = e_ctrl->i2c_client.i2c_func_tbl->i2c_util(
+			&e_ctrl->i2c_client, MSM_CCI_RELEASE);
+		if (rc < 0)
+			pr_err("%s cci_init failed\n", __func__);
+	}
 	e_ctrl->is_supported = 1;
 	CDBG("%s X\n", __func__);
 	return rc;
 
+/* [LGE_CHANGE_S] youngbae.choi@lge.com, 2013-05-16
+ * extern import eeprom read function  */
+#ifdef QULCOMM_ORIGINAL
 power_down:
 	msm_camera_power_down(power_info, e_ctrl->eeprom_device_type,
 		&e_ctrl->i2c_client);
 memdata_free:
 	kfree(e_ctrl->memory_data);
 	kfree(eb_info->eeprom_map);
+#endif
+/* [LGE_CHANGE_S] youngbae.choi@lge.com, 2013-05-16
+ * extern import eeprom read function  */
 board_free:
 	kfree(e_ctrl->eboard_info);
 cciclient_free:

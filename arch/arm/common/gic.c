@@ -49,6 +49,7 @@
 
 #include <mach/socinfo.h>
 
+#include <mach/moca_kernel_probe.h>    /* [LGE_CHANGE] for MOCA, donggee.im@lge.com, 2014-02-06 */
 union gic_base {
 	void __iomem *common_base;
 	void __percpu __iomem **percpu_base;

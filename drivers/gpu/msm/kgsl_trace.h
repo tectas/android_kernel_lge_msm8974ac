@@ -826,6 +826,21 @@ TRACE_EVENT(kgsl_pwrstats,
 	)
 );
 
+#ifdef QCT_TEMP_KGSL_PATCH
+TRACE_EVENT(kgsl_pagetable_destroy,
+	TP_PROTO(phys_addr_t ptbase, unsigned int name),
+	TP_ARGS(ptbase, name),
+	TP_STRUCT__entry(
+		__field(phys_addr_t, ptbase)
+		__field(unsigned int, name)
+	),
+	TP_fast_assign(
+		__entry->ptbase = ptbase;
+		__entry->name = name;
+	),
+	TP_printk("ptbase=%pa name=%u", &__entry->ptbase, __entry->name)
+);
+#endif
 
 #endif /* _KGSL_TRACE_H */
 

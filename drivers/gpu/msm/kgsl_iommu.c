@@ -413,10 +413,17 @@ static int kgsl_iommu_fault_handler(struct iommu_domain *domain,
 	if (!no_page_fault_log) {
 		KGSL_MEM_CRIT(iommu_dev->kgsldev,
 			"GPU PAGE FAULT: addr = %lX pid = %d\n", addr, pid);
+#ifdef QCT_TEMP_KGSL_PATCH
+		KGSL_MEM_CRIT(iommu_dev->kgsldev,
+		 "context = %d TTBR0 = %X FSR = %X FSYNR0 = %X FSYNR1 = %X(%s fault)\n",
+			iommu_dev->ctx_id, ptbase, fsr, fsynr0, fsynr1,
+			write ? "write" : "read");
+#else
 		KGSL_MEM_CRIT(iommu_dev->kgsldev,
 		 "context = %d FSR = %X FSYNR0 = %X FSYNR1 = %X(%s fault)\n",
 			iommu_dev->ctx_id, fsr, fsynr0, fsynr1,
 			write ? "write" : "read");
+#endif
 
 		_check_if_freed(iommu_dev, addr, pid);
 
@@ -655,7 +662,6 @@ static int kgsl_iommu_pt_equal(struct kgsl_mmu *mmu,
 	pt_base &= KGSL_IOMMU_CTX_TTBR0_ADDR_MASK;
 
 	return (domain_ptbase == pt_base);
-
 }
 
 /*
@@ -667,8 +673,16 @@ static int kgsl_iommu_pt_equal(struct kgsl_mmu *mmu,
 static void kgsl_iommu_destroy_pagetable(struct kgsl_pagetable *pt)
 {
 	struct kgsl_iommu_pt *iommu_pt = pt->priv;
+#ifdef QCT_TEMP_KGSL_PATCH
+	phys_addr_t domain_ptbase = iommu_get_pt_base_addr(iommu_pt->domain);
+#endif
+
 	if (iommu_pt->domain)
 		msm_unregister_domain(iommu_pt->domain);
+
+#ifdef QCT_TEMP_KGSL_PATCH
+	trace_kgsl_pagetable_destroy(domain_ptbase, pt->name);
+#endif
 
 	kfree(iommu_pt);
 	iommu_pt = NULL;

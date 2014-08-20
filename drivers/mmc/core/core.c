@@ -1083,6 +1083,14 @@ int mmc_interrupt_hpi(struct mmc_card *card)
 	} while (!err);
 
 out:
+#ifdef CONFIG_MACH_LGE
+	/* LGE_CHANGE
+	 * add debug code
+	 * 2014-01-16, B2-BSP-FS@lge.com
+	 */
+	if (err)
+		pr_err("%s: mmc_interrupt_hpi() failed. err: (%d)\n",	mmc_hostname(card->host), err);
+#endif
 	mmc_release_host(card->host);
 	return err;
 }
@@ -1266,7 +1274,17 @@ void mmc_set_data_timeout(struct mmc_data *data, const struct mmc_card *card)
 			 */
 			limit_us = 3000000;
 		else
+			#ifdef CONFIG_MACH_LGE
+			/* LGE_CHANGE
+			 * Although we already applied enough time,
+			 * timeout-error occurs until now with several-ultimate-crappy-memory.
+			 * So, we give more time than before.
+			 * 2014-01-16, B2-BSP-FS@lge.com
+			 */
+			limit_us = 300000;
+			#else
 			limit_us = 100000;
+			#endif
 
 		/*
 		 * SDHC cards always use these fixed values.
@@ -1896,7 +1914,15 @@ void mmc_power_up(struct mmc_host *host)
 	 * This delay should be sufficient to allow the power supply
 	 * to reach the minimum voltage.
 	 */
+#ifdef CONFIG_MACH_LGE
+	/* LGE_CHANGE
+	 * Augmenting delay-time for some crappy card.
+	 * 2014-01-16, B2-BSP-FS@lge.com
+	 */
+	mmc_delay(20);
+#else
 	mmc_delay(10);
+#endif
 
 	host->ios.clock = host->f_init;
 
@@ -1907,13 +1933,32 @@ void mmc_power_up(struct mmc_host *host)
 	 * This delay must be at least 74 clock sizes, or 1 ms, or the
 	 * time required to reach a stable voltage.
 	 */
+#ifdef CONFIG_MACH_LGE
+	/* LGE_CHANGE
+	 * Augmenting delay-time for some crappy card.
+	 * 2014-01-16, B2-BSP-FS@lge.com
+	 */
+	mmc_delay(20);
+#else
 	mmc_delay(10);
+#endif
 
 	mmc_host_clk_release(host);
 }
 
 void mmc_power_off(struct mmc_host *host)
 {
+	#ifdef CONFIG_MACH_LGE
+		/* LGE_CHANGE
+		 * If it is already power-off, skip below.
+		 * 2014-01-16, B2-BSP-FS@lge.com
+		 */
+		if (host->ios.power_mode == MMC_POWER_OFF) {
+			printk(KERN_INFO "[LGE][MMC][%-18s( )] host->index:%d, already power-off, skip below\n", __func__, host->index);
+			return;
+		}
+	#endif
+
 	mmc_host_clk_hold(host);
 
 	host->ios.clock = 0;
@@ -2087,6 +2132,14 @@ void mmc_detect_change(struct mmc_host *host, unsigned long delay)
 #endif
 	host->detect_change = 1;
 
+#ifdef CONFIG_MACH_LGE
+/*
+ * LGE_CHANGE
+ * add wake_lock because of lockup issue when copying/moving big size files
+ * 2014-03-26, B2-BSP-FS@lge.com
+ */
+	wake_lock(&host->detect_wake_lock);
+#endif
 	mmc_schedule_delayed_work(&host->detect, delay);
 }
 
@@ -2603,7 +2656,14 @@ int mmc_can_reset(struct mmc_card *card)
 		rst_n_function = card->ext_csd.rst_n_function;
 		if ((rst_n_function & EXT_CSD_RST_N_EN_MASK) !=
 		    EXT_CSD_RST_N_ENABLED)
+		#ifdef CONFIG_MACH_LGE
+		{
+			printk("%s: mmc, MMC_CAP_HW_RESET, rst_n_function=0x%02x\n", __func__, rst_n_function);
 			return 0;
+		}
+		#else
+			return 0;
+		#endif
 	}
 	return 1;
 }
@@ -3098,6 +3158,10 @@ int _mmc_detect_card_removed(struct mmc_host *host)
 		pr_debug("%s: card remove detected\n", mmc_hostname(host));
 	}
 
+	#ifdef CONFIG_MACH_LGE
+	printk(KERN_INFO "[LGE][MMC][%-18s( )] end, mmc%d, return %d\n", __func__, host->index, ret);
+	#endif
+
 	return ret;
 }
 
@@ -3143,6 +3207,14 @@ void mmc_rescan(struct work_struct *work)
 		container_of(work, struct mmc_host, detect.work);
 	bool extend_wakelock = false;
 
+#ifdef CONFIG_MACH_LGE
+	/* LGE_CHANGE
+	* Adding Print
+	* 2014-01-16, B2-BSP-FS@lge.com
+	*/
+	printk(KERN_INFO "[LGE][MMC][%-18s( ) START!] mmc%d\n", __func__, host->index);
+#endif
+
 	if (host->rescan_disable)
 		return;
 
@@ -3158,13 +3230,6 @@ void mmc_rescan(struct work_struct *work)
 		host->bus_ops->detect(host);
 
 	host->detect_change = 0;
-	/* If the card was removed the bus will be marked
-	 * as dead - extend the wakelock so userspace
-	 * can respond */
-	if (host->bus_dead)
-		extend_wakelock = 1;
-
-
 	/* If the card was removed the bus will be marked
 	 * as dead - extend the wakelock so userspace
 	 * can respond */
@@ -3206,6 +3271,15 @@ void mmc_rescan(struct work_struct *work)
 	if (extend_wakelock)
 		wake_lock_timeout(&host->detect_wake_lock, HZ / 2);
 
+#ifdef CONFIG_MACH_LGE
+/*
+ * LGE_CHANGE
+ * add wake_lock because of lockup issue when copying/moving big size files
+ * 2014-03-26, B2-BSP-FS@lge.com
+ */
+	else
+		wake_unlock(&host->detect_wake_lock);
+#endif
 	if (host->caps & MMC_CAP_NEEDS_POLL)
 		mmc_schedule_delayed_work(&host->detect, HZ);
 }
@@ -3630,6 +3704,13 @@ int mmc_pm_notify(struct notifier_block *notify_block,
 		}
 		host->rescan_disable = 0;
 		spin_unlock_irqrestore(&host->lock, flags);
+#ifdef CONFIG_BCMDHD_MODULE
+		/* This patch is for nonremovable 0 case of BCM WiFi */
+		if(host->card && mmc_card_sdio(host->card)) {
+			printk("J:%s-mmc_card_sdio, host->index=%d\n", __FUNCTION__, host->index);
+			return 0;
+		}
+#endif //CONFIG_BCMDHD_MODULE
 		mmc_detect_change(host, 0);
 		break;
 

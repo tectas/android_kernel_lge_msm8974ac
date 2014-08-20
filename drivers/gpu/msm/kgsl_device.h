@@ -25,6 +25,8 @@
 #include "kgsl_pwrscale.h"
 #include <linux/sync.h>
 
+#define QCT_TEMP_KGSL_PATCH
+
 #define KGSL_TIMEOUT_NONE           0
 #define KGSL_TIMEOUT_DEFAULT        0xFFFFFFFF
 #define KGSL_TIMEOUT_PART           50 /* 50 msec */

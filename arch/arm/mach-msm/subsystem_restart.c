@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -39,6 +39,10 @@
 #include <mach/socinfo.h>
 #include <mach/subsystem_notif.h>
 #include <mach/subsystem_restart.h>
+
+#ifdef CONFIG_LGE_HANDLE_PANIC
+#include <mach/lge_handle_panic.h>
+#endif
 
 #include "smd_private.h"
 
@@ -164,6 +168,11 @@ struct subsys_device {
 	struct completion err_ready;
 	bool crashed;
 };
+
+#ifdef CONFIG_MACH_LGE
+static int modem_reboot_cnt;
+module_param(modem_reboot_cnt, int, S_IRUGO | S_IWUSR);
+#endif
 
 static struct subsys_device *to_subsys(struct device *d)
 {
@@ -443,9 +452,13 @@ static void subsystem_shutdown(struct subsys_device *dev, void *data)
 	const char *name = dev->desc->name;
 
 	pr_info("[%p]: Shutting down %s\n", current, name);
-	if (dev->desc->shutdown(dev->desc) < 0)
+	if (dev->desc->shutdown(dev->desc) < 0) {
+#ifdef CONFIG_LGE_HANDLE_PANIC
+		lge_set_magic_subsystem(name, LGE_ERR_SUB_SD);
+#endif
 		panic("subsys-restart: [%p]: Failed to shutdown %s!",
 			current, name);
+	}
 	subsys_set_state(dev, SUBSYS_OFFLINE);
 }
 
@@ -466,13 +479,23 @@ static void subsystem_powerup(struct subsys_device *dev, void *data)
 
 	pr_info("[%p]: Powering up %s\n", current, name);
 	init_completion(&dev->err_ready);
-	if (dev->desc->powerup(dev->desc) < 0)
+
+	if (dev->desc->powerup(dev->desc) < 0) {
+#ifdef CONFIG_LGE_HANDLE_PANIC
+        lge_set_magic_subsystem(name, LGE_ERR_SUB_PWR);
+#endif
+		notify_each_subsys_device(&dev, 1, SUBSYS_POWERUP_FAILURE,
+								NULL);
 		panic("[%p]: Powerup error: %s!", current, name);
+	}
 
 	ret = wait_for_err_ready(dev);
-	if (ret)
+	if (ret) {
+		notify_each_subsys_device(&dev, 1, SUBSYS_POWERUP_FAILURE,
+								NULL);
 		panic("[%p]: Timed out waiting for error ready: %s!",
 			current, name);
+	}
 	subsys_set_state(dev, SUBSYS_ONLINE);
 }
 
@@ -500,8 +523,11 @@ static int subsys_start(struct subsys_device *subsys)
 
 	init_completion(&subsys->err_ready);
 	ret = subsys->desc->start(subsys->desc);
-	if (ret)
+	if (ret){
+		notify_each_subsys_device(&subsys, 1, SUBSYS_POWERUP_FAILURE,
+									NULL);
 		return ret;
+	}
 
 	if (subsys->desc->is_not_loadable) {
 		subsys_set_state(subsys, SUBSYS_ONLINE);
@@ -509,12 +535,14 @@ static int subsys_start(struct subsys_device *subsys)
 	}
 
 	ret = wait_for_err_ready(subsys);
-	if (ret)
+	if (ret) {
 		/* pil-boot succeeded but we need to shutdown
 		 * the device because error ready timed out.
 		 */
+		notify_each_subsys_device(&subsys, 1, SUBSYS_POWERUP_FAILURE,
+									NULL);
 		subsys->desc->stop(subsys->desc);
-	else
+	} else
 		subsys_set_state(subsys, SUBSYS_ONLINE);
 
 	return ret;
@@ -758,15 +786,29 @@ int subsystem_restart_dev(struct subsys_device *dev)
 	pr_info("Restart sequence requested for %s, restart_level = %s.\n",
 		name, restart_levels[dev->restart_level]);
 
+#ifdef CONFIG_MACH_LGE
+	if (!strcmp(name, "modem")) {
+		modem_reboot_cnt++;
+		if (modem_reboot_cnt <= 0)
+			modem_reboot_cnt = 1;
+	}
+#endif
+
 	switch (dev->restart_level) {
 
 	case RESET_SUBSYS_COUPLED:
 		__subsystem_restart_dev(dev);
 		break;
 	case RESET_SOC:
+#ifdef CONFIG_LGE_HANDLE_PANIC
+		lge_set_magic_subsystem(name, LGE_ERR_SUB_RST);
+#endif
 		panic("subsys-restart: Resetting the SoC - %s crashed.", name);
 		break;
 	default:
+#ifdef CONFIG_LGE_HANDLE_PANIC
+		lge_set_magic_subsystem(name, LGE_ERR_SUB_UNK);
+#endif
 		panic("subsys-restart: Unknown restart level!\n");
 		break;
 	}
@@ -790,6 +832,57 @@ int subsystem_restart(const char *name)
 	return ret;
 }
 EXPORT_SYMBOL(subsystem_restart);
+
+/**
+ * subsys_modem_restart() - modem restart silently
+ *
+ * modem restart silently
+ */
+int subsys_modem_restart()
+{
+	const char *name;
+	struct subsys_device *dev = find_subsys("modem");
+
+	if (!get_device(&dev->dev))
+		return -ENODEV;
+
+	if (!try_module_get(dev->owner)) {
+		put_device(&dev->dev);
+		return -ENODEV;
+	}
+
+	name = dev->desc->name;
+
+	/*
+	 * If a system reboot/shutdown is underway, ignore subsystem errors.
+	 * However, print a message so that we know that a subsystem behaved
+	 * unexpectedly here.
+	 */
+	if (system_state == SYSTEM_RESTART
+		|| system_state == SYSTEM_POWER_OFF) {
+		pr_err("%s crashed during a system poweroff/shutdown.\n", name);
+		return -EBUSY;
+	}
+
+	pr_info("Restart sequence requested for %s, restart_level = %s.\n",
+		name, restart_levels[dev->restart_level]);
+
+#ifdef CONFIG_MACH_LGE
+	if (!strcmp(name, "modem")) {
+		modem_reboot_cnt++;
+		if (modem_reboot_cnt <= 0)
+			modem_reboot_cnt = 1;
+	}
+#endif
+
+	__subsystem_restart_dev(dev);
+
+	module_put(dev->owner);
+	put_device(&dev->dev);
+
+	return 0;
+}
+EXPORT_SYMBOL(subsys_modem_restart);
 
 int subsystem_crashed(const char *name)
 {

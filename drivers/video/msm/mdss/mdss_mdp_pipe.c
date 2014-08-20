@@ -28,6 +28,11 @@
 
 #define PIPE_HALT_TIMEOUT_US	0x4000
 
+#if defined (CONFIG_MACH_LGE_G3_KDDI_LGD_FHD)
+#define PANEL_X_RES 1080
+#define PANEL_Y_RES 1920
+#endif
+
 static DEFINE_MUTEX(mdss_mdp_sspp_lock);
 static DEFINE_MUTEX(mdss_mdp_smp_lock);
 
@@ -129,26 +134,6 @@ static void mdss_mdp_smp_mmb_free(unsigned long *smp, bool write)
 	}
 }
 
-/**
- * @mdss_mdp_smp_get_size - get allocated smp size for a pipe
- * @pipe: pointer to a pipe
- *
- * Function counts number of blocks that are currently allocated for a
- * pipe, then smp buffer size is number of blocks multiplied by block
- * size.
- */
-u32 mdss_mdp_smp_get_size(struct mdss_mdp_pipe *pipe)
-{
-	int i, mb_cnt = 0;
-
-	for (i = 0; i < MAX_PLANES; i++) {
-		mb_cnt += bitmap_weight(pipe->smp_map[i].allocated, SMP_MB_CNT);
-		mb_cnt += bitmap_weight(pipe->smp_map[i].fixed, SMP_MB_CNT);
-	}
-
-	return mb_cnt * SMP_MB_SIZE;
-}
-
 static void mdss_mdp_smp_set_wm_levels(struct mdss_mdp_pipe *pipe, int mb_cnt)
 {
 	u32 fetch_size, val, wm[3];
@@ -209,8 +194,8 @@ int mdss_mdp_smp_reserve(struct mdss_mdp_pipe *pipe)
 	u32 num_blks = 0, reserved = 0;
 	struct mdss_mdp_plane_sizes ps;
 	int i;
-	int rc = 0, rot_mode = 0, wb_mixer = 0;
-	u32 nlines, format, seg_w;
+	int rc = 0, rot_mode = 0;
+	u32 nlines, format;
 	u16 width;
 
 	width = pipe->src.w >> pipe->horz_deci;
@@ -222,17 +207,19 @@ int mdss_mdp_smp_reserve(struct mdss_mdp_pipe *pipe)
 			return rc;
 		/*
 		 * Override fetch strides with SMP buffer size for both the
-		 * planes. BWC line buffer needs to be divided into 16
-		 * segments and every segment is aligned to format
-		 * specific RAU size
+		 * planes
 		 */
-		seg_w = DIV_ROUND_UP(pipe->src.w, 16);
 		if (pipe->src_fmt->fetch_planes == MDSS_MDP_PLANE_INTERLEAVED) {
-			ps.ystride[0] = ALIGN(seg_w, 32) * 16 * ps.rau_h[0] *
-					pipe->src_fmt->bpp;
+			/*
+			 * BWC line buffer needs to be divided into 16
+			 * segments and every segment is aligned to format
+			 * specific RAU size
+			 */
+			ps.ystride[0] = ALIGN(pipe->src.w / 16 , 32) * 16 *
+				ps.rau_h[0] * pipe->src_fmt->bpp;
 			ps.ystride[1] = 0;
 		} else {
-			u32 bwc_width = ALIGN(seg_w, 64) * 16;
+			u32 bwc_width = ALIGN(pipe->src.w / 16, 64) * 16;
 			ps.ystride[0] = bwc_width * ps.rau_h[0];
 			ps.ystride[1] = bwc_width * ps.rau_h[1];
 			/*
@@ -288,13 +275,7 @@ int mdss_mdp_smp_reserve(struct mdss_mdp_pipe *pipe)
 		}
 	}
 
-	if (pipe->src_fmt->tile)
-		nlines = 8;
-	else
-		nlines = pipe->bwc_mode ? 1 : 2;
-
-	if (pipe->mixer->type == MDSS_MDP_MIXER_TYPE_WRITEBACK)
-		wb_mixer = 1;
+	nlines = pipe->bwc_mode ? 1 : 2;
 
 	mutex_lock(&mdss_mdp_smp_lock);
 	for (i = (MAX_PLANES - 1); i >= ps.num_planes; i--) {
@@ -307,7 +288,7 @@ int mdss_mdp_smp_reserve(struct mdss_mdp_pipe *pipe)
 	}
 
 	for (i = 0; i < ps.num_planes; i++) {
-		if (rot_mode || wb_mixer) {
+		if (rot_mode) {
 			num_blks = 1;
 		} else {
 			num_blks = DIV_ROUND_UP(ps.ystride[i] * nlines,
@@ -673,19 +654,14 @@ static int mdss_mdp_pipe_free(struct mdss_mdp_pipe *pipe)
 	pr_debug("ndx=%x pnum=%d ref_cnt=%d\n", pipe->ndx, pipe->num,
 			atomic_read(&pipe->ref_cnt));
 
-	if (pipe->play_cnt) {
-		mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_ON, false);
-		mdss_mdp_pipe_sspp_term(pipe);
-		mdss_mdp_smp_free(pipe);
-		mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_OFF, false);
-	} else {
-		mdss_mdp_smp_unreserve(pipe);
-	}
-
+	mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_ON, false);
+	mdss_mdp_pipe_sspp_term(pipe);
+	mdss_mdp_smp_free(pipe);
 	pipe->flags = 0;
 	pipe->bwc_mode = 0;
-	pipe->mfd = NULL;
 	memset(&pipe->scale, 0, sizeof(struct mdp_scale_data));
+
+	mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_OFF, false);
 
 	return 0;
 }
@@ -820,14 +796,31 @@ int mdss_mdp_pipe_handoff(struct mdss_mdp_pipe *pipe)
 		pipe->src_fmt->bpp);
 
 	pipe->is_handed_off = true;
-	pipe->play_cnt = 1;
 	atomic_inc(&pipe->ref_cnt);
 
 error:
 	return rc;
 }
 
+void mdss_mdp_crop_rect(struct mdss_mdp_img_rect *src_rect,
+	struct mdss_mdp_img_rect *dst_rect,
+	const struct mdss_mdp_img_rect *sci_rect)
+{
+	struct mdss_mdp_img_rect res;
+	mdss_mdp_intersect_rect(&res, dst_rect, sci_rect);
 
+	if (res.w && res.h) {
+		if ((res.w != dst_rect->w) || (res.h != dst_rect->h)) {
+			src_rect->x = src_rect->x + (res.x - dst_rect->x);
+			src_rect->y = src_rect->y + (res.y - dst_rect->y);
+			src_rect->w = res.w;
+			src_rect->h = res.h;
+		}
+		*dst_rect = (struct mdss_mdp_img_rect)
+			{(res.x - sci_rect->x), (res.y - sci_rect->y),
+			res.w, res.h};
+	}
+}
 
 static int mdss_mdp_image_setup(struct mdss_mdp_pipe *pipe,
 					struct mdss_mdp_data *data)
@@ -879,7 +872,12 @@ static int mdss_mdp_image_setup(struct mdss_mdp_pipe *pipe,
 	src_size = (src.h << 16) | src.w;
 	src_xy = (src.y << 16) | src.x;
 	dst_size = (dst.h << 16) | dst.w;
+#if defined (CONFIG_MACH_LGE_G3_KDDI_LGD_FHD)
+	dst_xy = ((PANEL_Y_RES - dst.y - dst.h) << 16) | dst.x;
+#else
 	dst_xy = (dst.y << 16) | dst.x;
+#endif
+	img_size = (height << 16) | width;
 
 	ystride0 =  (pipe->src_planes.ystride[0]) |
 			(pipe->src_planes.ystride[1] << 16);
@@ -930,7 +928,6 @@ static int mdss_mdp_format_setup(struct mdss_mdp_pipe *pipe)
 	u32 chroma_samp, unpack, src_format;
 	u32 secure = 0;
 	u32 opmode;
-	struct mdss_data_type *mdata = mdss_mdp_get_mdata();
 
 	fmt = pipe->src_fmt;
 
@@ -961,9 +958,6 @@ static int mdss_mdp_format_setup(struct mdss_mdp_pipe *pipe)
 		     (fmt->bits[C1_B_Cb] << 2) |
 		     (fmt->bits[C0_G_Y] << 0);
 
-	if (fmt->tile)
-		src_format |= BIT(30);
-
 	if (pipe->flags & MDP_ROT_90)
 		src_format |= BIT(11); /* ROT90 */
 
@@ -978,16 +972,17 @@ static int mdss_mdp_format_setup(struct mdss_mdp_pipe *pipe)
 			(fmt->unpack_align_msb << 18) |
 			((fmt->bpp - 1) << 9);
 
+#if defined(CONFIG_MACH_LGE_G3_KDDI_LGD_FHD)
+	if (pipe->flags & MDP_FLIP_UD)
+		opmode &= ~MDSS_MDP_OP_FLIP_UD;
+	else
+		opmode |= MDSS_MDP_OP_FLIP_UD;
+#endif
 	mdss_mdp_pipe_sspp_setup(pipe, &opmode);
 
 	if (pipe->scale.enable_pxl_ext)
 		opmode |= (1 << 31);
 
-	if (fmt->tile && mdata->highest_bank_bit) {
-		mdss_mdp_pipe_write(pipe, MDSS_MDP_REG_SSPP_FETCH_CONFIG,
-			MDSS_MDP_FETCH_CONFIG_RESET_VALUE |
-				 mdata->highest_bank_bit << 18);
-	}
 	mdss_mdp_pipe_write(pipe, MDSS_MDP_REG_SSPP_SRC_FORMAT, src_format);
 	mdss_mdp_pipe_write(pipe, MDSS_MDP_REG_SSPP_SRC_UNPACK_PATTERN, unpack);
 	mdss_mdp_pipe_write(pipe, MDSS_MDP_REG_SSPP_SRC_OP_MODE, opmode);

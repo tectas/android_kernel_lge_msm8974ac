@@ -689,7 +689,11 @@ static int memcmp_pages(struct page *page1, struct page *page2)
 
 	addr1 = kmap_atomic(page1);
 	addr2 = kmap_atomic(page2);
+#ifdef __HAVE_ARCH_PAGECMP
+	ret = cmp_page(addr1, addr2);
+#else
 	ret = memcmp(addr1, addr2, PAGE_SIZE);
+#endif
 	kunmap_atomic(addr2);
 	kunmap_atomic(addr1);
 	return ret;

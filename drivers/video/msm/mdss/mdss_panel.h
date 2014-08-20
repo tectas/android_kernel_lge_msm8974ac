@@ -309,6 +309,7 @@ struct mdss_panel_info {
 	u32 panel_power_on;
 
 	uint32_t panel_dead;
+	int lcd_marker;
 
 	struct lcd_panel_info lcdc;
 	struct fbc_panel_info fbc;

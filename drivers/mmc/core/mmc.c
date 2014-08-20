@@ -111,7 +111,19 @@ static int mmc_decode_cid(struct mmc_card *card)
 		card->cid.prod_name[5]	= UNSTUFF_BITS(resp, 56, 8);
 		card->cid.serial	= UNSTUFF_BITS(resp, 16, 32);
 		card->cid.month		= UNSTUFF_BITS(resp, 12, 4);
-		card->cid.year		= UNSTUFF_BITS(resp, 8, 4) + 1997;
+#ifdef CONFIG_MACH_LGE
+		/* LGE_CHANGE
+		 * modify date cid register values
+		 * see CID register part in JEDEC Spec.
+		 * ex) 0000 : 1997, or 2013 if EXT_CSD_REV [192] > 4
+		 * don't care MDT y Field[11:8] value over 1101b.
+		 * 2014-03-07, B2-BSP-FS@lge.com
+		 */
+		if(card->ext_csd.rev > 4)
+			card->cid.year		= UNSTUFF_BITS(resp, 8, 4) + 2013;
+		else
+#endif
+		card->cid.year      = UNSTUFF_BITS(resp, 8, 4) + 1997;
 		break;
 
 	default:
@@ -603,6 +615,12 @@ static int mmc_compare_ext_csds(struct mmc_card *card, unsigned bus_width)
 	err = mmc_get_ext_csd(card, &bw_ext_csd);
 
 	if (err || bw_ext_csd == NULL) {
+		#ifdef CONFIG_MACH_LGE
+		/* LGE_CHANGE, 2013-04-19, G2-FS@lge.com
+		* Adding Print, Requested by QMC-CASE-01158823
+		*/
+		pr_err("%s: %s: 0x%x, 0x%x\n", mmc_hostname(card->host), __func__, err, bw_ext_csd ? *bw_ext_csd : 0x0);
+		#endif
 		if (bus_width != MMC_BUS_WIDTH_1)
 			err = -EINVAL;
 		goto out;
@@ -646,8 +664,19 @@ static int mmc_compare_ext_csds(struct mmc_card *card, unsigned bus_width)
 			bw_ext_csd[EXT_CSD_SEC_CNT + 2]) &&
 		(card->ext_csd.raw_sectors[3] ==
 			bw_ext_csd[EXT_CSD_SEC_CNT + 3]));
+
+	#ifdef CONFIG_MACH_LGE
+		/* LGE_CHANGE, 2013-04-19, G2-FS@lge.com
+		* Adding Print, Requested by QMC-CASE-01158823
+		*/
+		if (err) {
+		pr_err("%s: %s: fail during compare, err = 0x%x\n", mmc_hostname(card->host), __func__, err);
+		err = -EINVAL;
+		}
+	#else
 	if (err)
 		err = -EINVAL;
+	#endif
 
 out:
 	mmc_free_ext_csd(bw_ext_csd);
@@ -769,8 +798,15 @@ static int mmc_select_powerclass(struct mmc_card *card,
 				EXT_CSD_PWR_CL_DDR_200_360;
 		break;
 	default:
+		#ifdef CONFIG_MACH_LGE
+		/* LGE_CHANGE, 2013-04-19, G2-FS@lge.com
+		* Adding Print, Requested by QMC-CASE-01158823
+		*/
+		pr_err("%s: %s: Voltage range not supported for power class, host->ios.vdd = 0x%x\n", mmc_hostname(host), __func__, host->ios.vdd);
+		#else
 		pr_warning("%s: Voltage range not supported "
 			   "for power class.\n", mmc_hostname(host));
+		#endif
 		return -EINVAL;
 	}
 
@@ -1144,8 +1180,22 @@ static int mmc_select_hs400(struct mmc_card *card, u8 *ext_csd)
 	}
 
 	/* Switch to HS400 mode if bus width set successfully */
+	#ifdef CONFIG_MACH_LGE
+	/* LGE_CHANGE
+	 * As recommendation of Toshiba, we use 0x4 for Driver Strength in case of Toshiba eMMC.
+	 * 2014.03.17, B2-BSP-FS@lge.com
+	*/
+	if (card->cid.manfid == 17){
+		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
+				EXT_CSD_HS_TIMING, 67, 0);
+	} else {
+		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
+				EXT_CSD_HS_TIMING, 3, 0);
+	}
+	#else
 	err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
 				 EXT_CSD_HS_TIMING, 3, 0);
+	#endif
 	if (err && err != -EBADMSG) {
 		pr_err("%s: Setting HS_TIMING to HS400 failed (err:%d)\n",
 			mmc_hostname(host), err);
@@ -1247,8 +1297,7 @@ static int mmc_change_bus_speed(struct mmc_host *host, unsigned long *freq)
 		mmc_set_clock(host, (unsigned int) (*freq));
 	}
 
-	if ((mmc_card_hs400(card) || mmc_card_hs200(card))
-		&& card->host->ops->execute_tuning) {
+	if (mmc_card_hs200(card) && card->host->ops->execute_tuning) {
 		/*
 		 * We try to probe host driver for tuning for any
 		 * frequency, it is host driver responsibility to
@@ -1417,9 +1466,15 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 		err = mmc_decode_csd(card);
 		if (err)
 			goto free_card;
+#ifndef CONFIG_MACH_LGE
+		/* LGE_CHANGE
+		 *  ext_csd.rev value are required while decoding cid.year, so move down.
+		 *  2014-03-07, B2-BSP-FS@lge.com
+		 */
 		err = mmc_decode_cid(card);
 		if (err)
 			goto free_card;
+#endif
 	}
 
 	/*
@@ -1443,6 +1498,15 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 		err = mmc_read_ext_csd(card, ext_csd);
 		if (err)
 			goto free_card;
+#ifdef CONFIG_MACH_LGE
+		/* LGE_CHANGE
+		 * decode cid here.
+		 * 2014-03-07, B2-BSP-FS@lge.com
+		 */
+		err = mmc_decode_cid(card);
+		if (err)
+			goto free_card;
+#endif
 
 		/* If doing byte addressing, check if required to do sector
 		 * addressing.  Handle the case of <2GB cards needing sector
@@ -1781,10 +1845,15 @@ static int mmc_suspend(struct mmc_host *host)
 	if (err)
 		goto out;
 
-	if (mmc_card_can_sleep(host))
-		err = mmc_card_sleep(host);
-	else if (!mmc_host_is_spi(host))
-		mmc_deselect_cards(host);
+	#if defined(CONFIG_MACH_MSM8974_G3_GLOBAL_COM) //B2 Global does not support sleep(CMD5) command
+	if (!mmc_host_is_spi(host))
+        mmc_deselect_cards(host);
+	#else
+        if (mmc_card_can_sleep(host))
+            err = mmc_card_sleep(host);
+        else if (!mmc_host_is_spi(host))
+            mmc_deselect_cards(host);
+	#endif
 	host->card->state &= ~(MMC_STATE_HIGHSPEED | MMC_STATE_HIGHSPEED_200);
 
 out:

@@ -22,7 +22,9 @@
 #include "mdss_fb.h"
 #include "mdss_mdp.h"
 #include "mdss_panel.h"
-
+#ifdef CONFIG_MACH_LGE
+#include <mach/board_lge.h>
+#endif
 /* wait for at least 2 vsyncs for lowest refresh rate (24hz) */
 #define VSYNC_TIMEOUT_US 100000
 
@@ -62,6 +64,7 @@ struct mdss_mdp_video_ctx {
 
 	atomic_t vsync_ref;
 	spinlock_t vsync_lock;
+	spinlock_t dfps_lock;
 	struct mutex vsync_mtx;
 	struct list_head vsync_handlers;
 };
@@ -187,7 +190,15 @@ static int mdss_mdp_video_timegen_setup(struct mdss_mdp_ctl *ctl,
 	polarity_ctl = (den_polarity << 2)   | /*  DEN Polarity  */
 		       (vsync_polarity << 1) | /* VSYNC Polarity */
 		       (hsync_polarity << 0);  /* HSYNC Polarity */
-
+#ifdef CONFIG_MACH_LGE
+	if (lge_get_boot_mode() == LGE_BOOT_MODE_FACTORY) {
+		if (MDSS_INTF_HDMI == ctx->intf_type) {
+			pr_info("[minios] Enable HDMI Grayscale Ramp Pattern");
+			mdp_video_write(ctx, MDSS_MDP_REG_INTF_TPG_ENABLE, 0x1);
+			mdp_video_write(ctx, MDSS_MDP_REG_INTF_TPG_MAIN_CONTROL, 0x40);
+		}
+	}
+#endif
 	mdp_video_write(ctx, MDSS_MDP_REG_INTF_HSYNC_CTL, hsync_ctl);
 	mdp_video_write(ctx, MDSS_MDP_REG_INTF_VSYNC_PERIOD_F0,
 			vsync_period * hsync_period);
@@ -462,7 +473,7 @@ static void mdss_mdp_video_underrun_intr_done(void *arg)
 		return;
 
 	ctl->underrun_cnt++;
-	pr_debug("display underrun detected for ctl=%d count=%d\n", ctl->num,
+	pr_err("display underrun detected for ctl=%d count=%d\n", ctl->num,
 			ctl->underrun_cnt);
 }
 
@@ -528,6 +539,9 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 	struct mdss_panel_data *pdata;
 	int rc = 0;
 	u32 hsync_period, vsync_period;
+#ifdef CONFIG_LGE_DEVFREQ_DFPS
+	u32 line_count;
+#endif
 
 	pr_debug("Updating fps for ctl=%d\n", ctl->num);
 
@@ -587,6 +601,7 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 			mdss_mdp_display_wait4comp(ctl);
 		} else if (pdata->panel_info.dfps_update
 				== DFPS_IMMEDIATE_PORCH_UPDATE_MODE){
+			unsigned long flags;
 			if (!ctx->timegen_en) {
 				pr_err("TG is OFF. DFPS mode invalid\n");
 				return -EINVAL;
@@ -598,12 +613,28 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 				usecs_to_jiffies(VSYNC_TIMEOUT_US));
 			WARN(rc <= 0, "timeout (%d) vsync interrupt on ctl=%d\n",
 				rc, ctl->num);
+#ifdef CONFIG_LGE_DEVFREQ_DFPS
+			if(rc <=0) {
+				video_vsync_irq_disable(ctl);
+				return rc;
+			}
+#endif
 			rc = 0;
 			video_vsync_irq_disable(ctl);
 
+#ifdef CONFIG_LGE_DEVFREQ_DFPS
+			spin_lock_irqsave(&ctx->dfps_lock, flags);
+			line_count = mdss_mdp_video_line_count(ctl);
+			if(line_count >= pdata->panel_info.yres/3){
+				pr_err("Too few lines left line_cnt = %d y_res/3 = %d \n", line_count, pdata->panel_info.yres/3);
+				spin_unlock_irqrestore(&ctx->dfps_lock, flags);
+				return -EPERM;
+			}
+#endif
 			rc = mdss_mdp_video_vfp_fps_update(ctl, new_fps);
 			if (rc < 0) {
 				pr_err("%s: Error during DFPS\n", __func__);
+				spin_unlock_irqrestore(&ctx->dfps_lock, flags);
 				return rc;
 			}
 			if (sctl) {
@@ -611,12 +642,14 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 								new_fps);
 				if (rc < 0) {
 					pr_err("%s: DFPS error\n", __func__);
+					spin_unlock_irqrestore(&ctx->dfps_lock, flags);
 					return rc;
 				}
 			}
 			rc = mdss_mdp_ctl_intf_event(ctl,
 						MDSS_EVENT_PANEL_UPDATE_FPS,
 						(void *)new_fps);
+			spin_unlock_irqrestore(&ctx->dfps_lock, flags);
 			WARN(rc, "intf %d panel fps update error (%d)\n",
 							ctl->intf_num, rc);
 		} else {
@@ -631,7 +664,9 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 		WARN(rc, "intf %d panel fps update error (%d)\n",
 						ctl->intf_num, rc);
 	}
-
+#ifdef CONFIG_LGE_DEVFREQ_DFPS
+	pr_err("%s entering line_cnt : %d, exiting line_cnt = %d \n",__func__, line_count, mdss_mdp_video_line_count(ctl));
+#endif
 	return rc;
 }
 
@@ -778,6 +813,7 @@ int mdss_mdp_video_start(struct mdss_mdp_ctl *ctl)
 	ctx->intf_type = ctl->intf_type;
 	init_completion(&ctx->vsync_comp);
 	spin_lock_init(&ctx->vsync_lock);
+	spin_lock_init(&ctx->dfps_lock);
 	mutex_init(&ctx->vsync_mtx);
 	atomic_set(&ctx->vsync_ref, 0);
 

@@ -51,7 +51,13 @@
 #include <mach/iommu_domains.h>
 #include <mach/msm_memtypes.h>
 
+#ifdef CONFIG_LGE_HANDLE_PANIC
+#include <mach/lge_handle_panic.h>
+#endif
+
 #include "mdss_fb.h"
+#include "mdss_mdp.h"
+#include "mdss_dsi.h"
 
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 #define MDSS_FB_NUM 3
@@ -60,6 +66,9 @@
 #endif
 
 #define MAX_FBI_LIST 32
+#ifdef CONFIG_MACH_LGE
+#define BOOT_BRIGHTNESS 1
+#endif
 static struct fb_info *fbi_list[MAX_FBI_LIST];
 static int fbi_list_index;
 
@@ -70,7 +79,13 @@ static u32 mdss_fb_pseudo_palette[16] = {
 	0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
 };
 
+#if defined(CONFIG_LGE_BROADCAST_TDMB)
+extern struct mdp_csc_cfg dmb_csc_convert;
+extern int pp_set_dmb_status(int flag);
+#endif /* LGE_BROADCAST */
+
 static struct msm_mdp_interface *mdp_instance;
+
 
 static int mdss_fb_register(struct msm_fb_data_type *mfd);
 static int mdss_fb_open(struct fb_info *info, int user);
@@ -206,10 +221,14 @@ static void mdss_fb_set_bl_brightness(struct led_classdev *led_cdev,
 	if (value > mfd->panel_info->brightness_max)
 		value = mfd->panel_info->brightness_max;
 
+#ifdef CONFIG_MACH_LGE
+	bl_lvl = value;
+#else
 	/* This maps android backlight level 0 to 255 into
 	   driver backlight level 0 to bl_max with rounding */
 	MDSS_BRIGHT_TO_BL(bl_lvl, value, mfd->panel_info->bl_max,
 				mfd->panel_info->brightness_max);
+#endif
 
 	if (!bl_lvl && value)
 		bl_lvl = 1;
@@ -279,8 +298,12 @@ static void mdss_fb_parse_dt(struct msm_fb_data_type *mfd)
 	if (of_property_read_u32_array(pdev->dev.of_node, "qcom,mdss-fb-split",
 				       data, 2))
 		return;
+#ifdef CONFIG_MACH_LGE
+	if (mfd->index == 0 && data[0] && data[1]) {
+#else
 	if (data[0] && data[1] &&
 	    (mfd->panel_info->xres == (data[0] + data[1]))) {
+#endif
 		mfd->split_fb_left = data[0];
 		mfd->split_fb_right = data[1];
 		pr_info("split framebuffer left=%d right=%d\n",
@@ -417,6 +440,10 @@ static void mdss_fb_shutdown(struct platform_device *pdev)
 	unlock_fb_info(mfd->fbi);
 }
 
+#ifdef CONFIG_MACH_LGE
+struct msm_fb_data_type *mfd_base;
+#endif
+
 static int mdss_fb_probe(struct platform_device *pdev)
 {
 	struct msm_fb_data_type *mfd = NULL;
@@ -540,8 +567,11 @@ static int mdss_fb_probe(struct platform_device *pdev)
 		}
 	}
 
+#ifdef CONFIG_MACH_LGE
+	if (mfd_base == NULL)
+		mfd_base = mfd;
+#endif
 	INIT_DELAYED_WORK(&mfd->idle_notify_work, __mdss_fb_idle_notify_work);
-
 	return rc;
 }
 
@@ -847,6 +877,7 @@ static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 	switch (blank_mode) {
 	case FB_BLANK_UNBLANK:
 		if (!mfd->panel_power_on && mfd->mdp.on_fnc) {
+			pr_info("fb%d UNBLANK +", mfd->index);
 			ret = mfd->mdp.on_fnc(mfd);
 			if (ret == 0) {
 				mfd->panel_power_on = true;
@@ -856,6 +887,7 @@ static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 			mfd->update.type = NOTIFY_TYPE_UPDATE;
 			mfd->update.is_suspend = 0;
 			mutex_unlock(&mfd->update.lock);
+			pr_info("fb%d UNBLANK -", mfd->index);
 
 			/* Start the work thread to signal idle time */
 			if (mfd->idle_time)
@@ -872,6 +904,7 @@ static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 		if (mfd->panel_power_on && mfd->mdp.off_fnc) {
 			int curr_pwr_state;
 
+			pr_info("fb%d BLANK +", mfd->index);
 			mutex_lock(&mfd->update.lock);
 			mfd->update.type = NOTIFY_TYPE_SUSPEND;
 			mfd->update.is_suspend = 1;
@@ -893,6 +926,7 @@ static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 				mdss_fb_release_fences(mfd);
 			mfd->op_enable = true;
 			complete(&mfd->power_off_comp);
+			pr_info("fb%d BLANK -", mfd->index);
 		}
 		break;
 	}
@@ -1031,6 +1065,11 @@ static int mdss_fb_alloc_fbmem_iommu(struct msm_fb_data_type *mfd, int dom)
 	pr_info("allocating %u bytes at %p (%lx phys) for fb %d\n",
 		 size, virt, phys, mfd->index);
 
+#ifdef CONFIG_LGE_HANDLE_PANIC
+    /* save fb1 address for crash handler display buffer */
+    lge_set_fb1_addr((unsigned int)(phys));
+#endif
+
 	mfd->fbi->screen_base = virt;
 	mfd->fbi->fix.smem_start = phys;
 	mfd->fbi->fix.smem_len = size;
@@ -1083,8 +1122,13 @@ static int mdss_fb_register(struct msm_fb_data_type *mfd)
 	var->grayscale = 0,	/* No graylevels */
 	var->nonstd = 0,	/* standard pixel format */
 	var->activate = FB_ACTIVATE_VBL,	/* activate it at vsync */
+#ifdef CONFIG_MACH_LGE
+	var->height = 120,	/* height of picture in mm */
+	var->width = 68,	/* width of picture in mm */
+#else
 	var->height = -1,	/* height of picture in mm */
 	var->width = -1,	/* width of picture in mm */
+#endif
 	var->accel_flags = 0,	/* acceleration flags */
 	var->sync = 0,	/* see FB_SYNC_* */
 	var->rotate = 0,	/* angle we rotate counter clockwise */
@@ -1286,7 +1330,7 @@ static int mdss_fb_open(struct fb_info *info, int user)
 	int pid = current->tgid;
 
 	if (mfd->shutdown_pending) {
-		pr_err("Shutdown pending. Aborting operation\n");
+		pr_debug("Shutdown pending. Aborting operation\n");
 		return -EPERM;
 	}
 
@@ -2287,6 +2331,16 @@ static int mdss_fb_ioctl(struct fb_info *info, unsigned int cmd,
 	int ret = -ENOSYS;
 	struct mdp_buf_sync buf_sync;
 	struct msm_sync_pt_data *sync_pt_data = NULL;
+
+#ifdef CONFIG_MACH_LGE
+	u32 dsi_panel_invert = 0;
+#endif
+
+#if defined(CONFIG_LGE_BROADCAST_TDMB)
+	int dmb_flag = 0;
+	struct mdp_csc_cfg dmb_csc_cfg;
+#endif /* LGE_BROADCAST */
+
 	if (!info || !info->par)
 		return -EINVAL;
 	mfd = (struct msm_fb_data_type *)info->par;
@@ -2344,6 +2398,28 @@ static int mdss_fb_ioctl(struct fb_info *info, unsigned int cmd,
 	case MSMFB_DISPLAY_COMMIT:
 		ret = mdss_fb_display_commit(info, argp);
 		break;
+#ifdef CONFIG_MACH_LGE
+	case MSMFB_INVERT_PANEL:
+		ret = copy_from_user(&dsi_panel_invert, argp, sizeof(int));
+		if(ret)
+			return ret;
+		ret = mdss_dsi_panel_invert(dsi_panel_invert);
+		break;
+#endif
+#if defined(CONFIG_LGE_BROADCAST_TDMB)
+	case MSMFB_DMB_SET_FLAG:
+		ret = copy_from_user(&dmb_flag, argp, sizeof(int));
+		if (ret)
+			return ret;
+		ret = pp_set_dmb_status(dmb_flag);
+		break;
+	case MSMFB_DMB_SET_CSC_MATRIX:
+		ret = copy_from_user(&dmb_csc_cfg, argp, sizeof(dmb_csc_cfg));
+		if (ret)
+			return ret;
+		memcpy(dmb_csc_convert.csc_mv, dmb_csc_cfg.csc_mv, sizeof(dmb_csc_cfg.csc_mv));
+		break;
+#endif /* LGE_BROADCAST */
 
 	default:
 		if (mfd->mdp.ioctl_handler)

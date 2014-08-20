@@ -2386,6 +2386,15 @@
 		interrupts = <0 1 0>;
 	};
 
+	qcom,smdttyatnt {
+		compatible = "qcom,smdttyatnt";
+
+		smdtty_data11: qcom,smdtty-data11 {
+			qcom,smdtty-remote = "modem";
+			qcom,smdtty-port-name = "DATA11";
+		};
+	};
+
 	qcom,smdtty {
 		compatible = "qcom,smdtty";
 
@@ -2422,11 +2431,6 @@
 		smdtty_data1: qcom,smdtty-data1 {
 			qcom,smdtty-remote = "modem";
 			qcom,smdtty-port-name = "DATA1";
-		};
-
-		smdtty_data11: qcom,smdtty-data11 {
-			qcom,smdtty-remote = "modem";
-			qcom,smdtty-port-name = "DATA11";
 		};
 
 		smdtty_data21: qcom,smdtty-data21 {

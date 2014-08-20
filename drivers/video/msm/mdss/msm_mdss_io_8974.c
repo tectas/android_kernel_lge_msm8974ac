@@ -423,7 +423,6 @@ static void mdss_dsi_link_clk_disable(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 		pr_err("%s: Invalid input data\n", __func__);
 		return;
 	}
-
 	pr_debug("%s: ndx=%d\n", __func__, ctrl_pdata->ndx);
 
 	if (ctrl_pdata->mdss_dsi_clk_on == 0) {
@@ -564,6 +563,15 @@ void mdss_dsi_phy_disable(struct mdss_dsi_ctrl_pdata *ctrl)
 		pr_err("%s: Invalid input data\n", __func__);
 		return;
 	}
+
+#ifdef CONFIG_MACH_LGE
+	/* system matching for SIC panel */
+	if (!left_ctrl
+		&& ctrl->shared_pdata.broadcast_enable)
+		if ((ctrl->panel_data).panel_info.pdest
+						== DISPLAY_1)
+			left_ctrl = ctrl;
+#endif
 
 	if (left_ctrl &&
 			(ctrl->panel_data.panel_info.pdest == DISPLAY_1))

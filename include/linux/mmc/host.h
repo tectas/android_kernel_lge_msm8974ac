@@ -197,6 +197,33 @@ struct mmc_hotplug {
 	void *handler_priv;
 };
 
+ #ifdef CONFIG_MACH_LGE
+/* LGE_CHANGE, 2014/01/16, B2-BSP-FS@lge.com
+ * extern int mmc_cd_get_status( )
+ */
+extern int mmc_cd_get_status(struct mmc_host *host);
+#endif
+
+#ifdef CONFIG_MACH_LGE
+/* LGE_CHANGE
+ * define enumeration for mmc-host-driver-index.
+ * 2014-01-16, B2-BSP-FS@lge.com
+ */
+enum mmc_host_driver_index {
+	MMC_HOST_DRIVER_INDEX_MMC0 = 0,
+	MMC_HOST_DRIVER_INDEX_MMC1,
+	MMC_HOST_DRIVER_INDEX_MMC2,
+	MMC_HOST_DRIVER_INDEX_MMC3
+};
+
+enum mmc_sdcc_controller_index {
+	MMC_SDCC_CONTROLLER_INDEX_SDCC1 = 1,
+	MMC_SDCC_CONTROLLER_INDEX_SDCC2,
+	MMC_SDCC_CONTROLLER_INDEX_SDCC3,
+	MMC_SDCC_CONTROLLER_INDEX_SDCC4
+};
+#endif
+
 struct mmc_host {
 	struct device		*parent;
 	struct device		class_dev;

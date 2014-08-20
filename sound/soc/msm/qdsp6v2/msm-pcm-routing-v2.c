@@ -316,7 +316,7 @@ static void msm_pcm_routing_build_matrix(int fedai_id, int dspst_id,
 		if (!is_be_dai_extproc(i) &&
 		   (afe_get_port_type(msm_bedais[i].port_id) == port_type) &&
 		   (msm_bedais[i].active) &&
-		   (test_bit(fedai_id, &msm_bedais[i].fe_sessions)))
+		   (test_bit(fedai_id, (void*)&msm_bedais[i].fe_sessions)))
 			payload.copp_ids[payload.num_copps++] =
 					msm_bedais[i].port_id;
 	}
@@ -722,9 +722,9 @@ static void msm_pcm_routing_process_voice(u16 reg, u16 val, int set)
 
 			if (voc_get_route_flag(session_id, RX_PATH) &&
 			   voc_get_route_flag(session_id, TX_PATH))
-				voc_enable_cvp(session_id);
+				voc_enable_device(session_id);
 		} else {
-			voc_disable_cvp(session_id);
+			voc_disable_device(session_id);
 		}
 	} else {
 		voc_set_route_flag(session_id, TX_PATH, set);
@@ -733,9 +733,9 @@ static void msm_pcm_routing_process_voice(u16 reg, u16 val, int set)
 				msm_bedais[reg].port_id, DEV_TX);
 			if (voc_get_route_flag(session_id, RX_PATH) &&
 			   voc_get_route_flag(session_id, TX_PATH))
-				voc_enable_cvp(session_id);
+				voc_enable_device(session_id);
 		} else {
-			voc_disable_cvp(session_id);
+			voc_disable_device(session_id);
 		}
 	}
 }
@@ -1085,8 +1085,11 @@ static int msm_routing_get_fm_vol_mixer(struct snd_kcontrol *kcontrol,
 static int msm_routing_set_fm_vol_mixer(struct snd_kcontrol *kcontrol,
 				struct snd_ctl_elem_value *ucontrol)
 {
+#ifdef CONFIG_SND_FM_RADIO
+	afe_loopback_gain(AFE_PORT_ID_TERTIARY_MI2S_TX , ucontrol->value.integer.value[0]);
+#else
 	afe_loopback_gain(INT_FM_TX , ucontrol->value.integer.value[0]);
-
+#endif
 	msm_route_fm_vol_control = ucontrol->value.integer.value[0];
 
 	return 0;
@@ -2012,6 +2015,14 @@ static const struct snd_kcontrol_new mmul2_mixer_controls[] = {
 };
 
 static const struct snd_kcontrol_new mmul4_mixer_controls[] = {
+/* LGE_CHANGE_S
+ * Add mixer controls for multimedia4
+ */
+#ifdef CONFIG_MACH_LGE
+	SOC_SINGLE_EXT("MI2S_TX", MSM_BACKEND_DAI_MI2S_TX,
+	MSM_FRONTEND_DAI_MULTIMEDIA4, 1, 0, msm_routing_get_audio_mixer,
+	msm_routing_put_audio_mixer),
+#endif
 	SOC_SINGLE_EXT("SLIM_0_TX", MSM_BACKEND_DAI_SLIMBUS_0_TX,
 	MSM_FRONTEND_DAI_MULTIMEDIA4, 1, 0, msm_routing_get_audio_mixer,
 	msm_routing_put_audio_mixer),
@@ -2292,6 +2303,9 @@ static const struct snd_kcontrol_new sec_aux_pcm_rx_voice_mixer_controls[] = {
 	SOC_SINGLE_EXT("VoLTE", MSM_BACKEND_DAI_SEC_AUXPCM_RX,
 	MSM_FRONTEND_DAI_VOLTE, 1, 0, msm_routing_get_voice_mixer,
 	msm_routing_put_voice_mixer),
+	SOC_SINGLE_EXT("Voice2", MSM_BACKEND_DAI_SEC_AUXPCM_RX,
+	MSM_FRONTEND_DAI_VOICE2, 1, 0, msm_routing_get_voice_mixer,
+	msm_routing_put_voice_mixer),
 	SOC_SINGLE_EXT("DTMF", MSM_BACKEND_DAI_SEC_AUXPCM_RX,
 	MSM_FRONTEND_DAI_DTMF_RX, 1, 0, msm_routing_get_voice_mixer,
 	msm_routing_put_voice_mixer),
@@ -2388,6 +2402,9 @@ static const struct snd_kcontrol_new tx_voice2_mixer_controls[] = {
 	SOC_SINGLE_EXT("AUX_PCM_TX_Voice2", MSM_BACKEND_DAI_AUXPCM_TX,
 	MSM_FRONTEND_DAI_VOICE2, 1, 0, msm_routing_get_voice_mixer,
 	msm_routing_put_voice_mixer),
+	SOC_SINGLE_EXT("SEC_AUX_PCM_TX_Voice2", MSM_BACKEND_DAI_SEC_AUXPCM_TX,
+	MSM_FRONTEND_DAI_VOICE2, 1, 0, msm_routing_get_voice_mixer,
+	msm_routing_put_voice_mixer),
 	SOC_SINGLE_EXT("PRI_MI2S_TX_Voice2", MSM_BACKEND_DAI_PRI_MI2S_TX,
 	MSM_FRONTEND_DAI_VOICE2, 1, 0, msm_routing_get_voice_mixer,
 	msm_routing_put_voice_mixer),
@@ -2415,6 +2432,11 @@ static const struct snd_kcontrol_new tx_volte_mixer_controls[] = {
 	SOC_SINGLE_EXT("MI2S_TX_VoLTE", MSM_BACKEND_DAI_MI2S_TX,
 	MSM_FRONTEND_DAI_VOLTE, 1, 0, msm_routing_get_voice_mixer,
 	msm_routing_put_voice_mixer),
+#ifdef CONFIG_SND_FM_RADIO
+	SOC_SINGLE_EXT("TERT_MI2S_TX", MSM_BACKEND_DAI_SLIMBUS_0_RX,
+	MSM_BACKEND_DAI_TERTIARY_MI2S_TX, 1, 0, msm_routing_get_port_mixer,
+	msm_routing_put_port_mixer),
+#endif
 };
 
 static const struct snd_kcontrol_new tx_voip_mixer_controls[] = {
@@ -2517,6 +2539,11 @@ static const struct snd_kcontrol_new sbus_0_rx_port_mixer_controls[] = {
 	SOC_SINGLE_EXT("INTERNAL_BT_SCO_TX", MSM_BACKEND_DAI_SLIMBUS_0_RX,
 	MSM_BACKEND_DAI_INT_BT_SCO_TX, 1, 0, msm_routing_get_port_mixer,
 	msm_routing_put_port_mixer),
+#ifdef CONFIG_SND_FM_RADIO
+	SOC_SINGLE_EXT("TERT_MI2S_TX", MSM_BACKEND_DAI_SLIMBUS_0_RX,
+	MSM_BACKEND_DAI_TERTIARY_MI2S_TX, 1, 0, msm_routing_get_port_mixer,
+	msm_routing_put_port_mixer),
+#endif
 };
 
 static const struct snd_kcontrol_new auxpcm_rx_port_mixer_controls[] = {
@@ -3535,6 +3562,12 @@ static const struct snd_soc_dapm_route intercon[] = {
 	{"MultiMedia5 Mixer", "MI2S_TX", "MI2S_TX"},
 	{"MultiMedia1 Mixer", "QUAT_MI2S_TX", "QUAT_MI2S_TX"},
 	{"MultiMedia1 Mixer", "TERT_MI2S_TX", "TERT_MI2S_TX"},
+	/* LGE_CHANGE_S
+	 * Add dapm route add for Multimedia4
+	 */
+	{"MultiMedia4 Mixer", "MI2S_TX", "MI2S_TX"},
+	{"MultiMedia4 Mixer", "SLIM_0_TX", "SLIMBUS_0_TX"},
+	/* LGE_CHANGE_E */
 	{"MultiMedia1 Mixer", "SLIM_0_TX", "SLIMBUS_0_TX"},
 	{"MultiMedia1 Mixer", "AUX_PCM_UL_TX", "AUX_PCM_TX"},
 	{"MultiMedia5 Mixer", "AUX_PCM_TX", "AUX_PCM_TX"},
@@ -3691,6 +3724,7 @@ static const struct snd_soc_dapm_route intercon[] = {
 
 	{"SEC_AUX_PCM_RX_Voice Mixer", "CSVoice", "CS-VOICE_DL1"},
 	{"SEC_AUX_PCM_RX_Voice Mixer", "VoLTE", "VoLTE_DL"},
+	{"SEC_AUX_PCM_RX_Voice Mixer", "Voice2", "VOICE2_DL"},
 	{"SEC_AUX_PCM_RX_Voice Mixer", "Voip", "VOIP_DL"},
 	{"SEC_AUX_PCM_RX_Voice Mixer", "DTMF", "DTMF_DL_HL"},
 	{"SEC_AUX_PCM_RX_Voice Mixer", "Voice Stub", "VOICE_STUB_DL"},
@@ -3739,6 +3773,7 @@ static const struct snd_soc_dapm_route intercon[] = {
 	{"Voice2_Tx Mixer", "INTERNAL_BT_SCO_TX_Voice2", "INT_BT_SCO_TX"},
 	{"Voice2_Tx Mixer", "AFE_PCM_TX_Voice2", "PCM_TX"},
 	{"Voice2_Tx Mixer", "AUX_PCM_TX_Voice2", "AUX_PCM_TX"},
+	{"Voice2_Tx Mixer", "SEC_AUX_PCM_TX_Voice2", "SEC_AUX_PCM_TX"},
 	{"VOICE2_UL", NULL, "Voice2_Tx Mixer"},
 
 	{"VoLTE_Tx Mixer", "PRI_TX_VoLTE", "PRI_I2S_TX"},
@@ -3810,6 +3845,9 @@ static const struct snd_soc_dapm_route intercon[] = {
 	{"SLIMBUS_0_RX Port Mixer", "SEC_AUX_PCM_UL_TX", "SEC_AUX_PCM_TX"},
 	{"SLIMBUS_0_RX Port Mixer", "MI2S_TX", "MI2S_TX"},
 	{"SLIMBUS_0_RX Port Mixer", "INTERNAL_BT_SCO_TX", "INT_BT_SCO_TX"},
+#ifdef CONFIG_SND_FM_RADIO
+	{"SLIMBUS_0_RX Port Mixer", "TERT_MI2S_TX", "TERT_MI2S_TX"},
+#endif
 	{"SLIMBUS_0_RX", NULL, "SLIMBUS_0_RX Port Mixer"},
 	{"AFE_PCM_RX Port Mixer", "INTERNAL_FM_TX", "INT_FM_TX"},
 	{"PCM_RX", NULL, "AFE_PCM_RX Port Mixer"},

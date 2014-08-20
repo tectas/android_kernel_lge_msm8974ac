@@ -25,8 +25,9 @@
 static DEFINE_MUTEX(bandwidth_mgr_mutex);
 static struct msm_isp_bandwidth_mgr isp_bandwidth_mgr;
 
+
 #define MSM_ISP_MIN_AB 300000000
-#define MSM_ISP_MIN_IB 450000000
+#define MSM_ISP_MIN_IB 2400000000U //LGE_CHANGE, To avoid VFE Overflow. Original value was 450000000. 2014-03-24, jinw.kim@lge.com
 
 #define VFE40_8974V2_VERSION 0x1001001A
 static struct msm_bus_vectors msm_isp_init_vectors[] = {
@@ -166,8 +167,20 @@ void msm_isp_deinit_bandwidth_mgr(enum msm_isp_hw_client client)
 		return;
 	}
 
+/* LGE_CHANGE_S, 2014-02-23 sungmin.cho@lge.com */
+#if 1
+	if (!isp_bandwidth_mgr.bus_client) {
+/*QCT_PATCH S, fix lockup when start camera with 13M resolution, 2013-10-31, yt.kim@lge.com */		
+		pr_err("%s:%d error: bus client invalid\n", __func__, __LINE__);
+		mutex_unlock(&bandwidth_mgr_mutex);
+/*QCT_PATCH E, fix lockup when start camera with 13M resolution, 2013-10-31, yt.kim@lge.com */		
+		return;
+	}
+#else // QMC Org
 	if (!isp_bandwidth_mgr.bus_client)
 		return;
+#endif
+/* LGE_CHANGE_E, 2014-02-23 sungmin.cho@lge.com */
 
 	msm_bus_scale_client_update_request(
 	   isp_bandwidth_mgr.bus_client, 0);
@@ -540,6 +553,8 @@ static int msm_isp_send_hw_cmd(struct vfe_device *vfe_dev,
 			reg_cfg_cmd->u.mask_info.reg_offset);
 		break;
 	}
+/* LGE_CHANGE_S, jaehan.jeong, 2013.11.8, Applied QCT patch CN#01252253 - page fault in case of 64BIT_DMI, [STARTS HERE] */
+#if 0 //QCT Original
 	case VFE_WRITE_DMI_16BIT:
 	case VFE_WRITE_DMI_32BIT:
 	case VFE_WRITE_DMI_64BIT: {
@@ -588,6 +603,72 @@ static int msm_isp_send_hw_cmd(struct vfe_device *vfe_dev,
 		}
 		break;
 	}
+#else
+	case VFE_WRITE_DMI_16BIT:
+	case VFE_WRITE_DMI_32BIT: {
+		int i;
+		uint32_t *lo_tbl_ptr = NULL;
+		uint32_t lo_val, lo_val1;
+
+		if (reg_cfg_cmd->u.dmi_info.lo_tbl_offset +
+			reg_cfg_cmd->u.dmi_info.len > cmd_len) {
+			pr_err("Invalid Lo Table out of bounds\n");
+			return -EINVAL;
+		}
+		lo_tbl_ptr = cfg_data +
+			reg_cfg_cmd->u.dmi_info.lo_tbl_offset/4;
+
+		for (i = 0; i < reg_cfg_cmd->u.dmi_info.len/4; i++) {
+			lo_val = *lo_tbl_ptr++;
+			if (reg_cfg_cmd->cmd_type == VFE_WRITE_DMI_16BIT) {
+				lo_val1 = lo_val & 0x0000FFFF;
+				lo_val = (lo_val & 0xFFFF0000)>>16;
+				msm_camera_io_w(lo_val1, vfe_dev->vfe_base +
+					vfe_dev->hw_info->dmi_reg_offset + 0x4);
+			}
+			msm_camera_io_w(lo_val, vfe_dev->vfe_base +
+				vfe_dev->hw_info->dmi_reg_offset + 0x4);
+		}
+		break;
+	}
+
+	case VFE_WRITE_DMI_64BIT: {
+		int i;
+		uint32_t *hi_tbl_ptr = NULL, *lo_tbl_ptr = NULL;
+		uint32_t hi_val, lo_val;
+
+		if (reg_cfg_cmd->u.dmi_info.hi_tbl_offset +
+			reg_cfg_cmd->u.dmi_info.len > cmd_len) {
+			pr_err("Invalid Hi Table out of bounds\n");
+			return -EINVAL;
+		}
+
+		if (reg_cfg_cmd->u.dmi_info.lo_tbl_offset +
+			reg_cfg_cmd->u.dmi_info.len > cmd_len) {
+			pr_err("Invalid Lo Table out of bounds\n");
+			return -EINVAL;
+		}
+
+		hi_tbl_ptr = cfg_data +
+				reg_cfg_cmd->u.dmi_info.hi_tbl_offset/4;
+
+		lo_tbl_ptr = cfg_data +
+			reg_cfg_cmd->u.dmi_info.lo_tbl_offset/4;
+
+		for (i = 0; i < reg_cfg_cmd->u.dmi_info.len/8; i++) {
+			lo_val = *lo_tbl_ptr;
+			hi_val = *hi_tbl_ptr;
+			lo_tbl_ptr = lo_tbl_ptr + 2;
+			hi_tbl_ptr = hi_tbl_ptr + 2;
+			msm_camera_io_w(hi_val, vfe_dev->vfe_base +
+					vfe_dev->hw_info->dmi_reg_offset);
+			msm_camera_io_w(lo_val, vfe_dev->vfe_base +
+				vfe_dev->hw_info->dmi_reg_offset + 0x4);
+		}
+		break;
+	}
+#endif
+/* LGE_CHANGE_E, jaehan.jeong, 2013.11.8, Applied QCT patch CN#01252253 - page fault in case of 64BIT_DMI,  [ENDS HERE] */
 	case VFE_READ_DMI_16BIT:
 	case VFE_READ_DMI_32BIT:
 	case VFE_READ_DMI_64BIT: {

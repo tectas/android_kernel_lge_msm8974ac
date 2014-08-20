@@ -39,7 +39,11 @@
 #define EN_FEW_WAIT_VAL		(0x8 << 16)
 #define CLK_DIS_WAIT_VAL	(0x2 << 12)
 
+#ifdef CONFIG_MACH_LGE
+#define TIMEOUT_US		20000
+#else
 #define TIMEOUT_US		100
+#endif
 
 struct gdsc {
 	struct regulator_dev	*rdev;

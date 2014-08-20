@@ -51,6 +51,9 @@
 #define CPP_CMD_TIMEOUT_MS 300
 #define MSM_MICRO_IFACE_CLK_IDX 7
 
+#define MSM_CPP_NOMINAL_CLOCK 266670000
+#define MSM_CPP_TURBO_CLOCK 320000000
+
 struct msm_cpp_timer_data_t {
 	struct cpp_device *cpp_dev;
 	struct msm_cpp_frame_info_t *processed_frame;
@@ -121,6 +124,24 @@ static void msm_enqueue(struct msm_device_queue *queue,
 	CPP_DBG("woke up %s\n", queue->name);
 	spin_unlock_irqrestore(&queue->lock, flags);
 }
+
+/*QCT_PATCH S, add code to be freed event_qcmd when SHUTDOWN, 2013-12-12, yousung.kang@lge.com */
+#define msm_cpp_empty_list(queue, member) { \
+       unsigned long flags; \
+       struct msm_queue_cmd *qcmd = NULL; \
+       if (queue) { \
+               spin_lock_irqsave(&queue->lock, flags); \
+               while (!list_empty(&queue->list)) { \
+                       queue->len--; \
+                       qcmd = list_first_entry(&queue->list, \
+                               struct msm_queue_cmd, member); \
+                       list_del_init(&qcmd->member); \
+                       kfree(qcmd); \
+               } \
+               spin_unlock_irqrestore(&queue->lock, flags); \
+       } \
+}
+/*QCT_PATCH E, add code to be freed event_qcmd when SHUTDOWN, 2013-12-12, yousung.kang@lge.com */
 
 static struct msm_cam_clk_info cpp_clk_info[] = {
 	{"camss_top_ahb_clk", -1},
@@ -627,7 +648,11 @@ static int cpp_init_hardware(struct cpp_device *cpp_dev)
 		pr_err("%s: Bandwidth registration Failed!\n", __func__);
 		goto bus_scale_register_failed;
 	}
+/*QCT_PATCH S, fix lockup when start camera with 13M resolution, 2013-10-31, yt.kim@lge.com */
+#if 0
 	msm_isp_update_bandwidth(ISP_CPP, 981345600, 1066680000);
+#endif
+/*QCT_PATCH E, fix lockup when start camera with 13M resolution, 2013-10-31, yt.kim@lge.com */
 
 	if (cpp_dev->fs_cpp == NULL) {
 		cpp_dev->fs_cpp =
@@ -737,6 +762,10 @@ static int cpp_init_hardware(struct cpp_device *cpp_dev)
 	cpp_dev->taskletq_idx = 0;
 	atomic_set(&cpp_dev->irq_cnt, 0);
 	msm_cpp_create_buff_queue(cpp_dev, MSM_CPP_MAX_BUFF_QUEUE);
+/*QCT_PATCH S, fix lockup when start camera with 13M resolution, 2013-10-31, yt.kim@lge.com */
+	pr_err("stream_cnt:%d\n", cpp_dev->stream_cnt);
+	cpp_dev->stream_cnt = 0;
+/*QCT_PATCH E, fix lockup when start camera with 13M resolution, 2013-10-31, yt.kim@lge.com */
 	if (cpp_dev->is_firmware_loaded == 1) {
 		disable_irq(cpp_dev->irq->start);
 		cpp_load_fw(cpp_dev, cpp_dev->fw_name_bin);
@@ -760,7 +789,11 @@ clk_failed:
 	regulator_disable(cpp_dev->fs_cpp);
 	regulator_put(cpp_dev->fs_cpp);
 fs_failed:
+/*QCT_PATCH S, fix lockup when start camera with 13M resolution, 2013-10-31, yt.kim@lge.com */
+#if 0
 	msm_isp_update_bandwidth(ISP_CPP, 0, 0);
+#endif
+/*QCT_PATCH S, fix lockup when start camera with 13M resolution, 2013-10-31, yt.kim@lge.com */
 	msm_isp_deinit_bandwidth_mgr(ISP_CPP);
 bus_scale_register_failed:
 	return rc;
@@ -787,7 +820,15 @@ static void cpp_release_hardware(struct cpp_device *cpp_dev)
 	regulator_disable(cpp_dev->fs_cpp);
 	regulator_put(cpp_dev->fs_cpp);
 	cpp_dev->fs_cpp = NULL;
+/*QCT_PATCH S, fix lockup when start camera with 13M resolution, 2013-10-31, yt.kim@lge.com */
+#if 0
 	msm_isp_update_bandwidth(ISP_CPP, 0, 0);
+#else
+	if (cpp_dev->stream_cnt > 0)
+	pr_err("error: stream count active\n");
+	cpp_dev->stream_cnt = 0;
+#endif
+/*QCT_PATCH E, fix lockup when start camera with 13M resolution, 2013-10-31, yt.kim@lge.com */
 	msm_isp_deinit_bandwidth_mgr(ISP_CPP);
 }
 
@@ -823,7 +864,8 @@ static void cpp_load_fw(struct cpp_device *cpp_dev, char *fw_name_bin)
 
 		/*Start firmware loading*/
 		msm_cpp_write(MSM_CPP_CMD_FW_LOAD, cpp_dev->base);
-		msm_cpp_write(fw->size, cpp_dev->base);
+		if(fw)		//LGE_CHANGE, Check NULL pointer, 2014-1-28, jinw.kim@lge.com
+			msm_cpp_write(fw->size, cpp_dev->base);
 		msm_cpp_write(MSM_CPP_START_ADDRESS, cpp_dev->base);
 
 		if (ptr_bin) {
@@ -914,7 +956,22 @@ static int cpp_close_node(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
 	uint32_t i;
 	struct cpp_device *cpp_dev = v4l2_get_subdevdata(sd);
 
+/*QCT_PATCH S, add code to be freed event_qcmd when SHUTDOWN, 2013-12-12, yousung.kang@lge.com */
+	struct msm_device_queue *processing_q = NULL;
+	struct msm_device_queue *eventData_q = NULL;
+
+	if (!cpp_dev) {
+			pr_err("failed: cpp_dev %p\n", cpp_dev);
+			return -EINVAL;
+	}
+/*QCT_PATCH E, add code to be freed event_qcmd when SHUTDOWN, 2013-12-12, yousung.kang@lge.com */
+
 	mutex_lock(&cpp_dev->mutex);
+
+/*QCT_PATCH S, add code to be freed event_qcmd when SHUTDOWN, 2013-12-12, yousung.kang@lge.com */
+    processing_q = &cpp_dev->processing_q;
+    eventData_q = &cpp_dev->eventData_q;
+/*QCT_PATCH E, add code to be freed event_qcmd when SHUTDOWN, 2013-12-12, yousung.kang@lge.com */
 
 	if (cpp_dev->cpp_open_cnt == 0) {
 		mutex_unlock(&cpp_dev->mutex);
@@ -970,6 +1027,10 @@ static int cpp_close_node(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
 		cpp_deinit_mem(cpp_dev);
 		iommu_detach_device(cpp_dev->domain, cpp_dev->iommu_ctx);
 		cpp_release_hardware(cpp_dev);
+/*QCT_PATCH S, add code to be freed event_qcmd when SHUTDOWN, 2013-12-12, yousung.kang@lge.com */
+        msm_cpp_empty_list(processing_q, list_frame);
+        msm_cpp_empty_list(eventData_q, list_eventdata);
+/*QCT_PATCH E, add code to be freed event_qcmd when SHUTDOWN, 2013-12-12, yousung.kang@lge.com */
 		cpp_dev->state = CPP_STATE_OFF;
 	}
 
@@ -997,15 +1058,31 @@ static int msm_cpp_buffer_ops(struct cpp_device *cpp_dev,
 static int msm_cpp_notify_frame_done(struct cpp_device *cpp_dev)
 {
 	struct v4l2_event v4l2_evt;
+/*QCT_PATCH S, add code to be freed event_qcmd when SHUTDOWN, 2013-12-12, yousung.kang@lge.com */
+#if 1
+    struct msm_queue_cmd *frame_qcmd = NULL;
+    struct msm_queue_cmd *event_qcmd = NULL;
+    struct msm_cpp_frame_info_t *processed_frame = NULL;
+#else // QMC Org
 	struct msm_queue_cmd *frame_qcmd;
 	struct msm_queue_cmd *event_qcmd;
 	struct msm_cpp_frame_info_t *processed_frame;
+#endif
+/*QCT_PATCH E, add code to be freed event_qcmd when SHUTDOWN, 2013-12-12, yousung.kang@lge.com */
 	struct msm_device_queue *queue = &cpp_dev->processing_q;
 	struct msm_buf_mngr_info buff_mgr_info;
 	int rc = 0;
 
-	if (queue->len > 0) {
-		frame_qcmd = msm_dequeue(queue, list_frame);
+/*QCT_PATCH S, add code to be freed event_qcmd when SHUTDOWN, 2013-12-12, yousung.kang@lge.com */
+#if 0 // QMC Org
+    if (queue->len > 0) {
+	    frame_qcmd = msm_dequeue(queue, list_frame);
+#else
+    frame_qcmd = msm_dequeue(queue, list_frame);
+    if (frame_qcmd) {
+#endif
+/*QCT_PATCH E, add code to be freed event_qcmd when SHUTDOWN, 2013-12-12, yousung.kang@lge.com */
+
 		processed_frame = frame_qcmd->command;
 		do_gettimeofday(&(processed_frame->out_time));
 		kfree(frame_qcmd);
@@ -1544,6 +1621,19 @@ long msm_cpp_subdev_ioctl(struct v4l2_subdev *sd,
 
 		kfree(k_stream_buff_info.buffer_info);
 		kfree(u_stream_buff_info);
+/*QCT_PATCH S, fix lockup when start camera with 13M resolution, 2013-10-31, yt.kim@lge.com */
+		if (cpp_dev->stream_cnt == 0) {
+			rc = msm_isp_update_bandwidth(ISP_CPP, 981345600, 1066680000);
+			if (rc < 0) {
+				pr_err("Bandwidth Set Failed!\n");
+				msm_isp_update_bandwidth(ISP_CPP, 0, 0);
+				mutex_unlock(&cpp_dev->mutex);
+				return -EINVAL;
+			}
+		}
+		cpp_dev->stream_cnt++;
+		pr_err("stream_cnt:%d\n", cpp_dev->stream_cnt);
+/*QCT_PATCH E, fix lockup when start camera with 13M resolution, 2013-10-31, yt.kim@lge.com */
 		break;
 	}
 	case VIDIOC_MSM_CPP_DEQUEUE_STREAM_BUFF_INFO: {
@@ -1576,6 +1666,19 @@ long msm_cpp_subdev_ioctl(struct v4l2_subdev *sd,
 		rc = msm_cpp_free_buff_queue_entry(cpp_dev,
 			buff_queue_info->session_id,
 			buff_queue_info->stream_id);
+/*QCT_PATCH S, fix lockup when start camera with 13M resolution, 2013-10-31, yt.kim@lge.com */
+		if (cpp_dev->stream_cnt > 0) {
+			cpp_dev->stream_cnt--;
+			pr_err("stream_cnt:%d\n", cpp_dev->stream_cnt);
+			if (cpp_dev->stream_cnt == 0) {
+				rc = msm_isp_update_bandwidth(ISP_CPP, 0, 0);
+				if (rc < 0)
+					pr_err("Bandwidth Reset Failed!\n");
+			}
+		} else {
+			pr_err("error: stream count underflow %d\n", cpp_dev->stream_cnt);
+		}
+/*QCT_PATCH E, fix lockup when start camera with 13M resolution, 2013-10-31, yt.kim@lge.com */
 		break;
 	}
 	case VIDIOC_MSM_CPP_GET_EVENTPAYLOAD: {
@@ -1597,10 +1700,42 @@ long msm_cpp_subdev_ioctl(struct v4l2_subdev *sd,
 		kfree(event_qcmd);
 		break;
 	}
+	case VIDIOC_MSM_CPP_SET_CLOCK: {
+		long clock_rate = 0;
+		if (ioctl_ptr->len == 0) {
+			pr_err("ioctl_ptr->len is 0\n");
+			mutex_unlock(&cpp_dev->mutex);
+			return -EINVAL;
+		}
+
+		if (ioctl_ptr->ioctl_ptr == NULL) {
+			pr_err("ioctl_ptr->ioctl_ptr is NULL\n");
+			mutex_unlock(&cpp_dev->mutex);
+			return -EINVAL;
+		}
+
+		rc = (copy_from_user(&clock_rate,
+			(void __user *)ioctl_ptr->ioctl_ptr,
+			ioctl_ptr->len) ? -EFAULT : 0);
+		if (rc) {
+			ERR_COPY_FROM_USER();
+			mutex_unlock(&cpp_dev->mutex);
+			return -EINVAL;
+		}
+
+		if ((clock_rate == MSM_CPP_NOMINAL_CLOCK) ||
+			(clock_rate == MSM_CPP_TURBO_CLOCK)) {
+			pr_err("clk:%ld\n", clock_rate);
+			clk_set_rate(cpp_dev->cpp_clk[4], clock_rate);
+		}
+
+		break;
+	}
 	case MSM_SD_SHUTDOWN: {
 		mutex_unlock(&cpp_dev->mutex);
 		while (cpp_dev->cpp_open_cnt != 0)
 			cpp_close_node(sd, NULL);
+		mutex_lock(&cpp_dev->mutex); /*QCT_PATCH, add code to be freed event_qcmd when SHUTDOWN, 2013-12-12, yousung.kang@lge.com */
 		rc = 0;
 		break;
 	}

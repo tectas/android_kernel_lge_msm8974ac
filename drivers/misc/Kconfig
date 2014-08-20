@@ -559,6 +559,13 @@ config TSPP
 	processing of MPEG transport streams from the main processor.
 	This can also be compiled as a loadable module.
 
+config ANDROID_SW_IRRC
+	bool "Android irrc support"
+	default n
+	---help---
+	This option enables device driver support for Android SW IRRC
+	Some functions should be given by platform data for enable PWM, Motor IC, etc.
+
 config CI_BRIDGE_SPI
 	depends on SPI_QUP
 	tristate "CI Bridge SPI Driver Support"
@@ -595,6 +602,17 @@ config PMIC8XXX_VIBRATOR
 	  on the PM8XXX chips. The vibrator is controlled using the
 	  timed output class.
 
+config TSPDRV
+    bool "tspdrv"
+        default n
+
+config LGE_SM100
+    bool "lge sm100 vibrator support"
+        depends on ANDROID_TIMED_OUTPUT
+        default n
+        help
+          This option enalbes device driver support for SM100 Vibrator driver.
+          Some functions should be given by platform data for enable PWM, Motor IC, etc.
 config PMIC8XXX_NFC
 	tristate "Qualcomm PM8XXX support for Near Field Communication"
 	depends on MFD_PM8XXX
@@ -664,6 +682,27 @@ config TI_DRV2667
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called ti_drv2667.
+
+config LGE_IRRC
+        tristate "LGE_IRRC"
+        default n
+        help
+           If you say yes here you get support for IrRC
+config BU52031NVX
+       tristate "Cradle BU52031NVX support"
+       help
+         This option enable device driver support for the cradle 
+         on the PM8XXX chips. The cradle is controlled using the PM8XXX gpio
+
+config BU52031NVX_CARKIT
+       tristate "Carkit BU52031NVX support"
+       help
+         This option enable device driver support for the carkit 
+         on the PM8XXX chips. The cradle is controlled using the PM8XXX gpio
+
+config LGE_IRDA_KDDI
+		bool "LGE IrDA driver for KDDI"
+		default n
 
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
