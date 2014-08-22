@@ -605,9 +605,6 @@ config CHARGER_UNIFIED_WLC_ALIGNMENT
 	default n
 	help
 		wireless charger alignment
-choice
-	prompt "WLC Alignment"
-	depends on CHARGER_UNIFIED_WLC
 
 config CHARGER_UNIFIED_WLC_ALIGNMENT_IDT9025A
 	tristate "wireless charger alignment"
@@ -621,7 +618,7 @@ config CHARGER_UNIFIED_WLC_ALIGNMENT_BQ5102X
 	default n
 	help
 		wireless charger alignment
-endchoice
+
 config CHARGER_FACTORY_MODE
 	bool "Enable charger factory mode"
 	depends on BQ24296_CHARGER
