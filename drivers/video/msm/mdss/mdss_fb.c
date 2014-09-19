@@ -86,7 +86,6 @@ extern int pp_set_dmb_status(int flag);
 
 static struct msm_mdp_interface *mdp_instance;
 
-
 static int mdss_fb_register(struct msm_fb_data_type *mfd);
 static int mdss_fb_open(struct fb_info *info, int user);
 static int mdss_fb_release(struct fb_info *info, int user);
@@ -572,6 +571,7 @@ static int mdss_fb_probe(struct platform_device *pdev)
 		mfd_base = mfd;
 #endif
 	INIT_DELAYED_WORK(&mfd->idle_notify_work, __mdss_fb_idle_notify_work);
+
 	return rc;
 }
 
@@ -877,7 +877,6 @@ static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 	switch (blank_mode) {
 	case FB_BLANK_UNBLANK:
 		if (!mfd->panel_power_on && mfd->mdp.on_fnc) {
-			pr_info("fb%d UNBLANK +", mfd->index);
 			ret = mfd->mdp.on_fnc(mfd);
 			if (ret == 0) {
 				mfd->panel_power_on = true;
@@ -887,7 +886,6 @@ static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 			mfd->update.type = NOTIFY_TYPE_UPDATE;
 			mfd->update.is_suspend = 0;
 			mutex_unlock(&mfd->update.lock);
-			pr_info("fb%d UNBLANK -", mfd->index);
 
 			/* Start the work thread to signal idle time */
 			if (mfd->idle_time)
@@ -904,7 +902,6 @@ static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 		if (mfd->panel_power_on && mfd->mdp.off_fnc) {
 			int curr_pwr_state;
 
-			pr_info("fb%d BLANK +", mfd->index);
 			mutex_lock(&mfd->update.lock);
 			mfd->update.type = NOTIFY_TYPE_SUSPEND;
 			mfd->update.is_suspend = 1;
@@ -926,7 +923,6 @@ static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 				mdss_fb_release_fences(mfd);
 			mfd->op_enable = true;
 			complete(&mfd->power_off_comp);
-			pr_info("fb%d BLANK -", mfd->index);
 		}
 		break;
 	}
@@ -1330,7 +1326,7 @@ static int mdss_fb_open(struct fb_info *info, int user)
 	int pid = current->tgid;
 
 	if (mfd->shutdown_pending) {
-		pr_debug("Shutdown pending. Aborting operation\n");
+		pr_err("Shutdown pending. Aborting operation\n");
 		return -EPERM;
 	}
 
@@ -2331,7 +2327,6 @@ static int mdss_fb_ioctl(struct fb_info *info, unsigned int cmd,
 	int ret = -ENOSYS;
 	struct mdp_buf_sync buf_sync;
 	struct msm_sync_pt_data *sync_pt_data = NULL;
-
 #ifdef CONFIG_MACH_LGE
 	u32 dsi_panel_invert = 0;
 #endif

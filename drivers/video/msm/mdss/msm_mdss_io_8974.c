@@ -423,6 +423,7 @@ static void mdss_dsi_link_clk_disable(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 		pr_err("%s: Invalid input data\n", __func__);
 		return;
 	}
+
 	pr_debug("%s: ndx=%d\n", __func__, ctrl_pdata->ndx);
 
 	if (ctrl_pdata->mdss_dsi_clk_on == 0) {

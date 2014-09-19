@@ -1354,6 +1354,7 @@ static int dsi_event_thread(void *data)
 				ctrl->recovery->fxn(ctrl->recovery->data);
 			}
 		}
+
 #ifdef CONFIG_LGE_DEVFREQ_DFPS
 		if (todo & DSI_EV_DSI_FIFO_EMPTY) {
 			mdss_dsi_sw_reset_restore(ctrl);
@@ -1363,6 +1364,7 @@ static int dsi_event_thread(void *data)
 			/* Can do MDP Here*/
 		}
 #endif
+
 		if (todo & DSI_EV_MDP_BUSY_RELEASE) {
 			spin_lock(&ctrl->mdp_lock);
 			ctrl->mdp_busy = false;

@@ -473,7 +473,7 @@ static void mdss_mdp_video_underrun_intr_done(void *arg)
 		return;
 
 	ctl->underrun_cnt++;
-	pr_err("display underrun detected for ctl=%d count=%d\n", ctl->num,
+	pr_debug("display underrun detected for ctl=%d count=%d\n", ctl->num,
 			ctl->underrun_cnt);
 }
 
@@ -601,7 +601,9 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 			mdss_mdp_display_wait4comp(ctl);
 		} else if (pdata->panel_info.dfps_update
 				== DFPS_IMMEDIATE_PORCH_UPDATE_MODE){
+#ifdef CONFIG_LGE_DEVFREQ_DFPS
 			unsigned long flags;
+#endif
 			if (!ctx->timegen_en) {
 				pr_err("TG is OFF. DFPS mode invalid\n");
 				return -EINVAL;
@@ -614,7 +616,7 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 			WARN(rc <= 0, "timeout (%d) vsync interrupt on ctl=%d\n",
 				rc, ctl->num);
 #ifdef CONFIG_LGE_DEVFREQ_DFPS
-			if(rc <=0) {
+			if (rc <=0) {
 				video_vsync_irq_disable(ctl);
 				return rc;
 			}
@@ -625,7 +627,7 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 #ifdef CONFIG_LGE_DEVFREQ_DFPS
 			spin_lock_irqsave(&ctx->dfps_lock, flags);
 			line_count = mdss_mdp_video_line_count(ctl);
-			if(line_count >= pdata->panel_info.yres/3){
+			if (line_count >= pdata->panel_info.yres/3){
 				pr_err("Too few lines left line_cnt = %d y_res/3 = %d \n", line_count, pdata->panel_info.yres/3);
 				spin_unlock_irqrestore(&ctx->dfps_lock, flags);
 				return -EPERM;
@@ -634,7 +636,9 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 			rc = mdss_mdp_video_vfp_fps_update(ctl, new_fps);
 			if (rc < 0) {
 				pr_err("%s: Error during DFPS\n", __func__);
+#ifdef CONFIG_LGE_DEVFREQ_DFPS
 				spin_unlock_irqrestore(&ctx->dfps_lock, flags);
+#endif
 				return rc;
 			}
 			if (sctl) {
@@ -642,14 +646,18 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 								new_fps);
 				if (rc < 0) {
 					pr_err("%s: DFPS error\n", __func__);
+#ifdef CONFIG_LGE_DEVFREQ_DFPS
 					spin_unlock_irqrestore(&ctx->dfps_lock, flags);
+#endif
 					return rc;
 				}
 			}
 			rc = mdss_mdp_ctl_intf_event(ctl,
 						MDSS_EVENT_PANEL_UPDATE_FPS,
 						(void *)new_fps);
+#ifdef CONFIG_LGE_DEVFREQ_DFPS
 			spin_unlock_irqrestore(&ctx->dfps_lock, flags);
+#endif
 			WARN(rc, "intf %d panel fps update error (%d)\n",
 							ctl->intf_num, rc);
 		} else {
