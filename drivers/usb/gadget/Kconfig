@@ -69,6 +69,10 @@ config USB_GADGET_DEBUG_FILES
 	   driver on a new board.   Enable these files by choosing "Y"
 	   here.  If in doubt, or to conserve kernel memory, say "N".
 
+config USB_DRIVE_DROID
+	boolean "Support for Drive Droid or similar"
+	default n
+
 config USB_GADGET_DEBUG_FS
 	boolean "Debugging information files in debugfs (DEVELOPMENT)"
 	depends on DEBUG_FS
