@@ -942,6 +942,8 @@ static int do_read(struct fsg_common *common)
 	amount_left = common->data_size_from_cmnd;
 	if (unlikely(amount_left == 0))
 		return -EIO;		/* No default reply */
+	if (curlun->cdrom)
+		amount_left <<= 2;
 
 	for (;;) {
 		/*
@@ -2635,7 +2637,7 @@ static int do_scsi_command(struct fsg_common *common)
 			goto unknown_cmnd;
 		common->data_size_from_cmnd =
 			get_unaligned_be16(&common->cmnd[7]);
-#ifdef CONFIG_USB_G_LGE_ANDROID_CDROM_MAC_SUPPORT
+#if defined(CONFIG_USB_G_LGE_ANDROID_CDROM_MAC_SUPPORT) || defined(CONFIG_USB_DRIVE_DROID)
 		reply = check_command(common, 10, DATA_DIR_TO_HOST,
 				      (0xf<<6) | (1<<1), 1,
 				      "READ TOC");
