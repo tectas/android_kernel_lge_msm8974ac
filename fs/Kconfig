@@ -283,7 +283,7 @@ source "fs/dlm/Kconfig"
 
 config AIO_OPTIMIZATION
 	bool "AIO kernel optimization patches"
-	default y
+	default n
 	help
 	  An experimental AIO FS kernel optimization
 endmenu
