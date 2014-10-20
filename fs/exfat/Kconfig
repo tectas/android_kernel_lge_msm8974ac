@@ -1,6 +1,7 @@
 config EXFAT_FS
 	tristate "exFAT fs support"
 	select NLS
+	default y
 	help
 	  This adds support for the exFAT file system.
 
