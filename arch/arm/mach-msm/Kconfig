@@ -3061,11 +3061,22 @@ config HAS_MACH_MEMUTILS
 	Faster memcpy performance for Krait
 
 config FORCE_FAST_CHARGE
-	bool "Force AC charge mode at will"
 	default y
+	bool "Force AC charge mode at will"
 	help
 	  A simple sysfs interface to force adapters that
           are detected as USB to charge as AC.
+
+config MSM_CPUFREQ_LIMITER
+	tristate "MSM CPU frequency limiter"
+	default y
+	help
+	  This driver limits MSM CPU frequency through sysfs file system.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called cpufreq_stats.
+
+	  If in doubt, say N.
 
 config KRAIT_REGULATOR
 	bool "Support Kraits powered via ganged regulators in the pmic"
