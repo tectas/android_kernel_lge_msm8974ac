@@ -844,9 +844,9 @@ static int qfq_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 	struct qfq_sched *q = qdisc_priv(sch);
 	struct qfq_group *grp;
 	struct qfq_class *cl;
-	int err;
+	int err = 0;
 	u64 roundedS;
-	int s;
+	int s = 0;
 
 	cl = qfq_classify(skb, sch, &err);
 	if (cl == NULL) {

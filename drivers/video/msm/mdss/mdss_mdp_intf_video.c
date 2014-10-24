@@ -535,12 +535,12 @@ static int mdss_mdp_video_vfp_fps_update(struct mdss_mdp_ctl *ctl, int new_fps)
 static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 					struct mdss_mdp_ctl *sctl, int new_fps)
 {
-	struct mdss_mdp_video_ctx *ctx;
-	struct mdss_panel_data *pdata;
+	struct mdss_mdp_video_ctx *ctx = NULL;
+	struct mdss_panel_data *pdata = NULL;
 	int rc = 0;
-	u32 hsync_period, vsync_period;
+	u32 hsync_period = 0, vsync_period = 0;
 #ifdef CONFIG_LGE_DEVFREQ_DFPS
-	u32 line_count;
+	u32 line_count = 0;
 #endif
 
 	pr_debug("Updating fps for ctl=%d\n", ctl->num);
@@ -675,8 +675,8 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 
 static int mdss_mdp_video_display(struct mdss_mdp_ctl *ctl, void *arg)
 {
-	struct mdss_mdp_video_ctx *ctx;
-	int rc;
+	struct mdss_mdp_video_ctx *ctx = NULL;
+	int rc = 0;
 
 	pr_debug("kickoff ctl=%d\n", ctl->num);
 
@@ -731,7 +731,7 @@ int mdss_mdp_video_reconfigure_splash_done(struct mdss_mdp_ctl *ctl,
 	struct mdss_panel_data *pdata = ctl->panel_data;
 	int i, ret = 0;
 	struct mdss_overlay_private *mdp5_data = mfd_to_mdp5_data(ctl->mfd);
-	struct mdss_mdp_video_ctx *ctx;
+	struct mdss_mdp_video_ctx *ctx = NULL;
 	struct mdss_data_type *mdata = ctl->mdata;
 
 	i = ctl->intf_num - MDSS_MDP_INTF0;
@@ -781,8 +781,8 @@ int mdss_mdp_video_start(struct mdss_mdp_ctl *ctl)
 	struct mdss_mdp_video_ctx *ctx;
 	struct mdss_mdp_mixer *mixer;
 	struct intf_timing_params itp = {0};
-	u32 dst_bpp;
-	int i;
+	u32 dst_bpp = 0;
+	int i = 0;
 
 	mdata = ctl->mdata;
 	pinfo = &ctl->panel_data->panel_info;

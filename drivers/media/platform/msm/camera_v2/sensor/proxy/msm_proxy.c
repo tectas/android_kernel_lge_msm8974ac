@@ -456,9 +456,9 @@ static void get_proxy(struct work_struct *work)
 {
 	struct msm_proxy_ctrl_t *proxy_struct = container_of(work, struct msm_proxy_ctrl_t, proxy_work);
 	uint16_t * proxy = &proxy_struct->last_proxy;
-	int16_t offset;
-	int16_t cal_count;
-	int16_t fin_val;
+	int16_t offset = 0;
+	int16_t cal_count = 0;
+	int16_t fin_val = 0;
 	uint16_t module_id = 0;
 	uint8_t shift_module_id = 0;
 	
