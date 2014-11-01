@@ -5204,6 +5204,11 @@ wpt_status WLANDXE_Stop
    }
 #endif
 
+   if(VOS_TIMER_STATE_STOPPED !=
+      wpalTimerGetCurStatus(&dxeCtxt->rxResourceAvailableTimer))
+   {
+      wpalTimerStop(&dxeCtxt->rxResourceAvailableTimer);
+   }
 
    HDXE_MSG(eWLAN_MODULE_DAL_DATA, eWLAN_PAL_TRACE_LEVEL_INFO_LOW,
             "%s Exit", __func__);

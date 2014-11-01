@@ -352,10 +352,6 @@ void pmmExitBmpsRequestHandler(tpAniSirGlobal pMac, tpExitBmpsInfo pExitBmpsInfo
         return;
     }
 
-#ifdef CUSTOMER_LGE_DEBUG_LOG
-     PELOGW(pmmLog(pMac, LOGE, FL("Request ExitBMPS:: reason code = %d, PMM Status = %d "), pMac->pmm.gPmmExitBmpsReasonCode, pMac->pmm.gPmmState);)
-#endif
-
     /* send wakeup request, only when in sleep state */
     PELOGW(pmmLog(pMac, LOGW, FL("pmmBmps: Sending eWNI_PMC_EXIT_BMPS_REQ to HAL"));)
     if (pMac->pmm.gPmmState == ePMM_STATE_BMPS_SLEEP)
@@ -990,10 +986,6 @@ void pmmMissedBeaconHandler(tpAniSirGlobal pMac)
     {
         if (wlan_cfgGetInt(pMac, WNI_CFG_BEACON_INTERVAL, &beaconInterval) != eSIR_SUCCESS)
             PELOG1(pmmLog(pMac, LOG1, FL("Fail to get BEACON_INTERVAL value"));)
-
-#ifdef CUSTOMER_LGE_DEBUG_LOG
-        PELOGE(pmmLog(pMac, LOGE, FL("WLAN Wakeup by MISSED BEACON, HeartBeat Interval = %d "), beaconInterval);)
-#endif
 
         /* Change timer to reactivate it in future */
         heartBeatInterval= SYS_MS_TO_TICKS(beaconInterval * heartBeatInterval);

@@ -2419,14 +2419,6 @@ REG_TABLE_ENTRY g_registry_table[] =
               CFG_ENABLE_RX_STBC_DEFAULT,
               CFG_ENABLE_RX_STBC_MIN,
               CFG_ENABLE_RX_STBC_MAX ),
-/* 2013.07.11 moon-wifi@lge.com[formmh.kim] Add CountryCode [START] */
-#ifdef CUSTOMER_LGE
-   REG_VARIABLE_STRING( CFG_OVERRIDE_COUNTRY_CODE, WLAN_PARAM_String,
-              hdd_config_t, overrideCountryCode,
-              VAR_FLAGS_OPTIONAL,
-              (void *)CFG_OVERRIDE_COUNTRY_CODE_DEFAULT),
-#endif
-/* 2013.07.11 moon-wifi@lge.com[formmh.kim] Add CountryCode [END] */
 #ifdef FEATURE_WLAN_TDLS
    REG_VARIABLE( CFG_TDLS_SUPPORT_ENABLE, WLAN_PARAM_Integer,
               hdd_config_t, fEnableTDLSSupport,
@@ -3214,11 +3206,6 @@ static void print_hdd_cfg(hdd_context_t *pHddCtx)
   VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH, "Name = [skipDfsChnlInP2pSearch] Value = [%u] ",pHddCtx->cfg_ini->skipDfsChnlInP2pSearch);
   VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH, "Name = [ignoreDynamicDtimInP2pMode] Value = [%u] ",pHddCtx->cfg_ini->ignoreDynamicDtimInP2pMode);
   VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH, "Name = [enableRxSTBC] Value = [%u] ",pHddCtx->cfg_ini->enableRxSTBC);
-/* 2013.07.16 moon-wifi@lge.com[formmh.kim] Add CountryCode [START] */
-#ifdef CUSTOMER_LGE
-  VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH, "Name = [overrideCountryCode] Value = [%s] ",pHddCtx->cfg_ini->overrideCountryCode);
-#endif
-/* 2013.07.16 moon-wifi@lge.com[formmh.kim] Add CountryCode [END] */
   VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH, "Name = [gEnableLpwrImgTransition] Value = [%u] ",pHddCtx->cfg_ini->enableLpwrImgTransition);
   VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH, "Name = [gEnableSSR] Value = [%u] ",pHddCtx->cfg_ini->enableSSR);
   VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH, "Name = [gEnableVhtFor24GHzBand] Value = [%u] ",pHddCtx->cfg_ini->enableVhtFor24GHzBand);

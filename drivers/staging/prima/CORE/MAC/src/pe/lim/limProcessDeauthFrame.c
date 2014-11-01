@@ -128,13 +128,6 @@ limProcessDeauthFrame(tpAniSirGlobal pMac, tANI_U8 *pRxPacketInfo, tpPESession p
     // Get reasonCode from Deauthentication frame body
     reasonCode = sirReadU16(pBody);
 
-#ifdef CUSTOMER_LGE_DEBUG_LOG
-    PELOGE(limLog(pMac, LOGE,
-        FL("received Deauth frame (mlm state = %s) with reason code %d from "),
-        limMlmStateStr(psessionEntry->limMlmState), reasonCode);
-    limPrintMacAddr(pMac, pHdr->sa, LOGE);)
-#endif
-
     PELOGE(limLog(pMac, LOGE,
         FL("received Deauth frame (mlm state = %s) with reason code %d from "),
         limMlmStateStr(psessionEntry->limMlmState), reasonCode);

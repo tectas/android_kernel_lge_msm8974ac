@@ -2820,16 +2820,6 @@ int wlan_hdd_cfg80211_change_iface( struct wiphy *wiphy,
                     }
                 }
 
-// LGE_CHANGE_S, yeonho.park, 2014-04-15, QCT main patch for Avoid IMPS during SAP/GO initialization
-                //Disable IMPS & BMPS for SAP/GO
-                if(VOS_STATUS_E_FAILURE ==
-                       hdd_disable_bmps_imps(pHddCtx, WLAN_HDD_P2P_GO))
-                {
-                    //Fail to Exit BMPS
-                    VOS_ASSERT(0);
-                }
-// LGE_CHANGE_E, yeonho.park, 2014-04-15, QCT main patch for Avoid IMPS during SAP/GO initialization
-
                 //De-init the adapter.
                 hdd_stop_adapter( pHddCtx, pAdapter );
                 hdd_deinit_adapter( pHddCtx, pAdapter );
@@ -2837,8 +2827,6 @@ int wlan_hdd_cfg80211_change_iface( struct wiphy *wiphy,
                 pAdapter->device_mode = (type == NL80211_IFTYPE_AP) ?
                                    WLAN_HDD_SOFTAP : WLAN_HDD_P2P_GO;
 
-// LGE_CHANGE_S, yeonho.park, 2014-04-15, QCT main patch for Avoid IMPS during SAP/GO initialization
-/*
                 //Disable BMPS and IMPS if enabled
                 //before starting Go
                 if(WLAN_HDD_P2P_GO == pAdapter->device_mode)
@@ -2850,8 +2838,6 @@ int wlan_hdd_cfg80211_change_iface( struct wiphy *wiphy,
                        VOS_ASSERT(0);
                     }
                 }
-*/
-// LGE_CHANGE_E, yeonho.park, 2014-04-15, QCT main patch for Avoid IMPS during SAP/GO initialization
 
                 if ((WLAN_HDD_SOFTAP == pAdapter->device_mode) &&
                     (pConfig->apRandomBssidEnabled))
@@ -5030,11 +5016,6 @@ int wlan_hdd_cfg80211_scan( struct wiphy *wiphy,
      */
     hdd_prevent_suspend();
 
-#ifdef CUSTOMER_LGE_DEBUG_LOG
-    if (scanRequest.requestType != eCSR_SCAN_P2P_DISCOVERY) {
-        hddLog(VOS_TRACE_LEVEL_ERROR, "%s: sme_ScanRequest, channel num = %d, request type = %d", __func__, scanRequest.ChannelInfo.numOfChannels, scanRequest.requestType);
-    }
-#endif
     status = sme_ScanRequest( WLAN_HDD_GET_HAL_CTX(pAdapter),
                               pAdapter->sessionId, &scanRequest, &scanId,
                               &hdd_cfg80211_scan_done_callback, dev );
