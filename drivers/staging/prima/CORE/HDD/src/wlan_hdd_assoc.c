@@ -802,16 +802,10 @@ static eHalStatus hdd_DisConnectHandler( hdd_adapter_t *pAdapter, tCsrRoamInfo *
             /* To avoid wpa_supplicant sending "HANGED" CMD to ICS UI */
             if( eCSR_ROAM_LOSTLINK == roamStatus )
             {
-#ifdef CUSTOMER_LGE_DEBUG_LOG
-                VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_ERROR, "[%s]Send Disconnect Event with reason code %d", __func__, pRoamInfo->reasonCode);
-#endif
                 cfg80211_disconnected(dev, pRoamInfo->reasonCode, NULL, 0, GFP_KERNEL);
             }
             else
             {
-#ifdef CUSTOMER_LGE_DEBUG_LOG
-                VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_ERROR, "[%s]Send Disconnect Event with WLAN_REASON_UNSPECIFIED reason", __func__);
-#endif
                 cfg80211_disconnected(dev, WLAN_REASON_UNSPECIFIED, NULL, 0, GFP_KERNEL);
             }
 
@@ -2522,16 +2516,6 @@ eHalStatus hdd_smeRoamCallback( void *pContext, tCsrRoamInfo *pRoamInfo, tANI_U3
                            pHddCtx->configuredMcastBcastFilter);
                     hddLog(VOS_TRACE_LEVEL_INFO,
                            "offload: already called mcastbcast filter");
-/* LGE_UPDATE, 20131107, real-wifi@lge.com by beaver, add the checking function for the configuredMcastBcastFilter value */
-#ifdef CUSTOMER_LGE
-                    if (pHddCtx->configuredMcastBcastFilter != pHddCtx->cfg_ini->mcastBcastFilterSetting)
-                    {
-                        pHddCtx->configuredMcastBcastFilter = pHddCtx->cfg_ini->mcastBcastFilterSetting;
-                        hddLog (VOS_TRACE_LEVEL_FATAL,
-                        "%s: with configuredMcastBcastFilter %d", __func__, pHddCtx->configuredMcastBcastFilter);
-                    }
-#endif
-
                     (WLAN_HDD_GET_CTX(pAdapter))->hdd_mcastbcast_filter_set = FALSE;
                 }
 #ifdef WLAN_FEATURE_PACKET_FILTERING

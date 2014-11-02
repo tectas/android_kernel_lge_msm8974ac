@@ -2014,11 +2014,6 @@ void limHandleMissedBeaconInd(tpAniSirGlobal pMac, tpSirMsgQ pMsg)
     tpSirSmeMissedBeaconInd  pSirMissedBeaconInd =
                            (tpSirSmeMissedBeaconInd)pMsg->bodyptr;
     tpPESession psessionEntry = peFindSessionByBssIdx(pMac,pSirMissedBeaconInd->bssIdx);
-
-#ifdef CUSTOMER_LGE_DEBUG_LOG
-    limLog(pMac, LOGE, FL("Beacon Miss Event:: PMM Status = %d, BSS Index:%d"), pMac->pmm.gPmmState, pSirMissedBeaconInd->bssIdx);
-#endif
-
     if (psessionEntry == NULL)
     {
          limLog(pMac, LOGE,

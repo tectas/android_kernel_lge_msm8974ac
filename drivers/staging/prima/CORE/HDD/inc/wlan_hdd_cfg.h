@@ -1686,15 +1686,6 @@ typedef enum
 #define CFG_ENABLE_RX_STBC_MAX                   ( 1 )
 #define CFG_ENABLE_RX_STBC_DEFAULT               ( 1 )
 
-/* 2013.07.11 moon-wifi@lge.com[formmh.kim] Add CountryCode [START] */
-#ifdef CUSTOMER_LGE
-#define CFG_OVERRIDE_COUNTRY_CODE               "gStaCountryCode"
-#define CFG_OVERRIDE_COUNTRY_CODE_MIN           "000"
-#define CFG_OVERRIDE_COUNTRY_CODE_MAX           "ZZZ"
-#define CFG_OVERRIDE_COUNTRY_CODE_DEFAULT       "000"
-#endif
-/* 2013.07.11 moon-wifi@lge.com[formmh.kim] Add CountryCode [END] */
-
 /* 
  * Enable/Disable vsta based on MAX Assoc limit 
  * defined in WCNSS_qcom_cfg.ini.
@@ -2364,13 +2355,6 @@ typedef struct
    v_U16_t                     configMccParam;
    v_U32_t                     numBuffAdvert;
    v_BOOL_t                    enableRxSTBC;
-
-/* 2013.07.16 moon-wifi@lge.com[formmh.kim] Add CountryCode [START] */
-#ifdef CUSTOMER_LGE
-   char                          overrideCountryCode[4];
-#endif
-/* 2013.07.16 moon-wifi@lge.com[formmh.kim] Add CountryCode [END] */
-
 #ifdef FEATURE_WLAN_TDLS       
    v_BOOL_t                    fEnableTDLSSupport;
    v_BOOL_t                    fEnableTDLSImplicitTrigger;

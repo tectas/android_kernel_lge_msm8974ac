@@ -5919,11 +5919,6 @@ static int iw_set_dynamic_mcbc_filter(struct net_device *dev,
 
         pHddCtx->configuredMcastBcastFilter = pRequest->mcastBcastFilterSetting;
 
-/* LGE_UPDATE, 20131031, real-wifi@lge.com by beaver, store the configuredMcastBcastFilter value */
-#ifdef CUSTOMER_LGE
-        pHddCtx->cfg_ini->mcastBcastFilterSetting = pHddCtx->configuredMcastBcastFilter;
-#endif
-
         if (pHddCtx->hdd_wlan_suspended)
         {
             wlanRxpFilterParam = vos_mem_malloc(sizeof(tSirWlanSetRxpFilters));

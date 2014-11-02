@@ -6419,10 +6419,7 @@ VOS_STATUS hdd_start_all_adapters( hdd_context_t *pHddCtx )
 
                /* indicate disconnected event to nl80211 */
                cfg80211_disconnected(pAdapter->dev, WLAN_REASON_UNSPECIFIED,
-                                     NULL, 0, GFP_KERNEL);
-#ifdef CUSTOMER_LGE_DEBUG_LOG
-               hddLog(VOS_TRACE_LEVEL_ERROR, "[%s]Send Disconnect Event with WLAN_REASON_UNSPECIFIED reason", __func__);
-#endif
+                                     NULL, 0, GFP_KERNEL); 
             }
             else if (eConnectionState_Connecting == connState)
             {
@@ -7932,11 +7929,6 @@ int hdd_wlan_startup(struct device *dev )
           goto err_free_hdd_context;
       }
       hddLog(VOS_TRACE_LEVEL_FATAL,"%s: FTM driver loaded success fully",__func__);
-
-// LGE_CHANGE_S, yeonho.park, 2014-04-25, In FTM mode reset load/unload flag on load success(Case:01533229)
-      vos_set_load_unload_in_progress(VOS_MODULE_ID_VOSS, FALSE);
-// LGE_CHANGE_E, yeonho.park, 2014-04-25, In FTM mode reset load/unload flag on load success(Case:01533229)
-
       return VOS_STATUS_SUCCESS;
    }
 
@@ -7984,11 +7976,7 @@ int hdd_wlan_startup(struct device *dev )
        /* NV module cannot be initialized */
        hddLog( VOS_TRACE_LEVEL_FATAL,
                "%s: vos_init_wiphy failed", __func__);
-#if 1 // 2014.03.18, Fixed compile error on PostCS9 migration, Case 01485751               
        goto err_vos_nv_close;
-#else
-       goto err_wiphy_unregister;
-#endif       
    }
 
 #endif
@@ -7997,11 +7985,7 @@ int hdd_wlan_startup(struct device *dev )
    if ( !VOS_IS_STATUS_SUCCESS( status ))
    {
       hddLog(VOS_TRACE_LEVEL_FATAL, "%s: vos_open failed", __func__);
-#if 1 // 2014.03.18, Fixed compile error on PostCS9 migration, Case 01485751  
       goto err_vos_nv_close;
-#else
-      goto err_wiphy_unregister;
-#endif
    }
 
    pHddCtx->hHal = (tHalHandle)vos_get_context( VOS_MODULE_ID_SME, pVosContext );

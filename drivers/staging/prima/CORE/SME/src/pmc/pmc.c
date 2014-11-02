@@ -2214,9 +2214,6 @@ tANI_BOOLEAN pmcProcessCommand( tpAniSirGlobal pMac, tSmeCmd *pCommand )
             break;
 
         case eSmeCommandEnterBmps:
-#ifdef CUSTOMER_LGE_DEBUG_LOG
-            pmcLog(pMac, LOGE, "Request EnterBMPS,  PMC Status = %d", pMac->pmc.pmcState);
-#endif
             if( FULL_POWER == pMac->pmc.pmcState )
             {
                 //This function will not return success because the pmc state is not BMPS
@@ -2270,9 +2267,6 @@ tANI_BOOLEAN pmcProcessCommand( tpAniSirGlobal pMac, tSmeCmd *pCommand )
             break;
 
         case eSmeCommandExitBmps:
-#ifdef CUSTOMER_LGE_DEBUG_LOG
-            pmcLog(pMac, LOGE, "Request ExitBMPS,  PMC Status = %d", pMac->pmc.pmcState);
-#endif
             if( BMPS == pMac->pmc.pmcState )
             {
                 pMac->pmc.requestFullPowerPending = FALSE;

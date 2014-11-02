@@ -135,264 +135,148 @@ typedef struct
 
 static CountryInfoTable_t countryInfoTable =
 {
-	254,
-	{
-		{REGDOMAIN_APAC, {'A', 'G'}},
-		{REGDOMAIN_APAC, {'B', 'B'}},
-		{REGDOMAIN_APAC, {'B', 'H'}},
-		{REGDOMAIN_APAC, {'B', 'N'}},
-		{REGDOMAIN_APAC, {'B', 'S'}},
-		{REGDOMAIN_APAC, {'C', 'L'}},
-		{REGDOMAIN_APAC, {'C', 'N'}},
-		{REGDOMAIN_APAC, {'E', 'G'}},
-		{REGDOMAIN_APAC, {'I', 'N'}},
-		{REGDOMAIN_APAC, {'M', 'V'}},
-		{REGDOMAIN_APAC, {'M', 'Y'}},
-		{REGDOMAIN_APAC, {'P', 'A'}},
-		{REGDOMAIN_APAC, {'R', 'U'}},
-		{REGDOMAIN_APAC, {'S', 'G'}},
-		{REGDOMAIN_APAC, {'S', 'V'}},
-		{REGDOMAIN_APAC, {'V', 'E'}},
-		{REGDOMAIN_APAC, {'Z', 'M'}},
-		{REGDOMAIN_ETSI, {'A', 'D'}},
-		{REGDOMAIN_ETSI, {'A', 'L'}},
-		{REGDOMAIN_ETSI, {'A', 'T'}},
-		{REGDOMAIN_ETSI, {'B', 'A'}},
-		{REGDOMAIN_ETSI, {'B', 'E'}},
-		{REGDOMAIN_ETSI, {'B', 'G'}},
-		{REGDOMAIN_ETSI, {'B', 'Y'}},
-		{REGDOMAIN_ETSI, {'C', 'H'}},
-		{REGDOMAIN_ETSI, {'C', 'V'}},
-		{REGDOMAIN_ETSI, {'C', 'Y'}},
-		{REGDOMAIN_ETSI, {'C', 'Z'}},
-		{REGDOMAIN_ETSI, {'D', 'E'}},
-		{REGDOMAIN_ETSI, {'D', 'K'}},
-		{REGDOMAIN_ETSI, {'D', 'Z'}},
-		{REGDOMAIN_ETSI, {'E', 'E'}},
-		{REGDOMAIN_ETSI, {'E', 'S'}},
-		{REGDOMAIN_ETSI, {'E', 'T'}},
-		{REGDOMAIN_ETSI, {'F', 'I'}},
-		{REGDOMAIN_ETSI, {'F', 'R'}},
-		{REGDOMAIN_ETSI, {'G', 'B'}},
-		{REGDOMAIN_ETSI, {'G', 'E'}},
-		{REGDOMAIN_ETSI, {'G', 'F'}},
-		{REGDOMAIN_ETSI, {'G', 'H'}},
-		{REGDOMAIN_ETSI, {'G', 'P'}},
-		{REGDOMAIN_ETSI, {'G', 'R'}},
-		{REGDOMAIN_ETSI, {'H', 'R'}},
-		{REGDOMAIN_ETSI, {'H', 'U'}},
-		{REGDOMAIN_ETSI, {'I', 'E'}},
-		{REGDOMAIN_ETSI, {'I', 'Q'}},
-		{REGDOMAIN_ETSI, {'I', 'S'}},
-		{REGDOMAIN_ETSI, {'I', 'T'}},
-		{REGDOMAIN_ETSI, {'K', 'E'}},
-		{REGDOMAIN_ETSI, {'L', 'I'}},
-		{REGDOMAIN_ETSI, {'L', 'S'}},
-		{REGDOMAIN_ETSI, {'L', 'T'}},
-		{REGDOMAIN_ETSI, {'L', 'U'}},
-		{REGDOMAIN_ETSI, {'L', 'V'}},
-		{REGDOMAIN_ETSI, {'M', 'C'}},
-		{REGDOMAIN_ETSI, {'M', 'D'}},
-		{REGDOMAIN_ETSI, {'M', 'E'}},
-		{REGDOMAIN_ETSI, {'M', 'F'}},
-		{REGDOMAIN_ETSI, {'M', 'K'}},
-		{REGDOMAIN_ETSI, {'M', 'M'}},
-		{REGDOMAIN_ETSI, {'M', 'Q'}},
-		{REGDOMAIN_ETSI, {'M', 'R'}},
-		{REGDOMAIN_ETSI, {'M', 'S'}},
-		{REGDOMAIN_ETSI, {'M', 'T'}},
-		{REGDOMAIN_ETSI, {'M', 'U'}},
-		{REGDOMAIN_ETSI, {'N', 'L'}},
-		{REGDOMAIN_ETSI, {'N', 'O'}},
-		{REGDOMAIN_ETSI, {'O', 'M'}},
-		{REGDOMAIN_ETSI, {'P', 'F'}},
-		{REGDOMAIN_ETSI, {'P', 'L'}},
-		{REGDOMAIN_ETSI, {'P', 'T'}},
-		{REGDOMAIN_ETSI, {'R', 'E'}},
-		{REGDOMAIN_ETSI, {'R', 'O'}},
-		{REGDOMAIN_ETSI, {'R', 'S'}},
-		{REGDOMAIN_ETSI, {'S', 'E'}},
-		{REGDOMAIN_ETSI, {'S', 'I'}},
-		{REGDOMAIN_ETSI, {'S', 'K'}},
-		{REGDOMAIN_ETSI, {'S', 'M'}},
-		{REGDOMAIN_ETSI, {'S', 'N'}},
-		{REGDOMAIN_ETSI, {'T', 'C'}},
-		{REGDOMAIN_ETSI, {'T', 'F'}},
-		{REGDOMAIN_ETSI, {'T', 'R'}},
-		{REGDOMAIN_ETSI, {'V', 'A'}},
-		{REGDOMAIN_ETSI, {'V', 'G'}},
-		{REGDOMAIN_ETSI, {'Y', 'T'}},
-		{REGDOMAIN_ETSI, {'Z', 'A'}},
-		{REGDOMAIN_FCC, {'U', 'S'}},
-		{REGDOMAIN_FCC, {'A', 'I'}},
-		{REGDOMAIN_FCC, {'A', 'S'}},
-		{REGDOMAIN_FCC, {'B', 'M'}},
-		{REGDOMAIN_FCC, {'C', 'A'}},
-		{REGDOMAIN_FCC, {'F', 'M'}},
-		{REGDOMAIN_FCC, {'G', 'U'}},
-		{REGDOMAIN_FCC, {'K', 'Y'}},
-		{REGDOMAIN_FCC, {'M', 'P'}},
-		{REGDOMAIN_FCC, {'P', 'R'}},
-		{REGDOMAIN_FCC, {'P', 'W'}},
-		{REGDOMAIN_FCC, {'V', 'I'}},
-		{REGDOMAIN_HI_5GHZ, {'B', 'F'}},
-		{REGDOMAIN_HI_5GHZ, {'G', 'Y'}},
-		{REGDOMAIN_HI_5GHZ, {'H', 'N'}},
-		{REGDOMAIN_HI_5GHZ, {'H', 'T'}},
-		{REGDOMAIN_HI_5GHZ, {'J', 'M'}},
-		{REGDOMAIN_HI_5GHZ, {'M', 'O'}},
-		{REGDOMAIN_HI_5GHZ, {'M', 'W'}},
-		{REGDOMAIN_HI_5GHZ, {'P', 'K'}},
-		{REGDOMAIN_HI_5GHZ, {'Q', 'A'}},
-		{REGDOMAIN_HI_5GHZ, {'R', 'W'}},
-		{REGDOMAIN_HI_5GHZ, {'T', 'Z'}},
-		{REGDOMAIN_JAPAN, {'J', 'P'}},
-		{REGDOMAIN_KOREA, {'K', 'R'}},
-		{REGDOMAIN_N_AMER_EXC_FCC, {'A', 'M'}},
-		{REGDOMAIN_N_AMER_EXC_FCC, {'I', 'L'}},
-		{REGDOMAIN_N_AMER_EXC_FCC, {'K', 'W'}},
-		{REGDOMAIN_N_AMER_EXC_FCC, {'M', 'A'}},
-		{REGDOMAIN_N_AMER_EXC_FCC, {'N', 'E'}},
-		{REGDOMAIN_N_AMER_EXC_FCC, {'T', 'N'}},
-		{REGDOMAIN_NO_5GHZ, {'A', 'O'}},
-		{REGDOMAIN_NO_5GHZ, {'B', 'D'}},
-		{REGDOMAIN_NO_5GHZ, {'B', 'I'}},
-		{REGDOMAIN_NO_5GHZ, {'B', 'J'}},
-		{REGDOMAIN_NO_5GHZ, {'B', 'O'}},
-		{REGDOMAIN_NO_5GHZ, {'B', 'Z'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'D'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'F'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'G'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'I'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'D', 'J'}},
-		{REGDOMAIN_NO_5GHZ, {'E', 'R'}},
-		{REGDOMAIN_NO_5GHZ, {'F', 'J'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'A'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'N'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'Q'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'W'}},
-		{REGDOMAIN_NO_5GHZ, {'K', 'G'}},
-		{REGDOMAIN_NO_5GHZ, {'K', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'K', 'Z'}},
-		{REGDOMAIN_NO_5GHZ, {'L', 'Y'}},
-		{REGDOMAIN_NO_5GHZ, {'M', 'G'}},
-		{REGDOMAIN_NO_5GHZ, {'M', 'L'}},
-		{REGDOMAIN_NO_5GHZ, {'N', 'C'}},
-		{REGDOMAIN_NO_5GHZ, {'N', 'R'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'B'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'C'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'L'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'O'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'R'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'T'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'Y'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'Z'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'D'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'G'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'J'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'O'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'V'}},
-		{REGDOMAIN_NO_5GHZ, {'V', 'U'}},
-		{REGDOMAIN_NO_5GHZ, {'Y', 'E'}},
-		{REGDOMAIN_NO_5GHZ, {'A', 'Q'}},
-		{REGDOMAIN_NO_5GHZ, {'A', 'X'}},
-		{REGDOMAIN_NO_5GHZ, {'B', 'V'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'C'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'K'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'U'}},
-		{REGDOMAIN_NO_5GHZ, {'E', 'H'}},
-		{REGDOMAIN_NO_5GHZ, {'E', 'U'}},
-		{REGDOMAIN_NO_5GHZ, {'F', 'O'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'G'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'I'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'L'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'S'}},
-		{REGDOMAIN_NO_5GHZ, {'H', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'I', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'I', 'O'}},
-		{REGDOMAIN_NO_5GHZ, {'I', 'R'}},
-		{REGDOMAIN_NO_5GHZ, {'J', 'E'}},
-		{REGDOMAIN_NO_5GHZ, {'K', 'P'}},
-		{REGDOMAIN_NO_5GHZ, {'M', 'H'}},
-		{REGDOMAIN_NO_5GHZ, {'N', 'F'}},
-		{REGDOMAIN_NO_5GHZ, {'N', 'U'}},
-		{REGDOMAIN_NO_5GHZ, {'P', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'P', 'N'}},
-		{REGDOMAIN_NO_5GHZ, {'P', 'S'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'D'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'H'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'J'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'K'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'L'}},
-		{REGDOMAIN_NO_5GHZ, {'U', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'W', 'F'}},
-		{REGDOMAIN_WORLD, {'A', 'N'}},
-		{REGDOMAIN_WORLD, {'A', 'Z'}},
-		{REGDOMAIN_WORLD, {'B', 'R'}},
-		{REGDOMAIN_WORLD, {'B', 'W'}},
-		{REGDOMAIN_WORLD, {'C', 'O'}},
-		{REGDOMAIN_WORLD, {'C', 'R'}},
-		{REGDOMAIN_WORLD, {'D', 'M'}},
-		{REGDOMAIN_WORLD, {'D', 'O'}},
-		{REGDOMAIN_WORLD, {'E', 'C'}},
-		{REGDOMAIN_WORLD, {'F', 'K'}},
-		{REGDOMAIN_WORLD, {'G', 'D'}},
-		{REGDOMAIN_WORLD, {'G', 'T'}},
-		{REGDOMAIN_WORLD, {'H', 'K'}},
-		{REGDOMAIN_WORLD, {'K', 'H'}},
-		{REGDOMAIN_WORLD, {'K', 'N'}},
-		{REGDOMAIN_WORLD, {'L', 'B'}},
-		{REGDOMAIN_WORLD, {'L', 'C'}},
-		{REGDOMAIN_WORLD, {'L', 'K'}},
-		{REGDOMAIN_WORLD, {'L', 'R'}},
-		{REGDOMAIN_WORLD, {'M', 'N'}},
-		{REGDOMAIN_WORLD, {'M', 'Z'}},
-		{REGDOMAIN_WORLD, {'N', 'A'}},
-		{REGDOMAIN_WORLD, {'N', 'I'}},
-		{REGDOMAIN_WORLD, {'N', 'Z'}},
-		{REGDOMAIN_WORLD, {'P', 'E'}},
-		{REGDOMAIN_WORLD, {'P', 'H'}},
-		{REGDOMAIN_WORLD, {'P', 'Y'}},
-		{REGDOMAIN_WORLD, {'T', 'H'}},
-		{REGDOMAIN_WORLD, {'T', 'T'}},
-		{REGDOMAIN_WORLD, {'U', 'Y'}},
-		{REGDOMAIN_WORLD, {'U', 'Z'}},
-		{REGDOMAIN_WORLD, {'V', 'C'}},
-		{REGDOMAIN_WORLD, {'V', 'N'}},
-		{REGDOMAIN_WORLD, {'Z', 'W'}},
-		{REGDOMAIN_WORLD, {'A', 'R'}},
-		{REGDOMAIN_WORLD, {'A', 'U'}},
-		{REGDOMAIN_WORLD, {'B', 'T'}},
-		{REGDOMAIN_WORLD, {'C', 'X'}},
-		{REGDOMAIN_WORLD, {'K', 'I'}},
-		{REGDOMAIN_WORLD, {'M', 'X'}},
-		{REGDOMAIN_WORLD, {'A', 'E'}},
-		{REGDOMAIN_WORLD, {'A', 'W'}},
-		{REGDOMAIN_WORLD, {'L', 'A'}},
-		{REGDOMAIN_WORLD, {'S', 'A'}},
-		{REGDOMAIN_WORLD, {'U', 'G'}},
-		{REGDOMAIN_WORLD, {'A', 'F'}},
-		{REGDOMAIN_WORLD, {'J', 'O'}},
-		{REGDOMAIN_WORLD, {'P', 'G'}},
-		{REGDOMAIN_WORLD, {'I', 'D'}},
-		{REGDOMAIN_WORLD, {'N', 'P'}},
-		{REGDOMAIN_WORLD, {'W', 'S'}},
-		{REGDOMAIN_WORLD, {'N', 'G'}},
-		{REGDOMAIN_WORLD, {'T', 'W'}},
-		{REGDOMAIN_WORLD, {'U', 'A'}},
-		{REGDOMAIN_JAPAN, {'J', '1'}},
-		{REGDOMAIN_JAPAN, {'J', '2'}},
-		{REGDOMAIN_JAPAN, {'J', '3'}},
-		{REGDOMAIN_JAPAN, {'J', '4'}},
-		{REGDOMAIN_JAPAN, {'J', '5'}},
-		{REGDOMAIN_KOREA, {'K', '1'}},
-		{REGDOMAIN_KOREA, {'K', '2'}},
-		{REGDOMAIN_KOREA, {'K', '3'}},
-		{REGDOMAIN_KOREA, {'K', '4'}},
-	}
+    /* the first entry in the table is always the world domain */
+    138,
+    {
+      {REGDOMAIN_WORLD, {'0', '0'}}, // WORLD DOMAIN
+      {REGDOMAIN_FCC, {'A', 'D'}}, // ANDORRA
+      {REGDOMAIN_ETSI, {'A', 'E'}}, //UAE
+      {REGDOMAIN_ETSI, {'A', 'L'}}, //ALBANIA
+      {REGDOMAIN_ETSI, {'A', 'M'}}, //ARMENIA
+      {REGDOMAIN_ETSI, {'A', 'N'}}, //NETHERLANDS ANTILLES
+      {REGDOMAIN_FCC, {'A', 'R'}}, //ARGENTINA
+      {REGDOMAIN_FCC, {'A', 'S'}}, //AMERICAN SOMOA
+      {REGDOMAIN_ETSI, {'A', 'T'}}, //AUSTRIA
+      {REGDOMAIN_FCC, {'A', 'U'}}, //AUSTRALIA
+      {REGDOMAIN_ETSI , {'A', 'W'}}, //ARUBA
+      {REGDOMAIN_ETSI,  {'A', 'Z'}}, //AZERBAIJAN
+      {REGDOMAIN_ETSI, {'B', 'A'}}, //BOSNIA AND HERZEGOVINA
+      {REGDOMAIN_FCC, {'B', 'B'}}, //BARBADOS
+      {REGDOMAIN_ETSI, {'B', 'D'}}, //BANGLADESH
+      {REGDOMAIN_ETSI, { 'B', 'E'}}, //BELGIUM
+      {REGDOMAIN_ETSI, {'B', 'G'}}, //BULGARIA
+      {REGDOMAIN_ETSI, {'B', 'H'}}, //BAHRAIN
+      {REGDOMAIN_ETSI, {'B', 'L'}}, //
+      {REGDOMAIN_FCC, {'B', 'M'}}, //BERMUDA
+      {REGDOMAIN_ETSI, {'B', 'N'}}, //BRUNEI DARUSSALAM
+      {REGDOMAIN_ETSI, {'B', 'O'}}, //BOLIVIA
+      {REGDOMAIN_ETSI, {'B', 'R'}}, //BRAZIL
+      {REGDOMAIN_FCC, {'B', 'S'}}, //BAHAMAS
+      {REGDOMAIN_ETSI, {'B', 'Y'}}, //BELARUS
+      {REGDOMAIN_ETSI, {'B', 'Z'}}, //BELIZE
+      {REGDOMAIN_FCC, {'C', 'A'}}, //CANADA
+      {REGDOMAIN_ETSI, {'C', 'H'}}, //SWITZERLAND
+      {REGDOMAIN_ETSI, {'C', 'L'}}, //CHILE
+      {REGDOMAIN_FCC, {'C', 'N'}}, //CHINA
+      {REGDOMAIN_FCC, {'C', 'O'}}, //COLOMBIA
+      {REGDOMAIN_ETSI, {'C', 'R'}}, //COSTA RICA
+      {REGDOMAIN_ETSI, {'C', 'S'}},
+      {REGDOMAIN_ETSI, {'C', 'Y'}}, //CYPRUS
+      {REGDOMAIN_ETSI, {'C', 'Z'}}, //CZECH REPUBLIC
+      {REGDOMAIN_ETSI, {'D', 'E'}}, //GERMANY
+      {REGDOMAIN_ETSI, {'D', 'K'}}, //DENMARK
+      {REGDOMAIN_FCC, {'D', 'O'}}, //DOMINICAN REPUBLIC
+      {REGDOMAIN_ETSI, {'D', 'Z'}}, //ALGERIA
+      {REGDOMAIN_ETSI, {'E', 'C'}}, //ECUADOR
+      {REGDOMAIN_ETSI, {'E', 'E'}}, //ESTONIA
+      {REGDOMAIN_ETSI, {'E', 'G'}}, //EGYPT
+      {REGDOMAIN_ETSI, {'E', 'S'}}, //SPAIN
+      {REGDOMAIN_ETSI, {'F', 'I'}}, //FINLAND
+      {REGDOMAIN_ETSI, {'F', 'R'}}, //FRANCE
+      {REGDOMAIN_ETSI, {'G', 'B'}}, //UNITED KINGDOM
+      {REGDOMAIN_FCC, {'G', 'D'}},  //GRENADA
+      {REGDOMAIN_ETSI, {'G', 'E'}}, //GEORGIA
+      {REGDOMAIN_ETSI, {'G', 'F'}}, //FRENCH GUIANA
+      {REGDOMAIN_ETSI, {'G', 'L'}}, //GREENLAND
+      {REGDOMAIN_ETSI, {'G', 'P'}}, //GUADELOUPE
+      {REGDOMAIN_ETSI, {'G', 'R'}}, //GREECE
+      {REGDOMAIN_FCC, {'G', 'T'}},  //GUATEMALA
+      {REGDOMAIN_FCC, {'G', 'U'}},  //GUAM
+      {REGDOMAIN_ETSI, {'H', 'U'}}, //HUNGARY
+      {REGDOMAIN_FCC, {'I', 'D'}},  //INDONESIA
+      {REGDOMAIN_ETSI, {'I', 'E'}}, //IRELAND
+      {REGDOMAIN_ETSI, {'I', 'L'}}, //ISRAEL
+      {REGDOMAIN_ETSI, {'I', 'N'}}, //INDIA
+      {REGDOMAIN_ETSI, {'I', 'R'}}, //IRAN, ISLAMIC REPUBLIC OF
+      {REGDOMAIN_ETSI, {'I', 'S'}}, //ICELNAD
+      {REGDOMAIN_ETSI, {'I', 'T'}}, //ITALY
+      {REGDOMAIN_FCC, {'J', 'M'}},  //JAMAICA
+      {REGDOMAIN_JAPAN, {'J', 'P'}}, //JAPAN
+      {REGDOMAIN_ETSI, {'J', 'O'}}, //JORDAN
+      {REGDOMAIN_ETSI, {'K', 'E'}}, //KENYA
+      {REGDOMAIN_ETSI, {'K', 'H'}}, //CAMBODIA
+      {REGDOMAIN_ETSI, {'K', 'P'}}, //KOREA, DEMOCRATIC PEOPLE's REPUBLIC OF
+      {REGDOMAIN_ETSI, {'K', 'R'}}, //KOREA, REPUBLIC OF
+      {REGDOMAIN_ETSI, {'K', 'W'}}, //KUWAIT
+      {REGDOMAIN_ETSI, {'K', 'Z'}}, //KAZAKHSTAN
+      {REGDOMAIN_ETSI, {'L', 'B'}}, //LEBANON
+      {REGDOMAIN_ETSI, {'L', 'I'}}, //LIECHTENSTEIN
+      {REGDOMAIN_ETSI, {'L', 'K'}}, //SRI-LANKA
+      {REGDOMAIN_ETSI, {'L', 'T'}}, //LITHUANIA
+      {REGDOMAIN_ETSI, {'L', 'U'}}, //LUXEMBOURG
+      {REGDOMAIN_ETSI, {'L','V'}},  //LATVIA
+      {REGDOMAIN_ETSI, {'M', 'A'}}, //MOROCCO
+      {REGDOMAIN_ETSI, {'M', 'C'}}, //MONACO
+      {REGDOMAIN_ETSI, {'M', 'K'}}, //MACEDONIA, THE FORMER YUGOSLAV REPUBLIC OF
+      {REGDOMAIN_FCC, {'M','N'}}, //MONGOLIA
+      {REGDOMAIN_FCC, {'M', 'O'}}, //MACAO
+      {REGDOMAIN_FCC, {'M', 'P'}}, //NORTHERN MARIANA ISLANDS
+      {REGDOMAIN_ETSI, {'M', 'Q'}}, //MARTINIQUE
+      {REGDOMAIN_FCC, {'M', 'T'}}, //MALTA
+      {REGDOMAIN_ETSI, {'M', 'U'}}, //MAURITIUS
+      {REGDOMAIN_ETSI, {'M', 'W'}}, //MALAWI
+      {REGDOMAIN_FCC, {'M', 'X'}}, //MEXICO
+      {REGDOMAIN_ETSI, {'M', 'Y'}}, //MALAYSIA
+      {REGDOMAIN_ETSI, {'N', 'G'}}, //NIGERIA
+      {REGDOMAIN_FCC, {'N', 'I'}}, //NICARAGUA
+      {REGDOMAIN_ETSI, {'N', 'L'}}, //NETHERLANDS
+      {REGDOMAIN_ETSI, {'N', 'O'}}, //NORWAY
+      {REGDOMAIN_ETSI, {'N', 'P'}}, //NEPAL
+      {REGDOMAIN_FCC, {'N', 'Z'}}, //NEW-ZEALAND
+      {REGDOMAIN_FCC, {'O', 'M'}}, //OMAN
+      {REGDOMAIN_FCC, {'P', 'A'}}, //PANAMA
+      {REGDOMAIN_ETSI, {'P', 'E'}}, //PERU
+      {REGDOMAIN_ETSI, {'P', 'F'}}, //FRENCH POLYNESIA
+      {REGDOMAIN_ETSI, {'P', 'G'}}, //PAPUA NEW GUINEA
+      {REGDOMAIN_FCC, {'P', 'H'}}, //PHILIPPINES
+      {REGDOMAIN_ETSI, {'P', 'K'}}, //PAKISTAN
+      {REGDOMAIN_ETSI, {'P', 'L'}}, //POLAND
+      {REGDOMAIN_FCC, {'P', 'R'}}, //PUERTO RICO
+      {REGDOMAIN_FCC, {'P', 'S'}}, //PALESTINIAN TERRITORY, OCCUPIED
+      {REGDOMAIN_ETSI, {'P', 'T'}}, //PORTUGAL
+      {REGDOMAIN_FCC, {'P', 'Y'}}, //PARAGUAY
+      {REGDOMAIN_ETSI, {'Q', 'A'}}, //QATAR
+      {REGDOMAIN_ETSI, {'R', 'E'}}, //REUNION
+      {REGDOMAIN_ETSI, {'R', 'O'}}, //ROMAINIA
+      {REGDOMAIN_ETSI, {'R', 'S'}}, //SERBIA
+      {REGDOMAIN_ETSI, {'R', 'U'}}, //RUSSIA
+      {REGDOMAIN_FCC, {'R', 'W'}}, //RWANDA
+      {REGDOMAIN_ETSI, {'S', 'A'}}, //SAUDI ARABIA
+      {REGDOMAIN_ETSI, {'S', 'E'}}, //SWEDEN
+      {REGDOMAIN_ETSI, {'S', 'G'}}, //SINGAPORE
+      {REGDOMAIN_ETSI, {'S', 'I'}}, //SLOVENNIA
+      {REGDOMAIN_ETSI, {'S', 'K'}}, //SLOVAKIA
+      {REGDOMAIN_ETSI, {'S', 'V'}}, //EL SALVADOR
+      {REGDOMAIN_ETSI, {'S', 'Y'}}, //SYRIAN ARAB REPUBLIC
+      {REGDOMAIN_ETSI, {'T', 'H'}}, //THAILAND
+      {REGDOMAIN_ETSI, {'T', 'N'}}, //TUNISIA
+      {REGDOMAIN_ETSI, {'T', 'R'}}, //TURKEY
+      {REGDOMAIN_ETSI, {'T', 'T'}}, //TRINIDAD AND TOBAGO
+      {REGDOMAIN_FCC, {'T', 'W'}}, //TAIWAN, PRIVINCE OF CHINA
+      {REGDOMAIN_FCC, {'T', 'Z'}}, //TANZANIA, UNITED REPUBLIC OF
+      {REGDOMAIN_ETSI, {'U', 'A'}}, //UKRAINE
+      {REGDOMAIN_ETSI, {'U', 'G'}}, //UGANDA
+      {REGDOMAIN_FCC, {'U', 'S'}}, //USA
+      {REGDOMAIN_ETSI, {'U', 'Y'}}, //URUGUAY
+      {REGDOMAIN_FCC, {'U', 'Z'}}, //UZBEKISTAN
+      {REGDOMAIN_ETSI, {'V', 'E'}}, //VENEZUELA
+      {REGDOMAIN_FCC, {'V', 'I'}}, //VIRGIN ISLANDS, US
+      {REGDOMAIN_ETSI, {'V', 'N'}}, //VIETNAM
+      {REGDOMAIN_ETSI, {'Y', 'E'}}, //YEMEN
+      {REGDOMAIN_ETSI, {'Y', 'T'}}, //MAYOTTE
+      {REGDOMAIN_ETSI, {'Z', 'A'}}, //SOUTH AFRICA
+      {REGDOMAIN_ETSI, {'Z', 'W'}}, //ZIMBABWE
+    }
 };
 
 #else
@@ -402,264 +286,263 @@ static CountryInfoTable_t countryInfoTable =
 // loaded on driver initialization if available
 static CountryInfoTable_t countryInfoTable =
 {
-	254,
-	{
-		{REGDOMAIN_APAC, {'A', 'G'}},
-		{REGDOMAIN_APAC, {'B', 'B'}},
-		{REGDOMAIN_APAC, {'B', 'H'}},
-		{REGDOMAIN_APAC, {'B', 'N'}},
-		{REGDOMAIN_APAC, {'B', 'S'}},
-		{REGDOMAIN_APAC, {'C', 'L'}},
-		{REGDOMAIN_APAC, {'C', 'N'}},
-		{REGDOMAIN_APAC, {'E', 'G'}},
-		{REGDOMAIN_APAC, {'I', 'N'}},
-		{REGDOMAIN_APAC, {'M', 'V'}},
-		{REGDOMAIN_APAC, {'M', 'Y'}},
-		{REGDOMAIN_APAC, {'P', 'A'}},
-		{REGDOMAIN_APAC, {'R', 'U'}},
-		{REGDOMAIN_APAC, {'S', 'G'}},
-		{REGDOMAIN_APAC, {'S', 'V'}},
-		{REGDOMAIN_APAC, {'V', 'E'}},
-		{REGDOMAIN_APAC, {'Z', 'M'}},
-		{REGDOMAIN_ETSI, {'A', 'D'}},
-		{REGDOMAIN_ETSI, {'A', 'L'}},
-		{REGDOMAIN_ETSI, {'A', 'T'}},
-		{REGDOMAIN_ETSI, {'B', 'A'}},
-		{REGDOMAIN_ETSI, {'B', 'E'}},
-		{REGDOMAIN_ETSI, {'B', 'G'}},
-		{REGDOMAIN_ETSI, {'B', 'Y'}},
-		{REGDOMAIN_ETSI, {'C', 'H'}},
-		{REGDOMAIN_ETSI, {'C', 'V'}},
-		{REGDOMAIN_ETSI, {'C', 'Y'}},
-		{REGDOMAIN_ETSI, {'C', 'Z'}},
-		{REGDOMAIN_ETSI, {'D', 'E'}},
-		{REGDOMAIN_ETSI, {'D', 'K'}},
-		{REGDOMAIN_ETSI, {'D', 'Z'}},
-		{REGDOMAIN_ETSI, {'E', 'E'}},
-		{REGDOMAIN_ETSI, {'E', 'S'}},
-		{REGDOMAIN_ETSI, {'E', 'T'}},
-		{REGDOMAIN_ETSI, {'F', 'I'}},
-		{REGDOMAIN_ETSI, {'F', 'R'}},
-		{REGDOMAIN_ETSI, {'G', 'B'}},
-		{REGDOMAIN_ETSI, {'G', 'E'}},
-		{REGDOMAIN_ETSI, {'G', 'F'}},
-		{REGDOMAIN_ETSI, {'G', 'H'}},
-		{REGDOMAIN_ETSI, {'G', 'P'}},
-		{REGDOMAIN_ETSI, {'G', 'R'}},
-		{REGDOMAIN_ETSI, {'H', 'R'}},
-		{REGDOMAIN_ETSI, {'H', 'U'}},
-		{REGDOMAIN_ETSI, {'I', 'E'}},
-		{REGDOMAIN_ETSI, {'I', 'Q'}},
-		{REGDOMAIN_ETSI, {'I', 'S'}},
-		{REGDOMAIN_ETSI, {'I', 'T'}},
-		{REGDOMAIN_ETSI, {'K', 'E'}},
-		{REGDOMAIN_ETSI, {'L', 'I'}},
-		{REGDOMAIN_ETSI, {'L', 'S'}},
-		{REGDOMAIN_ETSI, {'L', 'T'}},
-		{REGDOMAIN_ETSI, {'L', 'U'}},
-		{REGDOMAIN_ETSI, {'L', 'V'}},
-		{REGDOMAIN_ETSI, {'M', 'C'}},
-		{REGDOMAIN_ETSI, {'M', 'D'}},
-		{REGDOMAIN_ETSI, {'M', 'E'}},
-		{REGDOMAIN_ETSI, {'M', 'F'}},
-		{REGDOMAIN_ETSI, {'M', 'K'}},
-		{REGDOMAIN_ETSI, {'M', 'M'}},
-		{REGDOMAIN_ETSI, {'M', 'Q'}},
-		{REGDOMAIN_ETSI, {'M', 'R'}},
-		{REGDOMAIN_ETSI, {'M', 'S'}},
-		{REGDOMAIN_ETSI, {'M', 'T'}},
-		{REGDOMAIN_ETSI, {'M', 'U'}},
-		{REGDOMAIN_ETSI, {'N', 'L'}},
-		{REGDOMAIN_ETSI, {'N', 'O'}},
-		{REGDOMAIN_ETSI, {'O', 'M'}},
-		{REGDOMAIN_ETSI, {'P', 'F'}},
-		{REGDOMAIN_ETSI, {'P', 'L'}},
-		{REGDOMAIN_ETSI, {'P', 'T'}},
-		{REGDOMAIN_ETSI, {'R', 'E'}},
-		{REGDOMAIN_ETSI, {'R', 'O'}},
-		{REGDOMAIN_ETSI, {'R', 'S'}},
-		{REGDOMAIN_ETSI, {'S', 'E'}},
-		{REGDOMAIN_ETSI, {'S', 'I'}},
-		{REGDOMAIN_ETSI, {'S', 'K'}},
-		{REGDOMAIN_ETSI, {'S', 'M'}},
-		{REGDOMAIN_ETSI, {'S', 'N'}},
-		{REGDOMAIN_ETSI, {'T', 'C'}},
-		{REGDOMAIN_ETSI, {'T', 'F'}},
-		{REGDOMAIN_ETSI, {'T', 'R'}},
-		{REGDOMAIN_ETSI, {'V', 'A'}},
-		{REGDOMAIN_ETSI, {'V', 'G'}},
-		{REGDOMAIN_ETSI, {'Y', 'T'}},
-		{REGDOMAIN_ETSI, {'Z', 'A'}},
-		{REGDOMAIN_FCC, {'U', 'S'}},
-		{REGDOMAIN_FCC, {'A', 'I'}},
-		{REGDOMAIN_FCC, {'A', 'S'}},
-		{REGDOMAIN_FCC, {'B', 'M'}},
-		{REGDOMAIN_FCC, {'C', 'A'}},
-		{REGDOMAIN_FCC, {'F', 'M'}},
-		{REGDOMAIN_FCC, {'G', 'U'}},
-		{REGDOMAIN_FCC, {'K', 'Y'}},
-		{REGDOMAIN_FCC, {'M', 'P'}},
-		{REGDOMAIN_FCC, {'P', 'R'}},
-		{REGDOMAIN_FCC, {'P', 'W'}},
-		{REGDOMAIN_FCC, {'V', 'I'}},
-		{REGDOMAIN_HI_5GHZ, {'B', 'F'}},
-		{REGDOMAIN_HI_5GHZ, {'G', 'Y'}},
-		{REGDOMAIN_HI_5GHZ, {'H', 'N'}},
-		{REGDOMAIN_HI_5GHZ, {'H', 'T'}},
-		{REGDOMAIN_HI_5GHZ, {'J', 'M'}},
-		{REGDOMAIN_HI_5GHZ, {'M', 'O'}},
-		{REGDOMAIN_HI_5GHZ, {'M', 'W'}},
-		{REGDOMAIN_HI_5GHZ, {'P', 'K'}},
-		{REGDOMAIN_HI_5GHZ, {'Q', 'A'}},
-		{REGDOMAIN_HI_5GHZ, {'R', 'W'}},
-		{REGDOMAIN_HI_5GHZ, {'T', 'Z'}},
-		{REGDOMAIN_JAPAN, {'J', 'P'}},
-		{REGDOMAIN_KOREA, {'K', 'R'}},
-		{REGDOMAIN_N_AMER_EXC_FCC, {'A', 'M'}},
-		{REGDOMAIN_N_AMER_EXC_FCC, {'I', 'L'}},
-		{REGDOMAIN_N_AMER_EXC_FCC, {'K', 'W'}},
-		{REGDOMAIN_N_AMER_EXC_FCC, {'M', 'A'}},
-		{REGDOMAIN_N_AMER_EXC_FCC, {'N', 'E'}},
-		{REGDOMAIN_N_AMER_EXC_FCC, {'T', 'N'}},
-		{REGDOMAIN_NO_5GHZ, {'A', 'O'}},
-		{REGDOMAIN_NO_5GHZ, {'B', 'D'}},
-		{REGDOMAIN_NO_5GHZ, {'B', 'I'}},
-		{REGDOMAIN_NO_5GHZ, {'B', 'J'}},
-		{REGDOMAIN_NO_5GHZ, {'B', 'O'}},
-		{REGDOMAIN_NO_5GHZ, {'B', 'Z'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'D'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'F'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'G'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'I'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'D', 'J'}},
-		{REGDOMAIN_NO_5GHZ, {'E', 'R'}},
-		{REGDOMAIN_NO_5GHZ, {'F', 'J'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'A'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'N'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'Q'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'W'}},
-		{REGDOMAIN_NO_5GHZ, {'K', 'G'}},
-		{REGDOMAIN_NO_5GHZ, {'K', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'K', 'Z'}},
-		{REGDOMAIN_NO_5GHZ, {'L', 'Y'}},
-		{REGDOMAIN_NO_5GHZ, {'M', 'G'}},
-		{REGDOMAIN_NO_5GHZ, {'M', 'L'}},
-		{REGDOMAIN_NO_5GHZ, {'N', 'C'}},
-		{REGDOMAIN_NO_5GHZ, {'N', 'R'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'B'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'C'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'L'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'O'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'R'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'T'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'Y'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'Z'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'D'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'G'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'J'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'O'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'V'}},
-		{REGDOMAIN_NO_5GHZ, {'V', 'U'}},
-		{REGDOMAIN_NO_5GHZ, {'Y', 'E'}},
-		{REGDOMAIN_NO_5GHZ, {'A', 'Q'}},
-		{REGDOMAIN_NO_5GHZ, {'A', 'X'}},
-		{REGDOMAIN_NO_5GHZ, {'B', 'V'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'C'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'K'}},
-		{REGDOMAIN_NO_5GHZ, {'C', 'U'}},
-		{REGDOMAIN_NO_5GHZ, {'E', 'H'}},
-		{REGDOMAIN_NO_5GHZ, {'E', 'U'}},
-		{REGDOMAIN_NO_5GHZ, {'F', 'O'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'G'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'I'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'L'}},
-		{REGDOMAIN_NO_5GHZ, {'G', 'S'}},
-		{REGDOMAIN_NO_5GHZ, {'H', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'I', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'I', 'O'}},
-		{REGDOMAIN_NO_5GHZ, {'I', 'R'}},
-		{REGDOMAIN_NO_5GHZ, {'J', 'E'}},
-		{REGDOMAIN_NO_5GHZ, {'K', 'P'}},
-		{REGDOMAIN_NO_5GHZ, {'M', 'H'}},
-		{REGDOMAIN_NO_5GHZ, {'N', 'F'}},
-		{REGDOMAIN_NO_5GHZ, {'N', 'U'}},
-		{REGDOMAIN_NO_5GHZ, {'P', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'P', 'N'}},
-		{REGDOMAIN_NO_5GHZ, {'P', 'S'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'D'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'H'}},
-		{REGDOMAIN_NO_5GHZ, {'S', 'J'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'K'}},
-		{REGDOMAIN_NO_5GHZ, {'T', 'L'}},
-		{REGDOMAIN_NO_5GHZ, {'U', 'M'}},
-		{REGDOMAIN_NO_5GHZ, {'W', 'F'}},
-		{REGDOMAIN_WORLD, {'A', 'N'}},
-		{REGDOMAIN_WORLD, {'A', 'Z'}},
-		{REGDOMAIN_WORLD, {'B', 'R'}},
-		{REGDOMAIN_WORLD, {'B', 'W'}},
-		{REGDOMAIN_WORLD, {'C', 'O'}},
-		{REGDOMAIN_WORLD, {'C', 'R'}},
-		{REGDOMAIN_WORLD, {'D', 'M'}},
-		{REGDOMAIN_WORLD, {'D', 'O'}},
-		{REGDOMAIN_WORLD, {'E', 'C'}},
-		{REGDOMAIN_WORLD, {'F', 'K'}},
-		{REGDOMAIN_WORLD, {'G', 'D'}},
-		{REGDOMAIN_WORLD, {'G', 'T'}},
-		{REGDOMAIN_WORLD, {'H', 'K'}},
-		{REGDOMAIN_WORLD, {'K', 'H'}},
-		{REGDOMAIN_WORLD, {'K', 'N'}},
-		{REGDOMAIN_WORLD, {'L', 'B'}},
-		{REGDOMAIN_WORLD, {'L', 'C'}},
-		{REGDOMAIN_WORLD, {'L', 'K'}},
-		{REGDOMAIN_WORLD, {'L', 'R'}},
-		{REGDOMAIN_WORLD, {'M', 'N'}},
-		{REGDOMAIN_WORLD, {'M', 'Z'}},
-		{REGDOMAIN_WORLD, {'N', 'A'}},
-		{REGDOMAIN_WORLD, {'N', 'I'}},
-		{REGDOMAIN_WORLD, {'N', 'Z'}},
-		{REGDOMAIN_WORLD, {'P', 'E'}},
-		{REGDOMAIN_WORLD, {'P', 'H'}},
-		{REGDOMAIN_WORLD, {'P', 'Y'}},
-		{REGDOMAIN_WORLD, {'T', 'H'}},
-		{REGDOMAIN_WORLD, {'T', 'T'}},
-		{REGDOMAIN_WORLD, {'U', 'Y'}},
-		{REGDOMAIN_WORLD, {'U', 'Z'}},
-		{REGDOMAIN_WORLD, {'V', 'C'}},
-		{REGDOMAIN_WORLD, {'V', 'N'}},
-		{REGDOMAIN_WORLD, {'Z', 'W'}},
-		{REGDOMAIN_WORLD, {'A', 'R'}},
-		{REGDOMAIN_WORLD, {'A', 'U'}},
-		{REGDOMAIN_WORLD, {'B', 'T'}},
-		{REGDOMAIN_WORLD, {'C', 'X'}},
-		{REGDOMAIN_WORLD, {'K', 'I'}},
-		{REGDOMAIN_WORLD, {'M', 'X'}},
-		{REGDOMAIN_WORLD, {'A', 'E'}},
-		{REGDOMAIN_WORLD, {'A', 'W'}},
-		{REGDOMAIN_WORLD, {'L', 'A'}},
-		{REGDOMAIN_WORLD, {'S', 'A'}},
-		{REGDOMAIN_WORLD, {'U', 'G'}},
-		{REGDOMAIN_WORLD, {'A', 'F'}},
-		{REGDOMAIN_WORLD, {'J', 'O'}},
-		{REGDOMAIN_WORLD, {'P', 'G'}},
-		{REGDOMAIN_WORLD, {'I', 'D'}},
-		{REGDOMAIN_WORLD, {'N', 'P'}},
-		{REGDOMAIN_WORLD, {'W', 'S'}},
-		{REGDOMAIN_WORLD, {'N', 'G'}},
-		{REGDOMAIN_WORLD, {'T', 'W'}},
-		{REGDOMAIN_WORLD, {'U', 'A'}},
-		{REGDOMAIN_JAPAN, {'J', '1'}},
-		{REGDOMAIN_JAPAN, {'J', '2'}},
-		{REGDOMAIN_JAPAN, {'J', '3'}},
-		{REGDOMAIN_JAPAN, {'J', '4'}},
-		{REGDOMAIN_JAPAN, {'J', '5'}},
-		{REGDOMAIN_KOREA, {'K', '1'}},
-		{REGDOMAIN_KOREA, {'K', '2'}},
-		{REGDOMAIN_KOREA, {'K', '3'}},
-		{REGDOMAIN_KOREA, {'K', '4'}},
-	}
+    254,
+    {
+        { REGDOMAIN_FCC,     {'U', 'S'}},  //USA - must be the first country code
+        { REGDOMAIN_ETSI,    {'A', 'D'}},  //ANDORRA
+        { REGDOMAIN_ETSI,    {'A', 'E'}},  //UAE
+        { REGDOMAIN_N_AMER_EXC_FCC, {'A', 'F'}},  //AFGHANISTAN
+        { REGDOMAIN_WORLD,   {'A', 'G'}},  //ANTIGUA AND BARBUDA
+        { REGDOMAIN_FCC,     {'A', 'I'}},  //ANGUILLA
+        { REGDOMAIN_ETSI,    {'A', 'L'}},  //ALBANIA
+        { REGDOMAIN_N_AMER_EXC_FCC, {'A', 'M'}},  //ARMENIA
+        { REGDOMAIN_ETSI,    {'A', 'N'}},  //NETHERLANDS ANTILLES
+        { REGDOMAIN_NO_5GHZ, {'A', 'O'}},  //ANGOLA
+        { REGDOMAIN_WORLD,   {'A', 'Q'}},  //ANTARCTICA
+        { REGDOMAIN_WORLD,   {'A', 'R'}},  //ARGENTINA
+        { REGDOMAIN_FCC,     {'A', 'S'}},  //AMERICAN SOMOA
+        { REGDOMAIN_ETSI,    {'A', 'T'}},  //AUSTRIA
+        { REGDOMAIN_WORLD,   {'A', 'U'}},  //AUSTRALIA
+        { REGDOMAIN_ETSI,    {'A', 'W'}},  //ARUBA
+        { REGDOMAIN_WORLD,   {'A', 'X'}},  //ALAND ISLANDS
+        { REGDOMAIN_N_AMER_EXC_FCC, {'A', 'Z'}},  //AZERBAIJAN
+        { REGDOMAIN_ETSI,    {'B', 'A'}},  //BOSNIA AND HERZEGOVINA
+        { REGDOMAIN_APAC,    {'B', 'B'}},  //BARBADOS
+        { REGDOMAIN_HI_5GHZ, {'B', 'D'}},  //BANGLADESH
+        { REGDOMAIN_ETSI,    {'B', 'E'}},  //BELGIUM
+        { REGDOMAIN_HI_5GHZ, {'B', 'F'}},  //BURKINA FASO
+        { REGDOMAIN_ETSI,    {'B', 'G'}},  //BULGARIA
+        { REGDOMAIN_APAC,    {'B', 'H'}},  //BAHRAIN
+        { REGDOMAIN_NO_5GHZ, {'B', 'I'}},  //BURUNDI
+        { REGDOMAIN_NO_5GHZ, {'B', 'J'}},  //BENIN
+        { REGDOMAIN_FCC,     {'B', 'M'}},  //BERMUDA
+        { REGDOMAIN_APAC,    {'B', 'N'}},  //BRUNEI DARUSSALAM
+        { REGDOMAIN_HI_5GHZ, {'B', 'O'}},  //BOLIVIA
+        { REGDOMAIN_WORLD,   {'B', 'R'}},  //BRAZIL
+        { REGDOMAIN_APAC,    {'B', 'S'}},  //BAHAMAS
+        { REGDOMAIN_NO_5GHZ, {'B', 'T'}},  //BHUTAN
+        { REGDOMAIN_WORLD,   {'B', 'V'}},  //BOUVET ISLAND
+        { REGDOMAIN_ETSI,    {'B', 'W'}},  //BOTSWANA
+        { REGDOMAIN_ETSI,    {'B', 'Y'}},  //BELARUS
+        { REGDOMAIN_HI_5GHZ, {'B', 'Z'}},  //BELIZE
+        { REGDOMAIN_FCC,     {'C', 'A'}},  //CANADA
+        { REGDOMAIN_WORLD,   {'C', 'C'}},  //COCOS (KEELING) ISLANDS
+        { REGDOMAIN_NO_5GHZ, {'C', 'D'}},  //CONGO, THE DEMOCRATIC REPUBLIC OF THE
+        { REGDOMAIN_NO_5GHZ, {'C', 'F'}},  //CENTRAL AFRICAN REPUBLIC
+        { REGDOMAIN_NO_5GHZ, {'C', 'G'}},  //CONGO
+        { REGDOMAIN_ETSI,    {'C', 'H'}},  //SWITZERLAND
+        { REGDOMAIN_NO_5GHZ, {'C', 'I'}},  //COTE D'IVOIRE
+        { REGDOMAIN_WORLD,   {'C', 'K'}},  //COOK ISLANDS
+        { REGDOMAIN_APAC,    {'C', 'L'}},  //CHILE
+        { REGDOMAIN_NO_5GHZ, {'C', 'M'}},  //CAMEROON
+        { REGDOMAIN_APAC,    {'C', 'N'}},  //CHINA
+        { REGDOMAIN_APAC,    {'C', 'O'}},  //COLOMBIA
+        { REGDOMAIN_APAC,    {'C', 'R'}},  //COSTA RICA
+        { REGDOMAIN_NO_5GHZ, {'C', 'U'}},  //CUBA
+        { REGDOMAIN_ETSI,    {'C', 'V'}},  //CAPE VERDE
+        { REGDOMAIN_WORLD,   {'C', 'X'}},  //CHRISTMAS ISLAND
+        { REGDOMAIN_ETSI,    {'C', 'Y'}},  //CYPRUS
+        { REGDOMAIN_ETSI,    {'C', 'Z'}},  //CZECH REPUBLIC
+        { REGDOMAIN_ETSI,    {'D', 'E'}},  //GERMANY
+        { REGDOMAIN_NO_5GHZ, {'D', 'J'}},  //DJIBOUTI
+        { REGDOMAIN_ETSI,    {'D', 'K'}},  //DENMARK
+        { REGDOMAIN_WORLD,   {'D', 'M'}},  //DOMINICA
+        { REGDOMAIN_APAC,    {'D', 'O'}},  //DOMINICAN REPUBLIC
+        { REGDOMAIN_ETSI,    {'D', 'Z'}},  //ALGERIA
+        { REGDOMAIN_APAC,    {'E', 'C'}},  //ECUADOR
+        { REGDOMAIN_ETSI,    {'E', 'E'}},  //ESTONIA
+        { REGDOMAIN_N_AMER_EXC_FCC, {'E', 'G'}},  //EGYPT
+        { REGDOMAIN_WORLD,   {'E', 'H'}},  //WESTERN SAHARA
+        { REGDOMAIN_NO_5GHZ, {'E', 'R'}},  //ERITREA
+        { REGDOMAIN_ETSI,    {'E', 'S'}},  //SPAIN
+        { REGDOMAIN_ETSI,    {'E', 'T'}},  //ETHIOPIA
+        { REGDOMAIN_ETSI,    {'E', 'U'}},  //Europe (SSGFI)
+        { REGDOMAIN_ETSI,    {'F', 'I'}},  //FINLAND
+        { REGDOMAIN_NO_5GHZ, {'F', 'J'}},  //FIJI
+        { REGDOMAIN_WORLD,   {'F', 'K'}},  //FALKLAND ISLANDS (MALVINAS)
+        { REGDOMAIN_WORLD,   {'F', 'M'}},  //MICRONESIA, FEDERATED STATES OF
+        { REGDOMAIN_WORLD,   {'F', 'O'}},  //FAROE ISLANDS
+        { REGDOMAIN_ETSI,    {'F', 'R'}},  //FRANCE
+        { REGDOMAIN_NO_5GHZ, {'G', 'A'}},  //GABON
+        { REGDOMAIN_ETSI,    {'G', 'B'}},  //UNITED KINGDOM
+        { REGDOMAIN_WORLD,   {'G', 'D'}},  //GRENADA
+        { REGDOMAIN_ETSI,    {'G', 'E'}},  //GEORGIA
+        { REGDOMAIN_ETSI,    {'G', 'F'}},  //FRENCH GUIANA
+        { REGDOMAIN_WORLD,   {'G', 'G'}},  //GUERNSEY
+        { REGDOMAIN_WORLD,   {'G', 'H'}},  //GHANA
+        { REGDOMAIN_WORLD,   {'G', 'I'}},  //GIBRALTAR
+        { REGDOMAIN_ETSI,    {'G', 'L'}},  //GREENLAND
+        { REGDOMAIN_NO_5GHZ, {'G', 'M'}},  //GAMBIA
+        { REGDOMAIN_NO_5GHZ, {'G', 'N'}},  //GUINEA
+        { REGDOMAIN_ETSI,    {'G', 'P'}},  //GUADELOUPE
+        { REGDOMAIN_NO_5GHZ, {'G', 'Q'}},  //EQUATORIAL GUINEA
+        { REGDOMAIN_ETSI,    {'G', 'R'}},  //GREECE
+        { REGDOMAIN_WORLD,   {'G', 'S'}},  //SOUTH GEORGIA AND THE SOUTH SANDWICH ISLANDS
+        { REGDOMAIN_APAC,    {'G', 'T'}},  //GUATEMALA
+        { REGDOMAIN_FCC,     {'G', 'U'}},  //GUAM
+        { REGDOMAIN_NO_5GHZ, {'G', 'W'}},  //GUINEA-BISSAU
+        { REGDOMAIN_HI_5GHZ, {'G', 'Y'}},  //GUYANA
+        { REGDOMAIN_WORLD,   {'H', 'K'}},  //HONGKONG
+        { REGDOMAIN_WORLD,   {'H', 'M'}},  //HEARD ISLAND AND MCDONALD ISLANDS
+        { REGDOMAIN_WORLD,   {'H', 'N'}},  //HONDURAS
+        { REGDOMAIN_ETSI,    {'H', 'R'}},  //CROATIA
+        { REGDOMAIN_ETSI,    {'H', 'T'}},  //HAITI
+        { REGDOMAIN_ETSI,    {'H', 'U'}},  //HUNGARY
+        { REGDOMAIN_HI_5GHZ, {'I', 'D'}},  //INDONESIA
+        { REGDOMAIN_ETSI,    {'I', 'E'}},  //IRELAND
+        { REGDOMAIN_N_AMER_EXC_FCC, {'I', 'L'}},  //ISRAEL
+        { REGDOMAIN_WORLD,   {'I', 'M'}},  //ISLE OF MAN
+        { REGDOMAIN_APAC,    {'I', 'N'}},  //INDIA
+        { REGDOMAIN_WORLD,   {'I', 'O'}},  //BRITISH INDIAN OCEAN TERRITORY
+        { REGDOMAIN_NO_5GHZ, {'I', 'Q'}},  //IRAQ
+        { REGDOMAIN_HI_5GHZ, {'I', 'R'}},  //IRAN, ISLAMIC REPUBLIC OF
+        { REGDOMAIN_ETSI,    {'I', 'S'}},  //ICELAND
+        { REGDOMAIN_ETSI,    {'I', 'T'}},  //ITALY
+        { REGDOMAIN_JAPAN,   {'J', '1'}},  //Japan alternate 1
+        { REGDOMAIN_JAPAN,   {'J', '2'}},  //Japan alternate 2
+        { REGDOMAIN_JAPAN,   {'J', '3'}},  //Japan alternate 3
+        { REGDOMAIN_JAPAN,   {'J', '4'}},  //Japan alternate 4
+        { REGDOMAIN_JAPAN,   {'J', '5'}},  //Japan alternate 5
+        { REGDOMAIN_WORLD,   {'J', 'E'}},  //JERSEY
+        { REGDOMAIN_WORLD,   {'J', 'M'}},  //JAMAICA
+        { REGDOMAIN_APAC,    {'J', 'O'}},  //JORDAN
+        { REGDOMAIN_JAPAN,   {'J', 'P'}},  //JAPAN
+        { REGDOMAIN_KOREA,   {'K', '1'}},  //Korea alternate 1
+        { REGDOMAIN_KOREA,   {'K', '2'}},  //Korea alternate 2
+        { REGDOMAIN_KOREA,   {'K', '3'}},  //Korea alternate 3
+        { REGDOMAIN_KOREA,   {'K', '4'}},  //Korea alternate 4
+        { REGDOMAIN_APAC,    {'K', 'E'}},  //KENYA
+        { REGDOMAIN_NO_5GHZ, {'K', 'G'}},  //KYRGYZSTAN
+        { REGDOMAIN_ETSI,    {'K', 'H'}},  //CAMBODIA
+        { REGDOMAIN_WORLD,   {'K', 'I'}},  //KIRIBATI
+        { REGDOMAIN_NO_5GHZ, {'K', 'M'}},  //COMOROS
+        { REGDOMAIN_WORLD,   {'K', 'N'}},  //SAINT KITTS AND NEVIS
+        { REGDOMAIN_WORLD,   {'K', 'P'}},  //KOREA, DEMOCRATIC PEOPLE'S REPUBLIC OF
+        { REGDOMAIN_KOREA,   {'K', 'R'}},  //KOREA, REPUBLIC OF
+        { REGDOMAIN_N_AMER_EXC_FCC, {'K', 'W'}},  //KUWAIT
+        { REGDOMAIN_FCC,     {'K', 'Y'}},  //CAYMAN ISLANDS
+        { REGDOMAIN_WORLD,   {'K', 'Z'}},  //KAZAKHSTAN
+        { REGDOMAIN_WORLD,   {'L', 'A'}},  //LAO PEOPLE'S DEMOCRATIC REPUBLIC
+        { REGDOMAIN_WORLD,   {'L', 'B'}},  //LEBANON
+        { REGDOMAIN_WORLD,   {'L', 'C'}},  //SAINT LUCIA
+        { REGDOMAIN_ETSI,    {'L', 'I'}},  //LIECHTENSTEIN
+        { REGDOMAIN_WORLD,   {'L', 'K'}},  //SRI LANKA
+        { REGDOMAIN_WORLD,   {'L', 'R'}},  //LIBERIA
+        { REGDOMAIN_ETSI,    {'L', 'S'}},  //LESOTHO
+        { REGDOMAIN_ETSI,    {'L', 'T'}},  //LITHUANIA
+        { REGDOMAIN_ETSI,    {'L', 'U'}},  //LUXEMBOURG
+        { REGDOMAIN_ETSI,    {'L', 'V'}},  //LATVIA
+        { REGDOMAIN_NO_5GHZ, {'L', 'Y'}},  //LIBYAN ARAB JAMAHIRIYA
+        { REGDOMAIN_APAC,    {'M', 'A'}},  //MOROCCO
+        { REGDOMAIN_ETSI,    {'M', 'C'}},  //MONACO
+        { REGDOMAIN_ETSI,    {'M', 'D'}},  //MOLDOVA, REPUBLIC OF
+        { REGDOMAIN_ETSI,    {'M', 'E'}},  //MONTENEGRO
+        { REGDOMAIN_NO_5GHZ, {'M', 'G'}},  //MADAGASCAR
+        { REGDOMAIN_WORLD,   {'M', 'H'}},  //MARSHALL ISLANDS
+        { REGDOMAIN_ETSI,    {'M', 'K'}},  //MACEDONIA, THE FORMER YUGOSLAV REPUBLIC OF
+        { REGDOMAIN_NO_5GHZ, {'M', 'L'}},  //MALI
+        { REGDOMAIN_WORLD,   {'M', 'M'}},  //MYANMAR
+        { REGDOMAIN_WORLD,   {'M', 'N'}},  //MONGOLIA
+        { REGDOMAIN_APAC,    {'M', 'O'}},  //MACAO
+        { REGDOMAIN_FCC,     {'M', 'P'}},  //NORTHERN MARIANA ISLANDS
+        { REGDOMAIN_ETSI,    {'M', 'Q'}},  //MARTINIQUE
+        { REGDOMAIN_ETSI,    {'M', 'R'}},  //MAURITANIA
+        { REGDOMAIN_ETSI,    {'M', 'S'}},  //MONTSERRAT
+        { REGDOMAIN_ETSI,    {'M', 'T'}},  //MALTA
+        { REGDOMAIN_ETSI,    {'M', 'U'}},  //MAURITIUS
+        { REGDOMAIN_APAC,    {'M', 'V'}},  //MALDIVES
+        { REGDOMAIN_HI_5GHZ, {'M', 'W'}},  //MALAWI
+        { REGDOMAIN_APAC,    {'M', 'X'}},  //MEXICO
+        { REGDOMAIN_APAC,    {'M', 'Y'}},  //MALAYSIA
+        { REGDOMAIN_WORLD,   {'M', 'Z'}},  //MOZAMBIQUE
+        { REGDOMAIN_WORLD,   {'N', 'A'}},  //NAMIBIA
+        { REGDOMAIN_NO_5GHZ, {'N', 'C'}},  //NEW CALEDONIA
+        { REGDOMAIN_WORLD,   {'N', 'E'}},  //NIGER
+        { REGDOMAIN_WORLD,   {'N', 'F'}},  //NORFOLD ISLAND
+        { REGDOMAIN_WORLD,   {'N', 'G'}},  //NIGERIA
+        { REGDOMAIN_WORLD,   {'N', 'I'}},  //NICARAGUA
+        { REGDOMAIN_ETSI,    {'N', 'L'}},  //NETHERLANDS
+        { REGDOMAIN_ETSI,    {'N', 'O'}},  //NORWAY
+        { REGDOMAIN_APAC,    {'N', 'P'}},  //NEPAL
+        { REGDOMAIN_NO_5GHZ, {'N', 'R'}},  //NAURU
+        { REGDOMAIN_WORLD,   {'N', 'U'}},  //NIUE
+        { REGDOMAIN_APAC,    {'N', 'Z'}},  //NEW ZEALAND
+        { REGDOMAIN_ETSI,    {'O', 'M'}},  //OMAN
+        { REGDOMAIN_APAC,    {'P', 'A'}},  //PANAMA
+        { REGDOMAIN_WORLD,   {'P', 'E'}},  //PERU
+        { REGDOMAIN_ETSI,    {'P', 'F'}},  //FRENCH POLYNESIA
+        { REGDOMAIN_WORLD,   {'P', 'G'}},  //PAPUA NEW GUINEA
+        { REGDOMAIN_WORLD,   {'P', 'H'}},  //PHILIPPINES
+        { REGDOMAIN_HI_5GHZ, {'P', 'K'}},  //PAKISTAN
+        { REGDOMAIN_ETSI,    {'P', 'L'}},  //POLAND
+        { REGDOMAIN_WORLD,   {'P', 'M'}},  //SAINT PIERRE AND MIQUELON
+        { REGDOMAIN_WORLD,   {'P', 'N'}},  //WORLDPITCAIRN
+        { REGDOMAIN_FCC,     {'P', 'R'}},  //PUERTO RICO
+        { REGDOMAIN_WORLD,   {'P', 'S'}},  //PALESTINIAN TERRITORY, OCCUPIED
+        { REGDOMAIN_ETSI,    {'P', 'T'}},  //PORTUGAL
+        { REGDOMAIN_WORLD,   {'P', 'W'}},  //PALAU
+        { REGDOMAIN_WORLD,   {'P', 'Y'}},  //PARAGUAY
+        { REGDOMAIN_HI_5GHZ, {'Q', 'A'}},  //QATAR
+        { REGDOMAIN_ETSI,    {'R', 'E'}},  //REUNION
+        { REGDOMAIN_ETSI,    {'R', 'O'}},  //ROMANIA
+        { REGDOMAIN_ETSI,    {'R', 'S'}},  //SERBIA
+        { REGDOMAIN_APAC,    {'R', 'U'}},  //RUSSIA
+        { REGDOMAIN_WORLD,   {'R', 'W'}},  //RWANDA
+        { REGDOMAIN_WORLD,   {'S', 'A'}},  //SAUDI ARABIA
+        { REGDOMAIN_NO_5GHZ, {'S', 'B'}},  //SOLOMON ISLANDS
+        { REGDOMAIN_NO_5GHZ, {'S', 'C'}},  //SEYCHELLES
+        { REGDOMAIN_WORLD,   {'S', 'D'}},  //SUDAN
+        { REGDOMAIN_ETSI,    {'S', 'E'}},  //SWEDEN
+        { REGDOMAIN_APAC,    {'S', 'G'}},  //SINGAPORE
+        { REGDOMAIN_WORLD,   {'S', 'H'}},  //SAINT HELENA
+        { REGDOMAIN_ETSI,    {'S', 'I'}},  //SLOVENNIA
+        { REGDOMAIN_WORLD,   {'S', 'J'}},  //SVALBARD AND JAN MAYEN
+        { REGDOMAIN_ETSI,    {'S', 'K'}},  //SLOVAKIA
+        { REGDOMAIN_WORLD,   {'S', 'L'}},  //SIERRA LEONE
+        { REGDOMAIN_ETSI,    {'S', 'M'}},  //SAN MARINO
+        { REGDOMAIN_ETSI,    {'S', 'N'}},  //SENEGAL
+        { REGDOMAIN_NO_5GHZ, {'S', 'O'}},  //SOMALIA
+        { REGDOMAIN_NO_5GHZ, {'S', 'R'}},  //SURINAME
+        { REGDOMAIN_WORLD,   {'S', 'T'}},  //SAO TOME AND PRINCIPE
+        { REGDOMAIN_APAC,    {'S', 'V'}},  //EL SALVADOR
+        { REGDOMAIN_NO_5GHZ, {'S', 'Y'}},  //SYRIAN ARAB REPUBLIC
+        { REGDOMAIN_NO_5GHZ, {'S', 'Z'}},  //SWAZILAND
+        { REGDOMAIN_ETSI,    {'T', 'C'}},  //TURKS AND CAICOS ISLANDS
+        { REGDOMAIN_NO_5GHZ, {'T', 'D'}},  //CHAD
+        { REGDOMAIN_ETSI,    {'T', 'F'}},  //FRENCH SOUTHERN TERRITORIES
+        { REGDOMAIN_NO_5GHZ, {'T', 'G'}},  //TOGO
+        { REGDOMAIN_WORLD,   {'T', 'H'}},  //THAILAND
+        { REGDOMAIN_NO_5GHZ, {'T', 'J'}},  //TAJIKISTAN
+        { REGDOMAIN_WORLD,   {'T', 'K'}},  //TOKELAU
+        { REGDOMAIN_WORLD,   {'T', 'L'}},  //TIMOR-LESTE
+        { REGDOMAIN_NO_5GHZ, {'T', 'M'}},  //TURKMENISTAN
+        { REGDOMAIN_N_AMER_EXC_FCC, {'T', 'N'}},  //TUNISIA
+        { REGDOMAIN_NO_5GHZ, {'T', 'O'}},  //TONGA
+        { REGDOMAIN_ETSI,    {'T', 'R'}},  //TURKEY
+        { REGDOMAIN_WORLD,   {'T', 'T'}},  //TRINIDAD AND TOBAGO
+        { REGDOMAIN_NO_5GHZ, {'T', 'V'}},  //TUVALU
+        { REGDOMAIN_FCC,     {'T', 'W'}},  //TAIWAN, PROVINCE OF CHINA
+        { REGDOMAIN_HI_5GHZ, {'T', 'Z'}},  //TANZANIA, UNITED REPUBLIC OF
+        { REGDOMAIN_WORLD,   {'U', 'A'}},  //UKRAINE
+        { REGDOMAIN_KOREA,   {'U', 'G'}},  //UGANDA
+        { REGDOMAIN_FCC,     {'U', 'M'}},  //UNITED STATES MINOR OUTLYING ISLANDS
+        { REGDOMAIN_WORLD,   {'U', 'Y'}},  //URUGUAY
+        { REGDOMAIN_FCC,     {'U', 'Z'}},  //UZBEKISTAN
+        { REGDOMAIN_ETSI,    {'V', 'A'}},  //HOLY SEE (VATICAN CITY STATE)
+        { REGDOMAIN_WORLD,   {'V', 'C'}},  //SAINT VINCENT AND THE GRENADINES
+        { REGDOMAIN_HI_5GHZ, {'V', 'E'}},  //VENEZUELA
+        { REGDOMAIN_ETSI,    {'V', 'G'}},  //VIRGIN ISLANDS, BRITISH
+        { REGDOMAIN_FCC,     {'V', 'I'}},  //VIRGIN ISLANDS, US
+        { REGDOMAIN_FCC,     {'V', 'N'}},  //VIET NAM
+        { REGDOMAIN_NO_5GHZ, {'V', 'U'}},  //VANUATU
+        { REGDOMAIN_WORLD,   {'W', 'F'}},  //WALLIS AND FUTUNA
+        { REGDOMAIN_N_AMER_EXC_FCC, {'W', 'S'}},  //SOMOA
+        { REGDOMAIN_NO_5GHZ, {'Y', 'E'}},  //YEMEN
+        { REGDOMAIN_ETSI,    {'Y', 'T'}},  //MAYOTTE
+        { REGDOMAIN_WORLD,   {'Z', 'A'}},  //SOUTH AFRICA
+        { REGDOMAIN_APAC,    {'Z', 'M'}},  //ZAMBIA
+        { REGDOMAIN_ETSI,    {'Z', 'W'}},  //ZIMBABWE
+    }
 };
 
 #endif
@@ -1209,11 +1092,6 @@ VOS_STATUS vos_nv_open(void)
     v_SIZE_t bufSize;
     v_SIZE_t nvReadBufSize;
     v_BOOL_t itemIsValid = VOS_FALSE;
-/* 2013.07.11 moon-wifi@lge.com[formmh.kim] Add CountryCode [START] */
-#ifdef CUSTOMER_LGE
-    hdd_context_t *pHddCtx = NULL;
-#endif
-/* 2013.07.11 moon-wifi@lge.com[formmh.kim] Add CountryCode [END] */
     v_U32_t dataOffset;
     sHalNv *pnvData = NULL;
 
@@ -1470,18 +1348,6 @@ VOS_STATUS vos_nv_open(void)
                 NULL, sizeof(sDefaultCountry) ) !=  VOS_STATUS_SUCCESS)
                     goto error;
             }
-/* 2013.07.16 moon-wifi@lge.com[formmh.kim] Add CountryCode [START] */
-#ifdef CUSTOMER_LGE
-            pHddCtx = vos_get_context(VOS_MODULE_ID_HDD, pVosContext);
-            if (NULL != pHddCtx) {
-                if (!vos_mem_compare(pHddCtx->cfg_ini->overrideCountryCode, "000", 3)) {
-                    vos_mem_copy(pnvEFSTable->halnv.tables.defaultCountryTable.countryCode, pHddCtx->cfg_ini->overrideCountryCode, 3);
-                }
-	        } else {
-                VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR, ("Invalid pHddCtx pointer"));
-	        }
-#endif
-/* 2013.07.16 moon-wifi@lge.com[formmh.kim] Add CountryCode [END] */
         }
 
         if (vos_nv_getValidity(VNV_TPC_POWER_TABLE, &itemIsValid) ==
@@ -3672,10 +3538,10 @@ int wlan_hdd_linux_reg_notifier(struct wiphy *wiphy,
 #endif
     }
 
-    if (pHddCtx->isLoadUnloadInProgress)
+    if (WLAN_HDD_IS_UNLOAD_IN_PROGRESS(pHddCtx))
     {
-        wiphy_dbg(wiphy, "info: %s: Unloading/Loading in Progress. Ignore!!!",
-                  __func__);
+       VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
+                   ("%s Unload is in progress"), __func__ );
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,9,0))
         return;
 #else
@@ -3816,6 +3682,8 @@ VOS_STATUS vos_init_wiphy_from_nv_bin(void)
         reg_domain = pnvEFSTable->halnv.tables.defaultCountryTable.regDomain;
         wiphy->flags |= WIPHY_FLAG_STRICT_REGULATORY;
     }
+
+    temp_reg_domain = cur_reg_domain = reg_domain;
 
     m = 0;
     for (i = 0; i < IEEE80211_NUM_BANDS; i++)
@@ -4091,14 +3959,8 @@ int wlan_hdd_crda_reg_notifier(struct wiphy *wiphy,
        return 0;
 #endif
     }
-
-// 2014.04.07, okwon, QCT 5G hotspot patch for country code
-#if 0
-    if(pHddCtx->isLoadUnloadInProgress ||
+    if((WLAN_HDD_IS_UNLOAD_IN_PROGRESS(pHddCtx)) ||
         pHddCtx->isLogpInProgress)
-#else
-    if(pHddCtx->isLogpInProgress)
-#endif
     {
         VOS_TRACE( VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
                    ("%s load/unload or SSR is in progress Ignore"), __func__ );
@@ -4294,8 +4156,6 @@ int wlan_hdd_crda_reg_notifier(struct wiphy *wiphy,
          {
              for (j=0; j<wiphy->bands[IEEE80211_BAND_5GHZ]->n_channels; j++)
              {
-/*LGE_UPDATE, 20131021, cheolsook.lee@lge.com, dismiss to enable P2P_GC on UNII-1 band */
-#if 0
                  // p2p UNII-1 band channels are passive when domain is FCC.
                  if ((wiphy->bands[IEEE80211_BAND_5GHZ ]->channels[j].center_freq == 5180 ||
                       wiphy->bands[IEEE80211_BAND_5GHZ]->channels[j].center_freq == 5200 ||
@@ -4313,18 +4173,6 @@ int wlan_hdd_crda_reg_notifier(struct wiphy *wiphy,
                  {
                      wiphy->bands[IEEE80211_BAND_5GHZ]->channels[j].flags &= ~IEEE80211_CHAN_PASSIVE_SCAN;
                  }
-#else
-                if ((wiphy->bands[IEEE80211_BAND_5GHZ ]->channels[j].center_freq == 5180 ||
-                               wiphy->bands[IEEE80211_BAND_5GHZ]->channels[j].center_freq == 5200 ||
-                               wiphy->bands[IEEE80211_BAND_5GHZ]->channels[j].center_freq == 5220 ||
-                               wiphy->bands[IEEE80211_BAND_5GHZ]->channels[j].center_freq == 5240)
-                               )
-                {
-                   VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR, "freq:%u unset PASSIVE_SCAN by lge",
-                               wiphy->bands[IEEE80211_BAND_5GHZ ]->channels[j].center_freq );
-                   wiphy->bands[IEEE80211_BAND_5GHZ]->channels[j].flags &= ~IEEE80211_CHAN_PASSIVE_SCAN;
-                }
-#endif
              }
          }
 

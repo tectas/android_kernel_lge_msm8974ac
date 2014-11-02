@@ -481,12 +481,6 @@ void hdd_conf_hostoffload(hdd_adapter_t *pAdapter, v_BOOL_t fenable)
         return;
     }
 
-/* LGE_UPDATE, 20131031, real-wifi@lge.com by beaver, restore the configuredMcastBcastFilter value */
-#ifdef CUSTOMER_LGE
-    hddLog(VOS_TRACE_LEVEL_ERROR,
-        "%s: with configuredMcastBcastFilter 0x%x", __func__, pHddCtx->configuredMcastBcastFilter);
-#endif
-
     if ((WLAN_HDD_INFRA_STATION == pAdapter->device_mode) ||
            (WLAN_HDD_P2P_CLIENT == pAdapter->device_mode))
     {
@@ -1278,16 +1272,6 @@ static void hdd_conf_resume_ind(hdd_adapter_t *pAdapter)
     hddLog(VOS_TRACE_LEVEL_INFO, "configuredMcastBcastFilter = %d",
                   pHddCtx->configuredMcastBcastFilter);
 
-
-/* LGE_UPDATE, 20131031, real-wifi@lge.com by beaver, restore the configuredMcastBcastFilter value */
-#ifdef CUSTOMER_LGE
-    if (pHddCtx->configuredMcastBcastFilter != pHddCtx->cfg_ini->mcastBcastFilterSetting)
-    {
-        pHddCtx->configuredMcastBcastFilter = pHddCtx->cfg_ini->mcastBcastFilterSetting;
-        hddLog (VOS_TRACE_LEVEL_FATAL,
-        "%s: with configuredMcastBcastFilter %d", __func__, pHddCtx->configuredMcastBcastFilter);
-    }
-#endif
 
 #ifdef WLAN_FEATURE_PACKET_FILTERING
     /* Filer was applied during suspend inditication
