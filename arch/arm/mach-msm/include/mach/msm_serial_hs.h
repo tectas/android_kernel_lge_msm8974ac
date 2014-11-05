@@ -55,6 +55,7 @@ struct uart_port *msm_hs_get_uart_port(int port_index);
 void msm_hs_set_mctrl(struct uart_port *uport,
 				    unsigned int mctrl);
 
+#ifndef CONFIG_BCMDHD
 /* LGE_CHANGE_S, [BT][younghyun.kwon@lge.com], 2013-04-10, For G2 LPM */
 /* LG_BTUI : chanha.park@lge.com : Added bluesleep interface - [S] */
 #ifdef CONFIG_LGE_BLUESLEEP
@@ -65,4 +66,5 @@ int msm_hs_get_bt_uport_clock_state(struct uart_port *uport);
 #endif /* CONFIG_LGE_BLUESLEEP */
 /* LG_BTUI : chanha.park@lge.com : Added bluesleep interface - [E] */
 /* LGE_CHANGE_E, [BT][younghyun.kwon@lge.com], 2013-04-10 */
+#endif /* CONFIG_BCMDHD */
 #endif
