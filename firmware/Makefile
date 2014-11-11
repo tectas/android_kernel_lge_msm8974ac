@@ -35,7 +35,7 @@ else ifdef CONFIG_MACH_MSM8974_G3_CA
 synaptics_img_directory := $(srctree)/firmware/synaptics/g3_ca/
 else ifdef CONFIG_MACH_MSM8974_G3_TMO_US
 synaptics_img_directory := $(srctree)/firmware/synaptics/g3_tmo_us/
-else ifdef CONFIG_MACH_MSM8974_G3_ATT_US
+else ifdef CONFIG_MACH_MSM8974_G3_ATT
 synaptics_img_directory := $(srctree)/firmware/synaptics/g3_att_us/
 else ifdef CONFIG_MACH_MSM8974_G3_CL_PR
 synaptics_img_directory := $(srctree)/firmware/synaptics/g3_clr_pr/
