@@ -577,8 +577,8 @@ int8	tunerbb_drv_fc8080_get_ber(struct broadcast_tdmb_sig_info *dmb_bb_info)
 		{1,    12000},
 	};
 
-	uint16 avgBER;
-	uint8 refAntLevel;
+	uint16 avgBER = 0;
+	uint8 refAntLevel = 0;
 	/* LGE_ADD_E, [hyun118.shin@lge.com], TDMB Antenna Leveling */
 
 	if(is_tdmb_probe == 0)
