@@ -1,0 +1,29 @@
+BCM43XX DHD 1.88.60.1 for Kitkat.
+
+DHD 1.88.67 (2014.03.11)
+  - Retry and fire soft irq while skbfuf is full (CSP:757441)
+  - Add to check roaming status for hidden AP (CSP:755818)
+  – Preventing TDLS operation between devices when P2P connection made.
+  - Delete watchdog timer & wakelock after hang (CSP:760403)
+  - Add module parameter for enabling/disabling ToS conversion
+  - Apply customized country code on dhd_preinit_proc function (CSP:754112)
+  - Modify Kconfig_hw10 for LGE
+
+DHD 1.88.60.1 (2013.12.17)
+  - Sync up IOCTL between firmware and DHD for 4334/43341
+
+DHD 1.88.60 (2013.12.13)
+  - Integrate 4334/43341/4335/4339 in one DHD
+  - Cleaned up hidden AP IE of beacon manipulate code for roaming issue
+  - Removed Temporal code with DEBUG_BCN_LOSS definition
+  - Fixed missing code on P2P scan logic
+  - Block Ethertype of 0x886 packet to upper layer
+  - Fixed DHD sleep state mismatch issue
+  - Fixed Miracast current issue
+  - Fixed TDLS dongle trap issue
+
+DHD 1.88.48 (2013.10.14)
+  - Initial version release for Kitkat.
+  - set TDLS auto enable.
+  - adding PNO.
+  - adding scheduled SCAN.
