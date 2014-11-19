@@ -570,10 +570,10 @@ endif # $(dot-config)
 # Defaults to vmlinux, but the arch makefile usually adds further targets
 all: vmlinux
 
-ifeq ($(CONFIG_CC_OPTIMIZE_SPEED),y)
+ifdef CONFIG_CC_OPTIMIZE_FOR_SPEED
 KBUILD_CFLAGS	+= -O3
 else
-ifeq ($(CONFIG_CC_OPTIMIZE_DEFAULT),y)
+ifdef CONFIG_CC_DEFAULT
 KBUILD_CFLAGS	+= -O2
 else
 KBUILD_CFLAGS	+= -Os
@@ -585,7 +585,7 @@ KBUILD_CFLAGS	+= $(call cc-disable-warning,array-bounds) $(call cc-disable-warni
 include $(srctree)/arch/$(SRCARCH)/Makefile
 
 ifneq ($(CONFIG_FRAME_WARN),0)
-# KBUILD_CFLAGS += $(call cc-option,-Wframe-larger-than=${CONFIG_FRAME_WARN})
+KBUILD_CFLAGS += $(call cc-option,-Wframe-larger-than=${CONFIG_FRAME_WARN})
 endif
 
 # Force gcc to behave correct even for buggy distributions
@@ -1172,7 +1172,6 @@ endif # CONFIG_MODULES
 ###
 # Cleaning is done on three levels.
 # make clean     Delete most generated files
-#                Inculding the configuration
 #                Leave enough to build external modules
 # make mrproper  Delete the current configuration, and all generated files
 # make distclean Remove editor backup files, patch leftover files and the like
