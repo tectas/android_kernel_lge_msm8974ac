@@ -420,7 +420,7 @@ endif
 KBUILD_CFLAGS	+= -ffast-math -ftree-vectorize -funsafe-math-optimizations \
 		   -fno-delete-null-pointer-checks
 
-# KBUILD_CFLAGS	+=  $(call cc-disable-warning,maybe-uninitialized)
+KBUILD_CFLAGS	+=  $(call cc-disable-warning,maybe-uninitialized)
 
 # When compiling out-of-tree modules, put MODVERDIR in the module
 # tree rather than in the kernel tree. The kernel tree might
