@@ -353,7 +353,7 @@ CC		= $(srctree)/scripts/gcc-wrapper.py $(REAL_CC)
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void -Wno-array-bounds -Wframe-larger-than=2048 $(CF)
 
-CFLAGS_KERNEL	= -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -mcpu=cortex-a15 -mtune=cortex-a15 -marm -mfpu=neon -ftree-vectorize -mvectorize-with-neon-quad -funroll-loops
+CFLAGS_KERNEL	= -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -mcpu=cortex-a15 -mtune=cortex-a15 -marm -mfpu=neon -ftree-vectorize -mvectorize-with-neon-quad -funroll-loops # -O3
 AFLAGS_KERNEL	= $(CFLAGS_KERNEL)
 
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
@@ -570,17 +570,11 @@ endif # $(dot-config)
 # Defaults to vmlinux, but the arch makefile usually adds further targets
 all: vmlinux
 
-ifdef CONFIG_CC_OPTIMIZE_FOR_SPEED
-KBUILD_CFLAGS	+= -O3
+ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
 else
-ifdef CONFIG_CC_DEFAULT
-KBUILD_CFLAGS	+= -O2
-else
-KBUILD_CFLAGS	+= -Os
+KBUILD_CFLAGS	+= -O3 -fmodulo-sched -fmodulo-sched-allow-regmoves -fno-tree-vectorize
 endif
-endif
-
-KBUILD_CFLAGS	+= $(call cc-disable-warning,array-bounds) $(call cc-disable-warning,maybe-uninitialized)
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
 
