@@ -355,7 +355,7 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 
 CFLAGS_KERNEL	= -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -mcpu=cortex-a15 -mtune=cortex-a15 -marm -mfpu=neon -ftree-vectorize -mvectorize-with-neon-quad -funroll-loops
 ifeq ($(ENABLE_GRAPHITE),true)
-	CFLAGS_KERNEL	+= -fgraphite -floop-parallelize-all -ftree-loop-linear -floop-interchange -floop-strip-mine -floop-block
+	CFLAGS_KERNEL	+= -fgraphite -ftree-loop-linear -floop-interchange -floop-strip-mine -floop-block
 endif
 AFLAGS_KERNEL	= $(CFLAGS_KERNEL)
 
