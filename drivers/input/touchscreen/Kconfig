@@ -1062,5 +1062,6 @@ config TOUCHSCREEN_GT9XX
           If unsure, say N.
 
 source "drivers/input/touchscreen/gt9xx/Kconfig"
+source "drivers/input/touchscreen/DS5/Kconfig"
 
 endif
