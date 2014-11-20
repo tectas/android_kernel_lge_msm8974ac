@@ -185,6 +185,12 @@ config CPU_FREQ_DEFAULT_GOV_SMARTASSV2
 	help
 		Use the CPUFreq governor 'smartassV2' as default.
 
+config CPU_FREQ_DEFAULT_GOV_INTELLIMM
+        bool "intelliminmax"
+        select CPU_FREQ_GOV_INTELLIMM
+        help
+          Use the CPUFreq governor 'intelliminmax' as default. This is
+          governor will use only 3 different frequencies, idle, UI and max
 
 endchoice
 
@@ -561,6 +567,17 @@ config SMARTASSV2_SAMPLE_RATE_JIFFIES
 	depends on CPU_FREQ_GOV_SMARTASSV2
 	help
 	  Sampling rate, I highly recommend to leave it at 2.
+
+config CPU_FREQ_GOV_INTELLIMM
+        tristate "'intelliminmax' cpufreq policy governor"
+        default y
+        help
+          To compile this driver as a module, choose M here: the
+          module will be called cpufreq_interactive.
+
+          For details, take a look at linux/Documentation/cpu-freq.
+
+          If in doubt, say N.
 
 menu "x86 CPU frequency scaling drivers"
 depends on X86
