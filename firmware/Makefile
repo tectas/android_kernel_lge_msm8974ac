@@ -29,8 +29,9 @@ endif
 
 ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_FW_PATH
 fwpath := $(subst ",,$(CONFIG_TOUCHSCREEN_SYNAPTICS_FW_PATH))
-synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/$(fwpath)/*.img)
-synaptics_img_file += $(wildcard $(srctree)/firmware/synaptics/$(fwpath)/*.txt)
+synaptics_img_directory := $(srctree)/firmware/synaptics/$(fwpath)/
+synaptics_img_file := $(wildcard $(synaptics_img_directory)*.img)
+synaptics_img_file += $(wildcard $(synaptics_img_directory)*.txt)
 endif
 synaptics_firmware := $(subst $(srctree)/firmware/,,$(synaptics_img_file))
 
@@ -149,9 +150,8 @@ fw-shipped-$(CONFIG_USB_VICAM) += vicam/firmware.fw
 fw-shipped-$(CONFIG_VIDEO_CPIA2) += cpia2/stv0672_vp4.bin
 fw-shipped-$(CONFIG_YAM) += yam/1200.bin yam/9600.bin
 
-compiled-fw := $(wildcard $(synaptics_img_directory)*.gen.o)
-
-ifeq ($(compiled-fw),)
+compiled-gen-o-fw := $(wildcard $(synaptics_img_directory)*.gen.o)
+compiled-gen-s-fw := $(wildcard $(synaptics_img_directory)*.gen.S)
 
 fw-shipped-$(CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4) += $(synaptics_firmware)
 
@@ -160,14 +160,23 @@ fw-shipped-all := $(fw-shipped-y) $(fw-shipped-m) $(fw-shipped-)
 # Directories which we _might_ need to create, so we have a rule for them.
 firmware-dirs := $(sort $(addprefix $(objtree)/$(obj)/,$(dir $(fw-external-y) $(fw-shipped-all))))
 
+quiet_cmd_remove = REMOVE $@
+	  cmd_remove = rm -f $@
+
 quiet_cmd_mkdir = MKDIR   $(patsubst $(objtree)/%,%,$@)
       cmd_mkdir = mkdir -p $@
+
+$(obj)/%.gen.o: $(objtree)/$(obj)/$$(dir %.gen.o)
+	$(call cmd,remove)
+
+$(obj)/%.gen.S: $(objtree)/$(obj)/$$(dir %.gen.S)
+	$(call cmd,remove)
 
 quiet_cmd_ihex  = IHEX    $@
       cmd_ihex  = $(OBJCOPY) -Iihex -Obinary $< $@
 
-#quiet_cmd_copy  = COPY    $@
-#      cmd_copy  = cp $(srctree)/$@ $@
+quiet_cmd_copy  = COPY    $@
+      cmd_copy  = cp $(srctree)/$@ $@
 
 quiet_cmd_ihex2fw  = IHEX2FW $@
       cmd_ihex2fw  = $(objtree)/$(obj)/ihex2fw $< $@
@@ -232,11 +241,11 @@ $(patsubst %,$(obj)/%.gen.o, $(fw-external-y)): $(obj)/%.gen.o: $(fwdir)/%
 $(obj)/%: $(obj)/%.ihex | $(objtree)/$(obj)/$$(dir %)
 	$(call cmd,ihex)
 
-$(obj)/%.img: $(objtree)/$(obj)/$$(dir %.img)
-	$(call cmd,copy)
+#$(obj)/%.img: $(objtree)/$(obj)/$$(dir %.img)
+#	$(call cmd,copy)
 
-$(obj)/%.txt: $(objtree)/$(obj)/$$(dir %.txt)
-	$(call cmd,copy)
+#$(obj)/%.txt: $(objtree)/$(obj)/$$(dir %.txt)
+#	$(call cmd,copy)
 
 # Don't depend on ihex2fw if we're installing and it already exists.
 # Putting it after | in the dependencies doesn't seem sufficient when
@@ -266,17 +275,6 @@ $(firmware-dirs):
 
 obj-y				 += $(patsubst %,%.gen.o, $(fw-external-y))
 obj-$(CONFIG_FIRMWARE_IN_KERNEL) += $(patsubst %,%.gen.o, $(fw-shipped-y))
-
-else
-
-binarys-compiled := $(patsubst %,%.gen.o, $(fw-shipped-y))
-
-obj-y				 += $(fw-external-y)
-obj-$(CONFIG_FIRMWARE_IN_KERNEL) += $(binarys-compiled) $(patsubst $(objtree)/firmware/%,%,$(compiled-fw))
-
-fw-shipped-$(CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4) += $(compiled-fw)
-
-endif
 
 # Remove .S files and binaries created from ihex
 # (during 'make clean' .config isn't included so they're all in $(fw-shipped-))
