@@ -27,37 +27,12 @@ else
 acenic-objs := acenic/tg1.bin acenic/tg2.bin
 endif
 
-ifdef CONFIG_MACH_MSM8974_G3_KR
-synaptics_img_directory := $(srctree)/firmware/synaptics/g3_kr/
-else ifdef CONFIG_MACH_MSM8974_G3_CN
-synaptics_img_directory := $(srctree)/firmware/synaptics/g3_cn/
-else ifdef CONFIG_MACH_MSM8974_G3_CA
-synaptics_img_directory := $(srctree)/firmware/synaptics/g3_ca/
-else ifdef CONFIG_MACH_MSM8974_G3_TMO_US
-synaptics_img_directory := $(srctree)/firmware/synaptics/g3_tmo_us/
-else ifdef CONFIG_MACH_MSM8974_G3_ATT
-synaptics_img_directory := $(srctree)/firmware/synaptics/g3_att_us/
-else ifdef CONFIG_MACH_MSM8974_G3_CL_PR
-synaptics_img_directory := $(srctree)/firmware/synaptics/g3_clr_pr/
-else ifdef CONFIG_MACH_MSM8974_G3_GLOBAL_COM
-synaptics_img_directory := $(srctree)/firmware/synaptics/g3_global_com/
-else ifdef CONFIG_MACH_MSM8974_G3_KDDI_JP
-synaptics_img_directory := $(srctree)/firmware/synaptics/g3_kddi_jp/
-else ifdef CONFIG_MACH_MSM8974_G3_LRA
-synaptics_img_directory := $(srctree)/firmware/synaptics/g3_lra/
-else ifdef CONFIG_MACH_MSM8974_G3_SPR_US
-synaptics_img_directory := $(srctree)/firmware/synaptics/g3_spr_us/
-else ifdef CONFIG_MACH_MSM8974_G3_USC_US
-synaptics_img_directory := $(srctree)/firmware/synaptics/g3_usc_us/
-else ifdef CONFIG_MACH_MSM8974_G3_VZW
-synaptics_img_directory := $(srctree)/firmware/synaptics/g3_vzw/
+ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_FW_PATH
+fwpath := $(subst ",,$(CONFIG_TOUCHSCREEN_SYNAPTICS_FW_PATH))
+synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/$(fwpath)/*.img)
+synaptics_img_file += $(wildcard $(srctree)/firmware/synaptics/$(fwpath)/*.txt)
 endif
-
-ifdef synaptics_img_directory
-synaptics_img_file := $(wildcard $(synaptics_img_directory)*)
-
 synaptics_firmware := $(subst $(srctree)/firmware/,,$(synaptics_img_file))
-endif
 
 fw-shipped-$(CONFIG_3C359) += 3com/3C359.bin
 fw-shipped-$(CONFIG_ACENIC) += $(acenic-objs)
