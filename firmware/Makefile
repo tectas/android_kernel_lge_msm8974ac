@@ -29,8 +29,9 @@ endif
 
 ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_FW_PATH
 fwpath := $(subst ",,$(CONFIG_TOUCHSCREEN_SYNAPTICS_FW_PATH))
-synaptics_img_file := $(wildcard $(srctree)/firmware/synaptics/$(fwpath)/*.img)
-synaptics_img_file += $(wildcard $(srctree)/firmware/synaptics/$(fwpath)/*.txt)
+synaptics_img_directory := $(srctree)/firmware/synaptics/$(fwpath)/
+synaptics_img_file := $(wildcard $(synaptics_img_directory)*.img)
+synaptics_img_file += $(wildcard $(synaptics_img_directory)*.txt)
 endif
 synaptics_firmware := $(subst $(srctree)/firmware/,,$(synaptics_img_file))
 
@@ -150,10 +151,22 @@ fw-shipped-$(CONFIG_USB_VICAM) += vicam/firmware.fw
 fw-shipped-$(CONFIG_VIDEO_CPIA2) += cpia2/stv0672_vp4.bin
 fw-shipped-$(CONFIG_YAM) += yam/1200.bin yam/9600.bin
 
+compiled-gen-o-fw := $(wildcard $(synaptics_img_directory)*.gen.o)
+compiled-gen-s-fw := $(wildcard $(synaptics_img_directory)*.gen.S)
+
 fw-shipped-all := $(fw-shipped-y) $(fw-shipped-m) $(fw-shipped-)
 
 # Directories which we _might_ need to create, so we have a rule for them.
 firmware-dirs := $(sort $(addprefix $(objtree)/$(obj)/,$(dir $(fw-external-y) $(fw-shipped-all))))
+
+quiet_cmd_remove = REMOVE $@
+	  cmd_remove = rm -f $@
+
+$(obj)/%.gen.o: $(objtree)/$(obj)/$$(dir %.gen.o)
+	$(call cmd,remove)
+
+$(obj)/%.gen.S: $(objtree)/$(obj)/$$(dir %.gen.S)
+	$(call cmd,remove)
 
 quiet_cmd_mkdir = MKDIR   $(patsubst $(objtree)/%,%,$@)
       cmd_mkdir = mkdir -p $@
@@ -162,7 +175,7 @@ quiet_cmd_ihex  = IHEX    $@
       cmd_ihex  = $(OBJCOPY) -Iihex -Obinary $< $@
 
 quiet_cmd_copy  = COPY    $@
-      cmd_copy  = cp -u $(srctree)/$@ $@
+      cmd_copy  = cp -u $(srctree)/$@ $@ always
 
 quiet_cmd_ihex2fw  = IHEX2FW $@
       cmd_ihex2fw  = $(objtree)/$(obj)/ihex2fw $< $@
@@ -211,8 +224,8 @@ $(objtree)/$$(%) $(objtree)/$(obj)/$$(%): $(firmware-dirs)
 # For the $$(dir %) trick, where we need % to be expanded first.
 .SECONDEXPANSION:
 
-$(patsubst %,$(obj)/%, $(fw-shipped-y)): %: %.gen.S
-	$(call cmd,copy)
+#$(patsubst %,$(obj)/%, $(fw-shipped-y)): %: %.gen.S
+#	$(call cmd,copy)
 
 $(patsubst %,$(obj)/%.gen.S, $(fw-shipped-y)): %: $(wordsize_deps) \
 		| $(objtree)/$$(dir %)
@@ -261,7 +274,7 @@ obj-$(CONFIG_FIRMWARE_IN_KERNEL) += $(patsubst %,%.gen.o, $(fw-shipped-y))
 
 # Remove .S files and binaries created from ihex
 # (during 'make clean' .config isn't included so they're all in $(fw-shipped-))
-targets := $(fw-shipped-) $(patsubst $(obj)/%,%, \
+targets := $(patsubst $(obj)/%,%, \
 				$(shell find $(obj) -name \*.gen.S 2>/dev/null))
 
 # Without this, built-in.o won't be created when it's empty, and the
