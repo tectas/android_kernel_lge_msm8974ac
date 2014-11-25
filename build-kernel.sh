@@ -12,4 +12,3 @@ mkdir -p $BUILD_FOLDER
 
 cp arch/arm/boot/zImage* $BUILD_FOLDER
 cp drivers/media/radio/radio-iris-transport.ko $BUILD_FOLDER
-cp fs/exfat/exfat.ko $BUILD_FOLDER
