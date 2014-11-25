@@ -353,13 +353,13 @@ CC		= $(srctree)/scripts/gcc-wrapper.py $(REAL_CC)
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void -Wno-array-bounds -Wframe-larger-than=2048 $(CF)
 
-CFLAGS_KERNEL	= -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -mcpu=cortex-a15 -mtune=cortex-a15 -marm -mfpu=neon -ftree-vectorize -mvectorize-with-neon-quad -funroll-loops -fgraphite -ftree-loop-linear -floop-interchange -floop-strip-mine -floop-block
+CFLAGS_KERNEL	= -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -mtune=cortex-a15 -marm -mfpu=neon -ftree-vectorize -mvectorize-with-neon-quad -funroll-loops -fgraphite -ftree-loop-linear -floop-interchange -floop-strip-mine -floop-block
 
 AFLAGS_KERNEL	= $(CFLAGS_KERNEL)
 
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 
-CFLAGS_MODULE   = -DMODULE $(CFLAGS_KERNEL)
+CFLAGS_MODULE   = 
 AFLAGS_MODULE   = $(CFLAGS_MODULE)
 LDFLAGS_MODULE  = $(CFLAGS_MODULE)
 
