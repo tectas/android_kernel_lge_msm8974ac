@@ -4,7 +4,9 @@ TOOLCHAIN_PATH=toolchains/sabermod-4.9-arm-eabi
 
 BUILD_FOLDER=out
 
-make ARCH=arm CROSS_COMPILE=$TOOLCHAIN_PATH/bin/arm-eabi- zImage-dtb -j4; make ARCH=arm CROSS_COMPILE=$TOOLCHAIN_PATH/bin/arm-eabi- modules_prepare -j4; make ARCH=arm CROSS_COMPILE=$TOOLCHAIN_PATH/bin/arm-eabi- M=drivers/media/radio -j4; make ARCH=arm CROSS_COMPILE=$TOOLCHAIN_PATH/bin/arm-eabi- M=fs/exfat -j4;
+THREAD_AMOUNT=10
+
+make ARCH=arm CROSS_COMPILE=$TOOLCHAIN_PATH/bin/arm-eabi- zImage-dtb -j$THREAD_AMOUNT; make ARCH=arm CROSS_COMPILE=$TOOLCHAIN_PATH/bin/arm-eabi- modules_prepare -j$THREAD_AMOUNT; make ARCH=arm CROSS_COMPILE=$TOOLCHAIN_PATH/bin/arm-eabi- M=drivers/media/radio -j$THREAD_AMOUNT;
 
 mkdir -p $BUILD_FOLDER
 
