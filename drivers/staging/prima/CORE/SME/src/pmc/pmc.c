@@ -1,25 +1,5 @@
 /*
- * Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
- *
- * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
- *
- *
- * Permission to use, copy, modify, and/or distribute this software for
- * any purpose with or without fee is hereby granted, provided that the
- * above copyright notice and this permission notice appear in all
- * copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
- * WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
- * AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
- * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
- * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- */
-/*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2014 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -39,6 +19,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/*
+ * This file was originally distributed by Qualcomm Atheros, Inc.
+ * under proprietary terms before Copyright ownership was assigned
+ * to the Linux Foundation.
+ */
 
 /******************************************************************************
 *
@@ -47,8 +32,6 @@
 * Description:
       Power Management Control (PMC) processing routines.
 *
-* Copyright 2008 (c) Qualcomm Technologies, Inc. All Rights Reserved.
-*     Qualcomm Technologies Confidential and Proprietary.
 *
 *
 ******************************************************************************/
@@ -281,7 +264,9 @@ eHalStatus pmcEnterRequestFullPowerState (tHalHandle hHal, tRequestFullPowerReas
     case REQUEST_ENTER_WOWL:
     case REQUEST_EXIT_WOWL:
         pmcLog(pMac, LOGW, FL("Request for full power is being buffered. "
-            "Current state is %d"), pMac->pmc.pmcState);
+                              "Current state is %s (%d)"),
+                              sme_PmcStatetoString(pMac->pmc.pmcState),
+                                                   pMac->pmc.pmcState);
         //Ignore the new reason if request for full power is already pending
         if( !pMac->pmc.requestFullPowerPending )
         {
@@ -380,7 +365,9 @@ eHalStatus pmcEnterRequestFullPowerState (tHalHandle hHal, tRequestFullPowerReas
     /* Cannot go directly to Request Full Power State from these states. */
     default:
         pmcLog(pMac, LOGE,
-               FL("Trying to enter Request Full Power State from state %d"), pMac->pmc.pmcState);
+               FL("Trying to enter Request Full Power State from state %s (%d)"),
+               sme_PmcStatetoString(pMac->pmc.pmcState),
+                                    pMac->pmc.pmcState);
         PMC_ABORT;
         return eHAL_STATUS_FAILURE;
     }
@@ -411,7 +398,8 @@ eHalStatus pmcEnterRequestImpsState (tHalHandle hHal)
     /* Can enter Request IMPS State only from Full Power State. */
     if (pMac->pmc.pmcState != FULL_POWER)
     {
-        pmcLog(pMac, LOGE, FL("Trying to enter Request IMPS State from state %d"), pMac->pmc.pmcState);
+        pmcLog(pMac, LOGE, FL("Trying to enter Request IMPS State from state %s (%d)"),
+               sme_PmcStatetoString(pMac->pmc.pmcState), pMac->pmc.pmcState);
         return eHAL_STATUS_FAILURE;
     }
 
@@ -459,7 +447,8 @@ eHalStatus pmcEnterImpsState (tHalHandle hHal)
     /* Can enter IMPS State only from Request IMPS State. */
     if (pMac->pmc.pmcState != REQUEST_IMPS)
     {
-        pmcLog(pMac, LOGE, FL("Trying to enter IMPS State from state %d"), pMac->pmc.pmcState);
+        pmcLog(pMac, LOGE, FL("Trying to enter IMPS State from state %s (%d)"),
+               sme_PmcStatetoString(pMac->pmc.pmcState), pMac->pmc.pmcState);
         return eHAL_STATUS_FAILURE;
     }
 
@@ -534,11 +523,18 @@ eHalStatus pmcEnterRequestBmpsState (tHalHandle hHal)
 
     pmcLog(pMac, LOG2, FL("Entering pmcEnterRequestBmpsState"));
 
+    if (pMac->isCoexScoIndSet)
+    {
+        pmcLog(pMac, LOGE, FL("block entering into BMPS mode in SCO case %d\n"),
+                               pMac->isCoexScoIndSet);
+        return eHAL_STATUS_FAILURE;
+    }
     /* Can enter Request BMPS State only from Full Power State. */
     if (pMac->pmc.pmcState != FULL_POWER)
     {
         pmcLog(pMac, LOGE,
-               FL("Trying to enter Request BMPS State from state %d"), pMac->pmc.pmcState);
+               FL("Trying to enter Request BMPS State from state %s (%d)"),
+               sme_PmcStatetoString(pMac->pmc.pmcState), pMac->pmc.pmcState);
         return eHAL_STATUS_FAILURE;
     }
 
@@ -736,7 +732,7 @@ eHalStatus pmcSendPowerSaveConfigMessage (tHalHandle hHal)
 
     pmcLog(pMac, LOG2, FL("Entering pmcSendPowerSaveConfigMessage"));
 
-    palZeroMemory(pMac->hHdd, &(powerSaveConfig), sizeof(tSirPowerSaveCfg));
+    vos_mem_set(&(powerSaveConfig), sizeof(tSirPowerSaveCfg), 0);
 
     switch (pMac->pmc.bmpsConfig.forwardBeacons)
     {
@@ -828,7 +824,8 @@ eHalStatus pmcSendMessage (tpAniSirGlobal pMac, tANI_U16 messageType, void *pMes
     pmcLog(pMac, LOG2, FL("Entering pmcSendMessage, message type %d"), messageType);
 
     /* Allocate and fill in message. */
-    if (palAllocateMemory(pMac->hHdd, (void **)&pMsg, WNI_CFG_MB_HDR_LEN + messageSize) != eHAL_STATUS_SUCCESS)
+    pMsg = vos_mem_malloc(WNI_CFG_MB_HDR_LEN + messageSize);
+    if ( NULL == pMsg )
     {
         pmcLog(pMac, LOGE, FL("Cannot allocate memory for message"));
         PMC_ABORT;
@@ -838,12 +835,7 @@ eHalStatus pmcSendMessage (tpAniSirGlobal pMac, tANI_U16 messageType, void *pMes
     pMsg->msgLen = (tANI_U16) (WNI_CFG_MB_HDR_LEN + messageSize);
     if (messageSize > 0)
     {
-        if (palCopyMemory(pMac->hHdd, pMsg->data, pMessageData, messageSize) != eHAL_STATUS_SUCCESS)
-        {
-            pmcLog(pMac, LOGE, FL("Cannot copy message data"));
-            PMC_ABORT;
-            return eHAL_STATUS_FAILURE;
-        }
+        vos_mem_copy(pMsg->data, pMessageData, messageSize);
     }
 
     /* Send message. */
@@ -895,11 +887,7 @@ void pmcDoCallbacks (tHalHandle hHal, eHalStatus callbackStatus)
         pRequestFullPowerEntry = GET_BASE_ADDR(pEntry, tRequestFullPowerEntry, link);
         if (pRequestFullPowerEntry->callbackRoutine)
            pRequestFullPowerEntry->callbackRoutine(pRequestFullPowerEntry->callbackContext, callbackStatus);
-        if (palFreeMemory(pMac->hHdd, pRequestFullPowerEntry) != eHAL_STATUS_SUCCESS)
-        {
-            pmcLog(pMac, LOGE, FL("Cannot free request full power routine list entry"));
-            PMC_ABORT;
-        }
+        vos_mem_free(pRequestFullPowerEntry);
     }
 
 }
@@ -991,7 +979,8 @@ void pmcImpsTimerExpired (tHalHandle hHal)
     /* If timer expires and we are in a state other than IMPS State then something is wrong. */
     if (pMac->pmc.pmcState != IMPS)
     {
-        pmcLog(pMac, LOGE, FL("Got IMPS timer expiration in state %d"), pMac->pmc.pmcState);
+        pmcLog(pMac, LOGE, FL("Got IMPS timer expiration in state %s (%d)"),
+               sme_PmcStatetoString(pMac->pmc.pmcState), pMac->pmc.pmcState);
         PMC_ABORT;
         return;
     }
@@ -1026,7 +1015,8 @@ void pmcTrafficTimerExpired (tHalHandle hHal)
     /* If timer expires and we are in a state other than Full Power State then something is wrong. */
     if (pMac->pmc.pmcState != FULL_POWER)
     {
-        pmcLog(pMac, LOGE, FL("Got traffic timer expiration in state %d"), pMac->pmc.pmcState);
+        pmcLog(pMac, LOGE, FL("Got traffic timer expiration in state %s (%d)"),
+               sme_PmcStatetoString(pMac->pmc.pmcState), pMac->pmc.pmcState);
         return;
     }
 
@@ -1150,7 +1140,7 @@ void pmcDoBmpsCallbacks (tHalHandle hHal, eHalStatus callbackStatus)
       if (pRequestBmpsEntry->callbackRoutine)
          pRequestBmpsEntry->callbackRoutine(pRequestBmpsEntry->callbackContext,
          callbackStatus);
-      palFreeMemory(pMac->hHdd, pRequestBmpsEntry);
+      vos_mem_free(pRequestBmpsEntry);
       pEntry = csrLLRemoveHead(&pMac->pmc.requestBmpsList, FALSE);
    }
    csrLLUnlock(&pMac->pmc.requestBmpsList);
@@ -1190,7 +1180,7 @@ void pmcDoStartUapsdCallbacks (tHalHandle hHal, eHalStatus callbackStatus)
       pStartUapsdEntry = GET_BASE_ADDR(pEntry, tStartUapsdEntry, link);
       pStartUapsdEntry->callbackRoutine(pStartUapsdEntry->callbackContext,
          callbackStatus);
-      palFreeMemory(pMac->hHdd, pStartUapsdEntry);
+      vos_mem_free(pStartUapsdEntry);
       pEntry = csrLLRemoveHead(&pMac->pmc.requestStartUapsdList, FALSE);
    }
    csrLLUnlock(&pMac->pmc.requestStartUapsdList);
@@ -1824,9 +1814,6 @@ void pmcDoEnterWowlCallbacks (tHalHandle hHal, eHalStatus callbackStatus)
    /* Call Wowl callback routine. */
    if (pMac->pmc.enterWowlCallbackRoutine != NULL)
       pMac->pmc.enterWowlCallbackRoutine(pMac->pmc.enterWowlCallbackContext, callbackStatus);
-
-   pMac->pmc.enterWowlCallbackRoutine = NULL;
-   pMac->pmc.enterWowlCallbackContext = NULL;
 }
 
 
@@ -1875,7 +1862,7 @@ static void pmcProcessDeferredMsg( tpAniSirGlobal pMac )
             break;
         }
         //Need to free the memory here
-        palFreeMemory( pMac->hHdd, pDeferredMsg );
+        vos_mem_free(pDeferredMsg);
     } //while
 }
 
@@ -1885,23 +1872,18 @@ eHalStatus pmcDeferMsg( tpAniSirGlobal pMac, tANI_U16 messageType, void *pData, 
     tPmcDeferredMsg *pDeferredMsg;
     eHalStatus status;
 
-    if( !HAL_STATUS_SUCCESS( palAllocateMemory( pMac->hHdd, (void **)&pDeferredMsg, sizeof(tPmcDeferredMsg) ) ) )
+    pDeferredMsg = vos_mem_malloc(sizeof(tPmcDeferredMsg));
+    if ( NULL == pDeferredMsg )
     {
         pmcLog(pMac, LOGE, FL("Cannot allocate memory for callback context"));
         return eHAL_STATUS_RESOURCES;
     }
-    palZeroMemory( pMac->hHdd, pDeferredMsg, sizeof(tPmcDeferredMsg) );
+    vos_mem_set(pDeferredMsg, sizeof(tPmcDeferredMsg), 0);
     pDeferredMsg->messageType = messageType;
     pDeferredMsg->size = (tANI_U16)size;
     if( pData )
     {
-        if( !HAL_STATUS_SUCCESS( palCopyMemory( pMac->hHdd, &pDeferredMsg->u.data,
-                                    pData, size ) ) )
-        {
-            pmcLog(pMac, LOGE, FL("Cannot copy pattern for callback context"));
-            palFreeMemory( pMac->hHdd, pDeferredMsg );
-            return eHAL_STATUS_FAILURE;
-        }
+        vos_mem_copy(&pDeferredMsg->u.data, pData, size);
     }
     csrLLInsertTail( &pMac->pmc.deferredMsgList, &pDeferredMsg->link, eANI_BOOLEAN_TRUE );
     //No callback is needed. The messages are put into deferred queue and be processed first
@@ -1912,7 +1894,7 @@ eHalStatus pmcDeferMsg( tpAniSirGlobal pMac, tANI_U16 messageType, void *pData, 
         //either fail or already in full power
         if( csrLLRemoveEntry( &pMac->pmc.deferredMsgList, &pDeferredMsg->link, eANI_BOOLEAN_TRUE ) )
         {
-            palFreeMemory( pMac->hHdd, pDeferredMsg );
+            vos_mem_free(pDeferredMsg);
         }
         if( !HAL_STATUS_SUCCESS( status ) )
         {
@@ -1934,7 +1916,7 @@ void pmcReleaseCommand( tpAniSirGlobal pMac, tSmeCmd *pCommand )
     else
     {
         //this is a specially allocated comamnd due to out of command buffer. free it.
-        palFreeMemory(pMac->hHdd, pCommand);
+        vos_mem_free(pCommand);
     }
 }
 
@@ -2035,21 +2017,23 @@ eHalStatus pmcPrepareCommand( tpAniSirGlobal pMac, eSmeCommandType cmdType, void
         else
         {
             pmcLog( pMac, LOGE,
-                    FL(" fail to get command buffer for command 0x%X curState = %d"), cmdType, pMac->pmc.pmcState );
+                    FL(" fail to get command buffer for command 0x%X curState = %d"),
+                    cmdType, pMac->pmc.pmcState );
             //For certain PMC command, we cannot fail
             if( PMC_IS_COMMAND_CANNOT_FAIL(cmdType) )
             {
                 pmcLog( pMac, LOGE,
                         FL(" command 0x%X  cannot fail try allocating memory for it"), cmdType );
-                status = palAllocateMemory(pMac->hHdd, (void **)&pCommand, sizeof(tSmeCmd));
-                if(!HAL_STATUS_SUCCESS(status))
+                pCommand = vos_mem_malloc(sizeof(tSmeCmd));
+                if ( NULL == pCommand )
                 {
-                    VOS_TRACE(VOS_MODULE_ID_SME, VOS_TRACE_LEVEL_FATAL, "%s fail to allocate memory for command (0x%X)",
-                        __func__, cmdType);
+                    VOS_TRACE(VOS_MODULE_ID_SME, VOS_TRACE_LEVEL_FATAL,
+                                "%s fail to allocate memory for command (0x%X)",
+                                __func__, cmdType);
                     pCommand = NULL;
-                    break;
+                    return eHAL_STATUS_FAILURE;
                 }
-                palZeroMemory(pMac->hHdd, pCommand, sizeof(tSmeCmd));
+                vos_mem_set(pCommand, sizeof(tSmeCmd), 0);
                 //Make sure it will be free when it is done
                 pCommand->u.pmcCmd.fReleaseWhenDone = TRUE;
             }
@@ -2583,7 +2567,7 @@ tANI_BOOLEAN pmcShouldBmpsTimerRun( tpAniSirGlobal pMac )
         return eANI_BOOLEAN_FALSE;
     }
 
-    if ((vos_concurrent_sessions_running()) &&
+    if ((vos_concurrent_open_sessions_running()) &&
         ((csrIsConcurrentInfraConnected( pMac ) ||
         (vos_get_concurrency_mode()& VOS_SAP) ||
         (vos_get_concurrency_mode()& VOS_P2P_GO))))
@@ -2649,3 +2633,26 @@ void pmcStopDiagEvtTimer (tHalHandle hHal)
     (void)vos_timer_stop(&pMac->pmc.hDiagEvtTimer);
 }
 #endif
+const char * sme_PmcStatetoString(const v_U8_t pmcState)
+{   switch (pmcState)
+    {
+        CASE_RETURN_STRING( STOPPED );
+        CASE_RETURN_STRING( FULL_POWER );
+        CASE_RETURN_STRING( LOW_POWER);
+        CASE_RETURN_STRING( REQUEST_IMPS );
+        CASE_RETURN_STRING( IMPS );
+        CASE_RETURN_STRING( REQUEST_BMPS );
+        CASE_RETURN_STRING( BMPS );
+        CASE_RETURN_STRING( REQUEST_FULL_POWER );
+        CASE_RETURN_STRING( REQUEST_START_UAPSD );
+        CASE_RETURN_STRING( REQUEST_STOP_UAPSD );
+        CASE_RETURN_STRING( UAPSD );
+        CASE_RETURN_STRING( REQUEST_STANDBY );
+        CASE_RETURN_STRING( STANDBY );
+        CASE_RETURN_STRING( REQUEST_ENTER_WOWL );
+        CASE_RETURN_STRING( REQUEST_EXIT_WOWL );
+        CASE_RETURN_STRING( WOWL );
+        default:
+            return "Invalid pmcState";
+    }
+}
