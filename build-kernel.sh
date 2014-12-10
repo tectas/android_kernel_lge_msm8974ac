@@ -6,7 +6,7 @@ BUILD_FOLDER=out
 
 THREAD_AMOUNT=10
 
-make ARCH=arm CROSS_COMPILE=$TOOLCHAIN_PATH/bin/arm-eabi- zImage-dtb -j$THREAD_AMOUNT; make ARCH=arm CROSS_COMPILE=$TOOLCHAIN_PATH/bin/arm-eabi- modules_prepare -j$THREAD_AMOUNT; make ARCH=arm CROSS_COMPILE=$TOOLCHAIN_PATH/bin/arm-eabi- M=drivers/media/radio -j$THREAD_AMOUNT;
+make ARCH=arm CROSS_COMPILE=$TOOLCHAIN_PATH/bin/arm-eabi- zImage-dtb -j$THREAD_AMOUNT; make ARCH=arm CROSS_COMPILE=$TOOLCHAIN_PATH/bin/arm-eabi- modules_prepare -j$THREAD_AMOUNT; make ARCH=arm CROSS_COMPILE=$TOOLCHAIN_PATH/bin/arm-eabi- modules -j$THREAD_AMOUNT;
 
 mkdir -p $BUILD_FOLDER
 
