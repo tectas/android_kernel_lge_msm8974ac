@@ -99,3 +99,11 @@ config LGE_MMC_SEND_HPI_SANITIZE_TIMEOUT
 	help
 		Send HPI if Sanitize does not finished within MMC_SANITIZE_REQ_TIMEOUT (240000msec)
 # LGE_CHANGE_E : bohyun.jung@lge.com
+
+config MMC_FFU
+    bool "FFU SUPPORT"
+    default n
+    help
+      This is an option to run firmware update on eMMC 5.0.
+      Field firmware updates (FFU) enables features enhancement
+      in the field.

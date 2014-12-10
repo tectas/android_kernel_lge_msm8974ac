@@ -253,6 +253,8 @@ int mix_brightness_tunning = 1;
 #define WINDOW_COLOR_BRIGHTNESS_TUNNING_WH	40 / 255
 #endif
 
+#define CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
+
 /**
  * enum qpnp_leds - QPNP supported led ids
  * @QPNP_ID_WLED - White led backlight
@@ -1137,6 +1139,21 @@ static int qpnp_flash_set(struct qpnp_led_data *led)
 	int rc, error;
 	int val = led->cdev.brightness;
 
+#ifdef CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
+	/* ADDED CODE, BEGIN */
+	u8 charger_temp_config, uCTempThrSet;
+	uCTempThrSet = 0xFD;
+	rc = spmi_ext_register_readl(led->spmi_dev->ctrl, 0,
+	0x1066,
+	&charger_temp_config, 1);
+
+	if (rc) {
+		dev_err(&led->spmi_dev->dev,
+		"Unable to read from addr=0x1066, rc(%d)\n", rc);
+	}
+	/* ADDED CODE, END */
+#endif //CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
+
 #if defined(CONFIG_MACH_LGE)
 /*           
                  
@@ -1228,6 +1245,18 @@ static int qpnp_flash_set(struct qpnp_led_data *led)
 				goto error_reg_write;
 			}
 
+#ifdef CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
+			/* ADDED CODE, BEGIN */
+			/* Increase charger temp threshold for flash */
+			rc = spmi_ext_register_writel(led->spmi_dev->ctrl,
+					0, 0x1066, &uCTempThrSet, 1);
+			if (rc) {
+				dev_err(&led->spmi_dev->dev,
+						"Write increased temp config failure (%d)\n", rc);
+				return rc;
+			}
+			/* ADDED CODE, END */
+#endif
 			rc = qpnp_led_masked_write(led,
 				FLASH_ENABLE_CONTROL(led->base),
 				FLASH_ENABLE_MASK,
@@ -1309,6 +1338,19 @@ static int qpnp_flash_set(struct qpnp_led_data *led)
 					"Current reg write failed(%d)\n", rc);
 				goto error_flash_set;
 			}
+
+#ifdef CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
+			/* ADDED CODE, BEGIN */
+			/* Increase charger temp threshold for flash */
+			rc = spmi_ext_register_writel(led->spmi_dev->ctrl,
+					0, 0x1066, &uCTempThrSet, 1);
+			if (rc) {
+				dev_err(&led->spmi_dev->dev,
+						"Write increased temp config failure (%d)\n", rc);
+				return rc;
+			}
+			/* ADDED CODE, END */
+#endif //CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
 
 			rc = qpnp_led_masked_write(led,
 				FLASH_ENABLE_CONTROL(led->base),
@@ -1433,6 +1475,19 @@ static int qpnp_flash_set(struct qpnp_led_data *led)
 				return rc;
 			}
 		}
+#ifdef CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
+		/* ADDED CODE, BEGIN */
+		/* Set charger temp config back to original settings */
+		rc = spmi_ext_register_writel(led->spmi_dev->ctrl,
+				0, 0x1066, &charger_temp_config, 1);
+
+		if (rc) {
+			dev_err(&led->spmi_dev->dev,
+					"Write original charger temp config failure (%d)\n", rc);
+			return rc;
+		}
+		/* ADDED CODE, END */
+#endif //CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
 	}
 
 	qpnp_dump_regs(led, flash_debug_regs, ARRAY_SIZE(flash_debug_regs));
@@ -1472,6 +1527,20 @@ static int qpnp_flash_set2(struct qpnp_led_data *led)
 	int rc, error;
 	int val = led->cdev.brightness;
 	int val2 = led->cdev.brightness2;
+#ifdef CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
+	/* ADDED CODE, BEGIN */
+	u8 charger_temp_config, uCTempThrSet;
+	uCTempThrSet = 0xFD;
+	rc = spmi_ext_register_readl(led->spmi_dev->ctrl, 0,
+	0x1066,
+	&charger_temp_config, 1);
+
+	if (rc) {
+		dev_err(&led->spmi_dev->dev,
+		"Unable to read from addr=0x1066, rc(%d)\n", rc);
+	}
+	/* ADDED CODE, END */
+#endif //CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
 
 	pr_info("%s: %d: name = %s, val = %d, %d\n",
 		__func__, __LINE__, led->cdev.name, val, val2);
@@ -1559,6 +1628,19 @@ static int qpnp_flash_set2(struct qpnp_led_data *led)
 				goto error_reg_write;
 			}
 
+#ifdef CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
+			/* ADDED CODE, BEGIN */
+			/* Increase charger temp threshold for flash */
+			rc = spmi_ext_register_writel(led->spmi_dev->ctrl,
+					0, 0x1066, &uCTempThrSet, 1);
+			if (rc) {
+				dev_err(&led->spmi_dev->dev,
+						"Write increased temp config failure (%d)\n", rc);
+				return rc;
+			}
+			/* ADDED CODE, END */
+#endif //CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
+
 			rc = qpnp_led_masked_write(led,
 				FLASH_ENABLE_CONTROL(led->base),
 				FLASH_ENABLE_MASK,
@@ -1640,6 +1722,19 @@ static int qpnp_flash_set2(struct qpnp_led_data *led)
 					"Current reg write failed(%d)\n", rc);
 				goto error_flash_set;
 			}
+
+#ifdef CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
+			/* ADDED CODE, BEGIN */
+			/* Increase charger temp threshold for flash */
+			rc = spmi_ext_register_writel(led->spmi_dev->ctrl,
+					0, 0x1066, &uCTempThrSet, 1);
+			if (rc) {
+				dev_err(&led->spmi_dev->dev,
+						"Write increased temp config failure (%d)\n", rc);
+				return rc;
+			}
+			/* ADDED CODE, END */
+#endif //CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
 
 			rc = qpnp_led_masked_write(led,
 				FLASH_ENABLE_CONTROL(led->base),
@@ -1756,6 +1851,19 @@ static int qpnp_flash_set2(struct qpnp_led_data *led)
 				return rc;
 			}
 		}
+#ifdef CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
+		/* ADDED CODE, BEGIN */
+		/* Set charger temp config back to original settings */
+		rc = spmi_ext_register_writel(led->spmi_dev->ctrl,
+				0, 0x1066, &charger_temp_config, 1);
+
+		if (rc) {
+			dev_err(&led->spmi_dev->dev,
+					"Write original charger temp config failure (%d)\n", rc);
+			return rc;
+		}
+		/* ADDED CODE, END */
+#endif //CONFIG_LGE_PM_CHARGING_CHARGER_TEMP
 	}
 
 	qpnp_dump_regs(led, flash_debug_regs, ARRAY_SIZE(flash_debug_regs));
@@ -4699,6 +4807,7 @@ void make_onoff_led_pattern(int rgb)
 
 }
 
+#if defined(CONFIG_MACH_MSM8974_G3_LGU) || defined(CONFIG_MACH_MSM8974_G3_SKT) || defined(CONFIG_MACH_MSM8974_G3_KT) || defined(CONFIG_MACH_MSM8974_G3_ATT) || defined(CONFIG_MACH_MSM8974_G3_VZW) || defined(CONFIG_MACH_MSM8974_G3_SPR_US) || defined(CONFIG_MACH_MSM8974_G3_USC_US) || defined(CONFIG_MACH_MSM8974_G3_ACG_US) || defined(CONFIG_MACH_MSM8974_G3_TMO_US) || defined(CONFIG_MACH_MSM8974_G3_GLOBAL_COM) || defined(CONFIG_MACH_MSM8974_G3_CN) || defined(CONFIG_MACH_MSM8974_G3_CA) || defined(CONFIG_MACH_MSM8974_G3_KDDI) || defined(CONFIG_MACH_MSM8974_G3_LRA) || defined(CONFIG_MACH_MSM8974_DZNY_DCM)
 static bool check_bootmode(void)
 {
 	enum lge_boot_mode_type bootmode = LGE_BOOT_MODE_NORMAL;
@@ -4713,11 +4822,12 @@ static bool check_bootmode(void)
 		return false;
 	}
 }
+#endif
 
 /* below function is for aat... */
 void rgb_luts_set(struct qpnp_led_data *led)
 {
-#if defined(CONFIG_MACH_MSM8974_G3_LGU) || defined(CONFIG_MACH_MSM8974_G3_SKT) || defined(CONFIG_MACH_MSM8974_G3_KT) || defined(CONFIG_MACH_MSM8974_G3_ATT) || defined(CONFIG_MACH_MSM8974_G3_VZW) || defined(CONFIG_MACH_MSM8974_G3_SPR_US) || defined(CONFIG_MACH_MSM8974_G3_USC_US) || defined(CONFIG_MACH_MSM8974_G3_ACG_US) || defined(CONFIG_MACH_MSM8974_G3_TMO_US) || defined(CONFIG_MACH_MSM8974_G3_GLOBAL_COM) || defined(CONFIG_MACH_MSM8974_G3_CN) || defined(CONFIG_MACH_MSM8974_G3_CA) || defined(CONFIG_MACH_MSM8974_G3_KDDI) || defined(CONFIG_MACH_MSM8974_G3_LRA)
+#if defined(CONFIG_MACH_MSM8974_G3_LGU) || defined(CONFIG_MACH_MSM8974_G3_SKT) || defined(CONFIG_MACH_MSM8974_G3_KT) || defined(CONFIG_MACH_MSM8974_G3_ATT) || defined(CONFIG_MACH_MSM8974_G3_VZW) || defined(CONFIG_MACH_MSM8974_G3_SPR_US) || defined(CONFIG_MACH_MSM8974_G3_USC_US) || defined(CONFIG_MACH_MSM8974_G3_ACG_US) || defined(CONFIG_MACH_MSM8974_G3_TMO_US) || defined(CONFIG_MACH_MSM8974_G3_GLOBAL_COM) || defined(CONFIG_MACH_MSM8974_G3_CN) || defined(CONFIG_MACH_MSM8974_G3_CA) || defined(CONFIG_MACH_MSM8974_G3_KDDI) || defined(CONFIG_MACH_MSM8974_G3_LRA) || defined(CONFIG_MACH_MSM8974_DZNY_DCM)
 	int rgb_brightness = 0;
 
 	if(check_bootmode()) {

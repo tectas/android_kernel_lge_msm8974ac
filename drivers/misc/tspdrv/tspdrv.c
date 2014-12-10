@@ -51,7 +51,7 @@ static atomic_t g_bRuntimeRecord;
 static char IMMR_DEB = false;
 #include "ImmVibeSPI.c"
 #if (defined(VIBE_DEBUG) && defined(VIBE_RECORD)) || defined(VIBE_RUNTIME_RECORD)
-#include "tspdrvRecorder.c"
+#include <tspdrvRecorder.c>
 #endif
 
 #include "touch_fops.c"

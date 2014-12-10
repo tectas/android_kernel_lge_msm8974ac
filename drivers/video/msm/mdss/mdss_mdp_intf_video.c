@@ -92,9 +92,13 @@ static inline u32 mdss_mdp_video_line_count(struct mdss_mdp_ctl *ctl)
 	if (!ctl || !ctl->priv_data)
 		goto line_count_exit;
 	ctx = ctl->priv_data;
+#ifndef CONFIG_LGE_DEVFREQ_DFPS
 	mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_ON, false);
+#endif
 	line_cnt = mdp_video_read(ctx, MDSS_MDP_REG_INTF_LINE_COUNT);
+#ifndef CONFIG_LGE_DEVFREQ_DFPS
 	mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_OFF, false);
+#endif
 line_count_exit:
 	return line_cnt;
 }
@@ -583,9 +587,6 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 	struct mdss_panel_data *pdata;
 	int rc = 0;
 	u32 hsync_period, vsync_period;
-#ifdef CONFIG_LGE_DEVFREQ_DFPS
-	u32 line_count;
-#endif
 
 	pr_debug("Updating fps for ctl=%d\n", ctl->num);
 
@@ -647,6 +648,7 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 				== DFPS_IMMEDIATE_PORCH_UPDATE_MODE){
 
 #ifdef CONFIG_LGE_DEVFREQ_DFPS
+			u32 line_cnt;
 			unsigned long flags;
 #endif
 
@@ -668,23 +670,33 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 				return rc;
 
 #ifdef CONFIG_LGE_DEVFREQ_DFPS
+			mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_ON, false);
 			spin_lock_irqsave(&ctx->dfps_lock, flags);
-#endif
+
+			line_cnt = mdss_mdp_video_line_count(ctl);
+			if (line_cnt >= pdata->panel_info.yres/2) {
+				pr_err("Too few lines left line_cnt=%d yres/2=%d",
+						line_cnt,
+						pdata->panel_info.yres/2);
+				spin_unlock_irqrestore(&ctx->dfps_lock, flags);
+				mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_OFF, false);
+				return -EPERM;
+			}
+#else
 			if (mdss_mdp_video_line_count(ctl) >=
 					pdata->panel_info.yres/2) {
 				pr_err("Too few lines left line_cnt = %d y_res/2 = %d\n",
 					mdss_mdp_video_line_count(ctl),
 					pdata->panel_info.yres/2);
-#ifdef CONFIG_LGE_DEVFREQ_DFPS
-				spin_unlock_irqrestore(&ctx->dfps_lock, flags);
-#endif
 				return -EPERM;
 			}
+#endif
 			rc = mdss_mdp_video_vfp_fps_update(ctl, new_fps);
 			if (rc < 0) {
 				pr_err("%s: Error during DFPS\n", __func__);
 #ifdef CONFIG_LGE_DEVFREQ_DFPS
 				spin_unlock_irqrestore(&ctx->dfps_lock, flags);
+				mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_OFF, false);
 #endif
 				return rc;
 			}
@@ -695,6 +707,7 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 					pr_err("%s: DFPS error\n", __func__);
 #ifdef CONFIG_LGE_DEVFREQ_DFPS
 					spin_unlock_irqrestore(&ctx->dfps_lock, flags);
+					mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_OFF, false);
 #endif
 					return rc;
 				}
@@ -702,11 +715,12 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 			rc = mdss_mdp_ctl_intf_event(ctl,
 						MDSS_EVENT_PANEL_UPDATE_FPS,
 						(void *)new_fps);
-#ifdef CONFIG_LGE_DEVFREQ_DFPS
-			spin_unlock_irqrestore(&ctx->dfps_lock, flags);
-#endif
 			WARN(rc, "intf %d panel fps update error (%d)\n",
 							ctl->intf_num, rc);
+#ifdef CONFIG_LGE_DEVFREQ_DFPS
+			spin_unlock_irqrestore(&ctx->dfps_lock, flags);
+			mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_OFF, false);
+#endif
 		} else {
 			pr_err("intf %d panel, unknown FPS mode\n",
 							ctl->intf_num);
@@ -719,9 +733,7 @@ static int mdss_mdp_video_config_fps(struct mdss_mdp_ctl *ctl,
 		WARN(rc, "intf %d panel fps update error (%d)\n",
 						ctl->intf_num, rc);
 	}
-#ifdef CONFIG_LGE_DEVFREQ_DFPS
-	pr_debug("%s entering line_cnt : %d, exiting line_cnt = %d \n", __func__, line_count, mdss_mdp_video_line_count(ctl));
-#endif
+
 	return rc;
 }
 

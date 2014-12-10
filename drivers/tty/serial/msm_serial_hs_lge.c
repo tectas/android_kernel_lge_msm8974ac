@@ -2833,10 +2833,7 @@ struct uart_port* msm_hs_get_bt_uport(unsigned int line)
 	 * Thus the corresponding offset from the drv->state returns
 	 * the state for the uart_port that is requested
 	 */
-	if (line == state->uart_port->line)
-		return state->uart_port;
-
-	return NULL;
+	return state->uart_port;
 
 	/* TODO : Need to check */
 	/* return &q_uart_port[line].uport; */

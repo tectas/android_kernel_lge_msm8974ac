@@ -2097,6 +2097,12 @@ static int dwc3_cleanup_done_reqs(struct dwc3 *dwc, struct dwc3_ep *dep,
 			return 1;
 		}
 
+#ifdef CONFIG_USB_G_LGE_ANDROID
+		if (!(dep->flags & DWC3_EP_ENABLED)) {
+			dev_err(dwc->dev, "%s disabled while endpoint transfer.\n", dep->name);
+			return 1;
+		}
+#endif
 		trb = req->trb;
 
 		if ((trb->ctrl & DWC3_TRB_CTRL_HWO) && status != -ESHUTDOWN)

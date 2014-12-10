@@ -151,7 +151,7 @@
 		qcom,power-on@800 {
 			qcom,s3-debounce = <64>;
 			qcom,pon_2 {
-				qcom,disable = <1>;
+				status = "disable";
 			};
 			qcom,pon_3 {
 				qcom,disable = <1>;

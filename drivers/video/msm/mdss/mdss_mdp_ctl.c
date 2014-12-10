@@ -757,6 +757,12 @@ static void mdss_mdp_perf_calc_ctl(struct mdss_mdp_ctl *ctl,
 		else
 			perf->bw_ctl = apply_fudge_factor(perf->bw_ctl,
 				&mdss_res->ib_factor);
+#ifdef BW_CHECK_AGAIN_FOR_UNDERRUN
+		if (DIV_ROUND_UP_ULL(perf->bw_ctl, 1000) > 3200000) {
+			perf->bw_ctl = max(apply_fudge_factor(perf->bw_overlap,	&mdss_res->ib_factor_overlap),
+					apply_fudge_factor(perf->bw_prefill, &mdss_res->ib_factor));
+		}
+#endif
 	}
 	pr_debug("ctl=%d clk_rate=%u\n", ctl->num, perf->mdp_clk_rate);
 	pr_debug("bw_overlap=%llu bw_prefill=%llu prefill_bytes=%d\n",

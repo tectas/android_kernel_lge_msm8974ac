@@ -229,7 +229,7 @@ struct smb349_struct {
 	int		en_n_gpio;
 	int		chg_susp_gpio;
 	int		stat_gpio;
-#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB)
+#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB) || defined(CONFIG_MACH_MSM8974_G2_KR)
 	int		otg_en_gpio;
 	//struct wake_lock	battgone_wake_lock;
 #endif
@@ -268,7 +268,9 @@ struct smb349_struct {
 	struct power_supply		*bms_psy;
 #endif
 	struct wake_lock	chg_timeout_lock;
+#ifndef CONFIG_ADC_READY_CHECK_JB
 	struct qpnp_vadc_chip		*vadc_dev;
+#endif
 #if defined(CONFIG_LGE_PM_BATTERY_ID_CHECKER)
 	int batt_id_smem;
 #endif
@@ -539,6 +541,26 @@ static bool smb349_is_dc_online(struct i2c_client *client)
 static int smb349_get_usbin_adc(void)
 {
 #ifdef CONFIG_SENSORS_QPNP_ADC_VOLTAGE
+/* LIMIT: Include ONLY A1, B1, Vu3, Z models used MSM8974 AA/AB */
+#ifdef CONFIG_ADC_READY_CHECK_JB
+	struct qpnp_vadc_result results;
+	int rc = 0;
+
+	if (qpnp_vadc_is_ready() == 0) {
+		rc = qpnp_vadc_read_lge(USBIN, &results);
+		if (rc) {
+			pr_err("Unable to read usbin adc rc=%d\n", rc);
+			return -100;
+		}
+		else {
+			pr_debug("SMB DC_IN voltage: %lld\n", results.physical);
+			return results.physical;
+		}
+	} else {
+		pr_err("vadc is not ready yet. report default usbin now\n");
+		return -200;
+	}
+#else
        struct qpnp_vadc_result results;
        int rc = 0;
 
@@ -551,6 +573,7 @@ static int smb349_get_usbin_adc(void)
 			   pr_debug("SMB DC_IN voltage: %lld\n", results.physical);
 			   return results.physical;
 	   }
+#endif
 #else
        pr_err("CONFIG_SENSORS_QPNP_ADC_VOLTAGE is not defined.\n");
        return -300;
@@ -755,6 +778,18 @@ static int smb349_get_prop_batt_present(struct smb349_struct *smb349_chg)
 static int get_prop_batt_voltage_now_bms(void)
 {
 #ifdef CONFIG_SENSORS_QPNP_ADC_VOLTAGE
+/* LIMIT: Include ONLY A1, B1, Vu3, Z models used MSM8974 AA/AB */
+#ifdef CONFIG_ADC_READY_CHECK_JB
+	int rc = 0;
+	struct qpnp_vadc_result results;
+
+	rc = qpnp_vadc_read_lge(VBAT_SNS, &results);
+	if (rc) {
+		pr_err("Unable to read vbat rc=%d\n", rc);
+		return 0;
+	}
+	return results.physical;
+#else
 	int rc = 0;
 	struct qpnp_vadc_result results;
 
@@ -767,6 +802,7 @@ static int get_prop_batt_voltage_now_bms(void)
 		return 0;
 	}
 	return results.physical;
+#endif
 #else
 	pr_err("CONFIG_SENSORS_QPNP_ADC_VOLTAGE is not defined.\n");
 	return DEFAULT_VOLTAGE;
@@ -789,6 +825,27 @@ static int get_prop_batt_voltage_now_max17048(void)
 int smb349_get_batt_temp_origin(void)
 {
 #ifdef CONFIG_SENSORS_QPNP_ADC_VOLTAGE
+/* LIMIT: Include ONLY A1, B1, Vu3, Z models used MSM8974 AA/AB */
+#ifdef CONFIG_ADC_READY_CHECK_JB
+	int rc = 0;
+	struct qpnp_vadc_result results;
+
+	if(qpnp_vadc_is_ready() == 0) {
+		rc = qpnp_vadc_read_lge(LR_MUX1_BATT_THERM, &results);
+		if (rc) {
+			pr_debug("Unable to read batt temperature rc=%d\n", rc);
+			pr_debug("Report last_bat_temp %d again\n", batt_temp_old);
+			return batt_temp_old;
+		} else {
+			pr_debug("get_bat_temp %d %lld\n", results.adc_code, results.physical);
+			batt_temp_old =(int)results.physical;
+			return (int)results.physical;
+		}
+	} else {
+		pr_err("vadc is not ready yet. report default temperature\n");
+		return DEFAULT_TEMP;
+	}
+#else
 	int rc = 0;
 	struct qpnp_vadc_result results;
 
@@ -805,6 +862,7 @@ int smb349_get_batt_temp_origin(void)
 		batt_temp_old =(int)results.physical;
 		return (int)results.physical;
 	}
+#endif
 #else
 	pr_err("CONFIG_SENSORS_QPNP_ADC_VOLTAGE is not defined.\n");
 	return DEFAULT_TEMP;
@@ -904,6 +962,42 @@ static int get_prop_batt_capacity_max17048(struct smb349_struct *smb349_chg)
 static int smb349_get_prop_batt_current_now(struct smb349_struct *smb349_chg)
 {
 #ifdef CONFIG_SENSORS_QPNP_ADC_VOLTAGE
+/* LIMIT: Include ONLY A1, B1, Vu3, Z models used MSM8974 AA/AB */
+#ifdef CONFIG_ADC_READY_CHECK_JB
+	struct qpnp_vadc_result results;
+	int rc = 0;
+	int current_ma = 0;
+
+	if (!smb349_get_prop_batt_present(smb349_chg)) {
+		pr_err("Battery is missed, report default current_now\n");
+		return DEFAULT_CURRENT;
+	}
+
+	/* SMB349 Vchg connected to PMIC AMUX1,
+	 * Indicate Charge Current,
+	 * Vchg = Ichg * 0.5ohm.
+	 * adc physical result expressed micro-.
+	 * will be report default value when vadc is not ready state.
+	 */
+	if (qpnp_vadc_is_ready() == 0) {
+		rc = qpnp_vadc_read_lge(LR_MUX4_AMUX_THM1, &results);
+		if (rc) {
+			pr_err("Unable to read amux_thm1 rc=%d\n", rc);
+			pr_err("Report last_bat_current %d again\n",batt_current_old);
+			return batt_current_old;
+		}
+		else {
+			pr_debug("get_bat_current %d %lld\n",
+				results.adc_code, results.physical * 2);
+			current_ma = (int)(results.physical * 2);
+			batt_current_old =current_ma ;
+			return current_ma;
+		}
+	} else {
+		pr_err("vadc is not ready yet. report default current_now\n");
+		return DEFAULT_CURRENT;
+	}
+#else
 	struct qpnp_vadc_result results;
 	int rc = 0;
 	int current_ma = 0;
@@ -932,6 +1026,7 @@ static int smb349_get_prop_batt_current_now(struct smb349_struct *smb349_chg)
 		batt_current_old =current_ma ;
 		return current_ma;
 	}
+#endif
 #else
 	pr_err("CONFIG_SENSORS_QPNP_ADC_VOLTAGE is not defined.\n");
 	return DEFAULT_CURRENT;
@@ -1715,6 +1810,26 @@ static void smb349_bb_worker(struct work_struct *work)
 static int smb349_get_vbat_adc(void)
 {
 #ifdef CONFIG_SENSORS_QPNP_ADC_VOLTAGE
+/* LIMIT: Include ONLY A1, B1, Vu3, Z models used MSM8974 AA/AB */
+#ifdef CONFIG_ADC_READY_CHECK_JB
+	struct qpnp_vadc_result results;
+	int rc = 0;
+
+	if (qpnp_vadc_is_ready() == 0) {
+		rc = qpnp_vadc_read_lge(VBAT_SNS, &results);
+		if (rc) {
+			pr_err("Unable to read vbat_sns adc rc=%d\n", rc);
+			return -100;
+		}
+		else {
+			pr_debug("SMB vbat_sns voltage: %lld\n", results.physical);
+			return results.physical;
+		}
+	} else {
+		pr_err("vadc is not ready yet.\n");
+		return -200;
+	}
+#else
        struct qpnp_vadc_result results;
        int rc = 0;
 
@@ -1727,6 +1842,7 @@ static int smb349_get_vbat_adc(void)
 			   pr_debug("SMB vbat_sns voltage: %lld\n", results.physical);
 			   return results.physical;
 	   }
+#endif
 #else
        pr_err("CONFIG_SENSORS_QPNP_ADC_VOLTAGE is not defined.\n");
        return -300;
@@ -2896,7 +3012,7 @@ static void smb349_batt_external_power_changed(struct power_supply *psy)
 		if ((ret.intval == POWER_SUPPLY_SCOPE_SYSTEM)
 				&& !smb349_chg_is_otg_active(smb349_chg)) {
 			smb349_switch_usb_to_host_mode(smb349_chg);
-#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB)
+#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB) || defined(CONFIG_MACH_MSM8974_G2_KR)
 			if(lge_get_board_revno() >= HW_REV_C)
 			{
 				gpio_set_value(smb349_chg->otg_en_gpio, 1);
@@ -2908,7 +3024,7 @@ static void smb349_batt_external_power_changed(struct power_supply *psy)
 		if ((ret.intval == POWER_SUPPLY_SCOPE_DEVICE)
 				&& smb349_chg_is_otg_active(smb349_chg)) {
 			smb349_switch_usb_to_charge_mode(smb349_chg);
-#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB)
+#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB) || defined(CONFIG_MACH_MSM8974_G2_KR)
 			if(lge_get_board_revno() >= HW_REV_C)
 			{
 				gpio_set_value(smb349_chg->otg_en_gpio, 0);
@@ -3069,8 +3185,10 @@ static int smb349_batt_power_get_property(struct power_supply *psy,
 		val->intval = smb349_get_prop_batt_present(smb349_chg);
 		break;
 	case POWER_SUPPLY_PROP_TECHNOLOGY:
-#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB)
+#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB) || defined(CONFIG_MACH_MSM8974_G2_KR)
 		val->intval = POWER_SUPPLY_TECHNOLOGY_LION;
+#else
+		val->intval = POWER_SUPPLY_TECHNOLOGY_LIPO;
 #endif
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN:
@@ -3309,24 +3427,6 @@ smb349_pm_power_property_is_writeable(struct power_supply *psy,
 
 	return 0;
 }
-
-int pseudo_batt_set(struct pseudo_batt_info_type *info)
-{
-	struct smb349_struct *smb349_chg = the_smb349_chg;
-	pr_err("pseudo_batt_set\n");
-	pseudo_batt_info.mode = info->mode;
-	pseudo_batt_info.id = info->id;
-	pseudo_batt_info.therm = info->therm;
-	pseudo_batt_info.temp = info->temp;
-	pseudo_batt_info.volt = info->volt;
-	pseudo_batt_info.capacity = info->capacity;
-	pseudo_batt_info.charging = info->charging;
-
-	power_supply_changed(&smb349_chg->batt_psy);
-
-	return 0;
-}
-EXPORT_SYMBOL(pseudo_batt_set);
 
 static void
 smb349_force_fast_to_pre_chg(struct smb349_struct *smb349_chg, int chg_current)
@@ -3703,7 +3803,7 @@ static int __devinit smb349_probe(struct i2c_client *client,
 			return smb349_chg->stat_gpio;
 		}
 
-#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB)
+#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB) || defined(CONFIG_MACH_MSM8974_G2_KR)
 		if(lge_get_board_revno() >= HW_REV_C)
 		{
 			smb349_chg->otg_en_gpio =
@@ -3759,6 +3859,7 @@ static int __devinit smb349_probe(struct i2c_client *client,
 			return ret;
 		}
 
+#ifndef CONFIG_ADC_READY_CHECK_JB
 		smb349_chg->vadc_dev = qpnp_get_vadc(&(client->dev), "smbchg");
 		if (IS_ERR(smb349_chg->vadc_dev)) {
 			ret = PTR_ERR(smb349_chg->vadc_dev);
@@ -3769,6 +3870,7 @@ static int __devinit smb349_probe(struct i2c_client *client,
 
 			goto stat_gpio_fail;
 		}
+#endif
 	} else {
 		pdata = client->dev.platform_data;
 
@@ -3778,7 +3880,7 @@ static int __devinit smb349_probe(struct i2c_client *client,
 		}
 
 		smb349_chg->stat_gpio = pdata->stat_gpio;
-#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB)
+#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB) || defined(CONFIG_MACH_MSM8974_G2_KR)
 		smb349_chg->otg_en_gpio = pdata->otg_en_gpio;
 #endif
 #ifndef CONFIG_LGE_PM
@@ -3798,7 +3900,7 @@ static int __devinit smb349_probe(struct i2c_client *client,
 	smb349_chg->irq = gpio_to_irq(smb349_chg->stat_gpio);
 	pr_debug("stat_gpio irq#=%d.\n", smb349_chg->irq);
 
-#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB)
+#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB) || defined(CONFIG_MACH_MSM8974_G2_KR)
 	if(lge_get_board_revno() >= HW_REV_C)
 	{
 		ret = gpio_request(smb349_chg->otg_en_gpio, "otg_en");
@@ -4064,7 +4166,7 @@ chg_susp_gpio_fail:
 #endif
 	if (smb349_chg->stat_gpio)
 		gpio_free(smb349_chg->stat_gpio);
-#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB)
+#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB) || defined(CONFIG_MACH_MSM8974_G2_KR)
 	if(lge_get_board_revno() >= HW_REV_C)
 	{
 		if (smb349_chg->otg_en_gpio)
@@ -4094,7 +4196,7 @@ static int __devexit smb349_remove(struct i2c_client *client)
 	power_supply_unregister(&smb349_chg->batt_psy);
 	if (smb349_chg->stat_gpio)
 		gpio_free(smb349_chg->stat_gpio);
-#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB)
+#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB) || defined(CONFIG_MACH_MSM8974_G2_KR)
 	if(lge_get_board_revno() >= HW_REV_C)
 	{
 		if (smb349_chg->otg_en_gpio)
@@ -4172,7 +4274,7 @@ static void smb349_shutdown(struct i2c_client *client)
 
 	if (smb349_chg_is_otg_active(smb349_chg)) {
 		smb349_switch_usb_to_charge_mode(smb349_chg);
-#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB)
+#if defined(CONFIG_MACH_MSM8974_G3_LGU_EVB) || defined(CONFIG_MACH_MSM8974_G2_KR)
 		if(lge_get_board_revno() >= HW_REV_C)
 		{
 			gpio_set_value(smb349_chg->otg_en_gpio, 0);

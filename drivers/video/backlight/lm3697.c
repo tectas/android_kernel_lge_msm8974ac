@@ -753,7 +753,7 @@ static struct lm3697_bl *lm3697_bl_register(struct lm3697_bl_chip *chip)
 		}
 
 #ifdef CONFIG_LGE_LCD_OFF_DIMMING
-		if(lge_get_bootreason() == 0x77665560) {
+		if ((lge_get_bootreason() == 0x77665560) || (lge_get_bootreason() == 0x77665561)) {
 			each->bl_dev->props.brightness = 50;
 			pr_info("%s : fota reboot - backlight set 50\n", __func__);
 		}

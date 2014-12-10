@@ -2148,17 +2148,14 @@ inline void diagfwd_bridge_fn(int type) { }
 
 #ifdef CONFIG_LGE_DIAG_USB_ACCESS_LOCK
 int user_diag_enable;
-#ifdef CONFIG_LGE_DIAG_ENABLE_SYSFS
-
-#if defined(CONFIG_LGE_DIAG_USB_ACCESS_LOCK) && defined(CONFIG_MACH_MSM8974_G3_KDDI)
 #define DIAG_ENABLE	1
 #define DIAG_DISABLE	0
-#endif /* CONFIG_MACH_MSM8974_G3_KDDI */
+
 static ssize_t read_diag_enable(struct device *dev, struct device_attribute *attr,
 				   char *buf)
 {
 	int ret;
-	
+
 	ret = sprintf(buf, "%d", user_diag_enable);
 
 	return ret;
@@ -2168,9 +2165,9 @@ static ssize_t write_diag_enable(struct device *dev,
 				    const char *buf, size_t size)
 {
     unsigned char string[2];
-  
+
     sscanf(buf, "%s", string);
-	
+
     if (!strncmp(string, "0", 1))
     {
     	user_diag_enable = 0;
@@ -2179,12 +2176,10 @@ static ssize_t write_diag_enable(struct device *dev,
 	{
 		user_diag_enable = 1;
 	}
-#if defined(CONFIG_LGE_DIAG_USB_ACCESS_LOCK) && defined(CONFIG_MACH_MSM8974_G3_KDDI)
 	if(lge_get_factory_boot()) {
 		printk("[FACTORY] force to diag enable, factory mode\n");
 		user_diag_enable = DIAG_ENABLE;
 	}
-#endif /* CONFIG_MACH_MSM8974_G3_KDDI */
 
 	printk("[%s] diag_enable: %d\n",__func__, user_diag_enable);
 
@@ -2203,13 +2198,14 @@ int lg_diag_create_file(struct platform_device *pdev)
     return ret;
 }
 
-#if defined(CONFIG_LGE_DIAG_USB_ACCESS_LOCK) && defined(CONFIG_MACH_MSM8974_G3_KDDI)
 int get_diag_enable(void)
 {
+	if (lge_get_factory_boot())
+		user_diag_enable = DIAG_ENABLE;
+
 	return user_diag_enable;
 }
 EXPORT_SYMBOL(get_diag_enable);
-#endif /* CONFIG_MACH_MSM8974_G3_KDDI */
 
 int lg_diag_remove_file(struct platform_device *pdev)
 {
@@ -2241,7 +2237,7 @@ static struct platform_driver lg_diag_cmd_driver = {
 	},
 };
 #endif
-#endif
+
 static int __init diagchar_init(void)
 {
 	dev_t dev;
@@ -2335,10 +2331,10 @@ static int __init diagchar_init(void)
 	}
 
 	pr_info("diagchar initialized now");
-	
-#ifdef CONFIG_LGE_DIAG_ENABLE_SYSFS
+
+#ifdef CONFIG_LGE_DIAG_USB_ACCESS_LOCK
 	platform_driver_register(&lg_diag_cmd_driver);
-#endif 
+#endif
 	return 0;
 
 fail:

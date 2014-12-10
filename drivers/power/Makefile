@@ -80,3 +80,4 @@ obj-$(CONFIG_CHARGER_UNIFIED_WLC_ALIGNMENT_IDT9025A) += idtp9025a_wireless_power
 obj-$(CONFIG_CHARGER_UNIFIED_WLC_BQ5102X) += bq5102x_wireless_power_receiver.o
 obj-$(CONFIG_LGE_SMART_CHARGING) += smart_charging.o
 obj-$(CONFIG_LGE_CURRENTNOW)	+= currentnow.o
+obj-$(CONFIG_BQ24192_CHARGER) += bq24192_charger.o

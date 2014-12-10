@@ -103,7 +103,7 @@ void slimport_set_hdmi_hpd(int on)
 		pr_info("%s %s: hpd on = %s\n", LOG_TAG, __func__,
 				rc ? "failed" : "passed");
 		if (rc) {
-			mdelay(2000);
+			msleep(2000);
 			rc = hdmi_slimport_ops->set_upstream_hpd(g_pdata->hdmi_pdev, 1);
 		}
 	} else if (!on && hdmi_hpd_flag != 0) {

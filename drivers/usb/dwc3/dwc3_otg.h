@@ -20,7 +20,9 @@
 #include <linux/power_supply.h>
 
 #include <linux/usb/otg.h>
-#if defined(CONFIG_LGE_PM) && defined(CONFIG_SMB349_CHARGER)
+#if defined(CONFIG_LGE_PM) && defined(CONFIG_BQ24192_CHARGER)
+#include "../../base/power/power.h"
+#elif defined(CONFIG_LGE_PM) && defined(CONFIG_SMB349_CHARGER)
 #include "../../base/power/power.h"
 #elif defined(CONFIG_LGE_PM) && defined(CONFIG_CHARGER_MAX77819)
 #include "../../base/power/power.h"

@@ -39,3 +39,10 @@ config LGE_VSYNC_SKIP
 	bool "MDSS VSYNC Skip scheme"
 	---help---
 	This feature provides VSYNC skip scheme.
+
+config LGE_SUPPORT_LCD_MAKER_ID
+	depends on MACH_LGE
+	default y
+	bool "LGE LCD MAKER ID support configuration"
+	help
+	   Say Y here to enable support for LCD MAKER ID lge feature.

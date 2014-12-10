@@ -32,6 +32,7 @@
 
 #ifdef CONFIG_MACH_MSM8974_G3
 #define MDP_BW_LIMIT_AB
+#define BW_CHECK_AGAIN_FOR_UNDERRUN
 #endif
 
 enum mdss_mdp_clk_type {

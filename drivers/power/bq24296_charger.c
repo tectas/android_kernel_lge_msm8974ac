@@ -381,6 +381,8 @@ struct bq24296_chip {
 int last_batt_temp;
 #endif
 
+int safety_timer_enabled;
+
 #if defined(CONFIG_CHARGER_UNIFIED_WLC)
 static int wireless_charging;
 #endif
@@ -952,6 +954,7 @@ static int bq24296_set_chg_timer(struct bq24296_chip *chip, bool enable)
 	NULL_CHECK(chip, -EINVAL);
 
 	pr_info("enable=%d\n", enable);
+	safety_timer_enabled = enable;
 
 	ret = bq24296_masked_write(chip->client, BQ05_CHARGE_TERM_TIMER_CONT_REG,
 						EN_CHG_TIMER_MASK, val);
@@ -2336,6 +2339,14 @@ static void bq24296_batt_external_power_changed(struct power_supply *psy)
 #if defined(CONFIG_LGE_PM_CHARGING_SUPPORT_PHIHONG)
 	complete(&chip->phihong_complete);
 	bq24296_set_phihong_current(chip, ret.intval);
+
+	/* For MST, boost current up over 900mA in spite of USB */
+	if (safety_timer_enabled == 0 && ret.intval < 900) {
+		ret.intval = 900;
+		pr_info("safety timer disabled.... input current limit = %d\n",ret.intval);
+	}
+
+	bq24296_charger_psy_setprop(chip, psy_this, INPUT_CURRENT_MAX, ret.intval);
 #else
 #if defined(CONFIG_CHARGER_UNIFIED_WLC)
 	if (wireless_charging) {

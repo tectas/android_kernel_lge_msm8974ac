@@ -1382,7 +1382,7 @@ int diag_process_stm_cmd(unsigned char *buf, unsigned char *dest_buf)
 	return STM_RSP_NUM_BYTES;
 }
 
-#if defined(CONFIG_LGE_DIAG_USB_ACCESS_LOCK) && defined(CONFIG_MACH_MSM8974_G3_KDDI)
+#ifdef CONFIG_LGE_DIAG_USB_ACCESS_LOCK
 extern int get_diag_enable(void);
 #define DIAG_ENABLE	1
 #define DIAG_DISABLE	0
@@ -1456,9 +1456,9 @@ int diag_process_apps_pkt(unsigned char *buf, int len)
 	int result = 0;
 #endif
 
-#if defined(CONFIG_LGE_DIAG_USB_ACCESS_LOCK) && defined(CONFIG_MACH_MSM8974_G3_KDDI)
+#ifdef CONFIG_LGE_DIAG_USB_ACCESS_LOCK
 	/*	buf[0] : 0xA1(161) is a diag command for mdm port lock */
-	if( (is_filtering_command(buf) != 1)  && (get_diag_enable() == DIAG_DISABLE) )
+	if ((is_filtering_command(buf) != 1) && (get_diag_enable() == DIAG_DISABLE))
 		return 0;
 #endif
 

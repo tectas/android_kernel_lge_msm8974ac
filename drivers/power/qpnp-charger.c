@@ -2760,7 +2760,7 @@ get_prop_charge_type(struct qpnp_chg_chip *chip)
 }
 
 #define DEFAULT_CAPACITY	50
-#ifndef CONFIG_LGE_PM
+//#ifndef CONFIG_LGE_PM temporarily disable to fix build error with CONFIG_QPNP_CHARGER feature
 static int
 get_batt_capacity(struct qpnp_chg_chip *chip)
 {
@@ -2777,7 +2777,7 @@ get_batt_capacity(struct qpnp_chg_chip *chip)
 	}
 	return DEFAULT_CAPACITY;
 }
-#endif
+//#endif
 
 static int
 get_prop_batt_status(struct qpnp_chg_chip *chip)

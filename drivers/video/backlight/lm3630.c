@@ -40,6 +40,11 @@
 #define BL_ON        1
 #define BL_OFF       0
 
+#ifdef CONFIG_G2_LGD_PANEL
+#define PWM_THRESHOLD 110	/* UI bar 28 % */
+#define PWM_OFF 0
+#define PWM_ON 1
+#endif
 
 /*           
                                                      
@@ -107,6 +112,16 @@ int wireless_backlight_state(void)
 	return backlight_status;
 }
 EXPORT_SYMBOL(wireless_backlight_state);
+#endif
+
+#ifdef CONFIG_G2_LGD_PANEL
+static void bl_set_pwm_mode(int mode)
+{
+	if (mode)
+		lm3630_write_reg(main_lm3630_dev->client, 0x01, 0x09);
+	else
+		lm3630_write_reg(main_lm3630_dev->client, 0x01, 0x08);
+}
 #endif
 
 static void lm3630_hw_reset(void)
@@ -178,6 +193,14 @@ static void lm3630_set_main_current_level(struct i2c_client *client, int level)
 	store_level_used = 0;
 
 	mutex_lock(&dev->bl_mutex);
+
+#ifdef CONFIG_G2_LGD_PANEL
+	if (level < PWM_THRESHOLD)
+		bl_set_pwm_mode(PWM_OFF);
+	else
+		bl_set_pwm_mode(PWM_ON);
+#endif
+
 	if (level != 0) {
 		if (level > 0 && level <= min_brightness)
 			level = min_brightness;
@@ -653,11 +676,6 @@ static int lm3630_probe(struct i2c_client *i2c_dev,
 #if defined(CONFIG_BACKLIGHT_CABC_DEBUG_ENABLE)
 	err = device_create_file(&i2c_dev->dev,
 			&dev_attr_lm3630_pwm);
-#endif
-
-#if defined(CONFIG_MACH_LGE)
-/*	if (!lge_get_cont_splash_enabled())
-		lm3630_lcd_backlight_set_level(0); */
 #endif
 
 	pr_err("[LCD][DEBUG] %s: i2c probe done\n", __func__);

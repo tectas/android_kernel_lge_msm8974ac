@@ -28,6 +28,12 @@
 #include <linux/mfd/tps65132.h>
 #endif
 
+#ifdef CONFIG_LGE_SUPPORT_LCD_MAKER_ID
+#include <mach/board_lge.h>
+#include <linux/qpnp/qpnp-adc.h>
+#include <linux/err.h>
+#endif
+
 #define DT_CMD_HDR 6
 
 #ifdef CONFIG_MACH_LGE
@@ -38,6 +44,67 @@ struct mdss_panel_data *pdata_base;
 extern struct msm_fb_data_type *mfd_base;
 #include "mdss_mdp.h"
 #endif
+
+#ifdef CONFIG_LGE_SUPPORT_LCD_MAKER_ID
+int g_mvol_for_lcd;
+static lcd_vol_maker_tbl_type lcd_maker_table[LCD_MAKER_MAX] = {
+	{LCD_RENESAS_LGD, 0, 900},
+	{LCD_RENESAS_JDI, 901, 1800},
+};
+
+static lcd_maker_id get_lcd_maker_by_voltage(int mvol)
+{
+	lcd_maker_id lcd_maker = LCD_MAKER_MAX;
+	int i = 0;
+
+	for (i = 0; i < LCD_MAKER_MAX; i++) {
+		if (lcd_maker_table[i].min_mvol <= mvol &&
+			mvol <= lcd_maker_table[i].max_mvol) {
+			lcd_maker = lcd_maker_table[i].maker_id;
+			break;
+		}
+	}
+	g_mvol_for_lcd = mvol;
+	return lcd_maker;
+}
+lcd_maker_id get_panel_maker_id(void)
+{
+	lcd_maker_id maker_id = LCD_MAKER_MAX;
+	int acc_read_value = 0;
+	struct qpnp_vadc_result result;
+	int rc;
+
+/* LIMIT: Include ONLY A1, B1, Vu3, Z models used MSM8974 AA/AB */
+#ifdef CONFIG_ADC_READY_CHECK_JB
+	rc = qpnp_vadc_read_lge(P_MUX5_1_1, &result);
+#else
+	/* MUST BE IMPLEMENT :
+	 * After MSM8974 AC and later version(PMIC combination change),
+	 * ADC AMUX of PMICs are separated in each dual PMIC.
+	 *
+	 * Ref.
+	 * qpnp-adc-voltage.c : *qpnp_get_vadc(), qpnp_vadc_read().
+	 * qpnp-charger.c     : new implementation by QCT.
+	 */
+	return maker_id;
+#endif
+	if (rc < 0) {
+		if (rc == -ETIMEDOUT) {
+			acc_read_value = 0;
+		}
+		pr_err("%s : adc read "
+				"error - %d\n", __func__, rc);
+	}
+	acc_read_value = (int)result.physical / 1000;
+	pr_debug("%s: acc_read_value - %d\n", __func__,
+			(int)result.physical);
+	maker_id = get_lcd_maker_by_voltage(acc_read_value);
+
+	return maker_id;
+}
+EXPORT_SYMBOL(get_panel_maker_id);
+#endif
+
 #ifdef CONFIG_LGE_LCD_TUNING
 extern int num_cmds;
 extern struct dsi_cmd_desc *tun_dsi_panel_on_cmds;
@@ -187,7 +254,7 @@ static void mdss_dsi_panel_bklt_dcs(struct mdss_dsi_ctrl_pdata *ctrl, int level)
 
 	mdss_dsi_cmdlist_put(ctrl, &cmdreq);
 }
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8974_G3
 void mdss_dsi_panel_io(struct mdss_panel_data *pdata, int enable)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
@@ -214,7 +281,6 @@ void mdss_dsi_panel_io(struct mdss_panel_data *pdata, int enable)
 			gpio_set_value((ctrl_pdata->io_gpio), 0);
 
 }
-
 #endif
 
 static int mdss_dsi_request_gpios(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
@@ -365,10 +431,13 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			pr_debug("%s: Reset panel done\n", __func__);
 		}
 	} else {
+#ifndef CONFIG_MACH_MSM8974_G2
 		if (gpio_is_valid(ctrl_pdata->disp_en_gpio)) {
 			gpio_set_value((ctrl_pdata->disp_en_gpio), 0);
 			gpio_free(ctrl_pdata->disp_en_gpio);
 		}
+#endif
+
 #ifdef CONFIG_MFD_TPS65132
 		if (ctrl_pdata->num_of_dsv_enable_pin >= 1) {
 			if (ctrl_pdata->num_of_dsv_enable_pin > 1)
@@ -392,6 +461,13 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 		gpio_free(ctrl_pdata->rst_gpio);
 #ifdef CONFIG_MACH_LGE
 			mdelay(10);
+#endif
+
+#ifdef CONFIG_MACH_MSM8974_G2
+		if (gpio_is_valid(ctrl_pdata->disp_en_gpio)) {
+			gpio_set_value((ctrl_pdata->disp_en_gpio), 0);
+			gpio_free(ctrl_pdata->disp_en_gpio);
+		}
 #endif
 
 		if (gpio_is_valid(ctrl_pdata->mode_gpio))

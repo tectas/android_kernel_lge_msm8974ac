@@ -272,8 +272,8 @@ void __init lge_add_qfprom_devices(void)
 static bool cable_type_defined;
 static struct chg_cable_info_table pm8941_acc_cable_type_data[MAX_CABLE_NUM];
 #endif
-/*                                        */
-#ifdef CONFIG_LGE_DIAG_ENABLE_SYSFS
+/* END : janghyun.baek@lge.com 2012-12-26 */
+#ifdef CONFIG_LGE_DIAG_USB_ACCESS_LOCK
 static struct platform_device lg_diag_cmd_device = {
 	.name = "lg_diag_cmd",
 	.id = -1,
@@ -512,6 +512,34 @@ __setup("uart_console=", lge_uart_mode);
 	for download complete using LAF image
 	return value : 1 --> right after laf complete & reset
 */
+#ifdef CONFIG_LGE_SUPPORT_LCD_MAKER_ID
+/* get panel maker ID from cmdline */
+static lcd_maker_id lge_panel_maker;
+
+/* CAUTION : These strings are come from LK */
+char *panel_maker[] = {"0", "1", "2"};
+
+static int __init board_panel_maker(char *maker_id)
+{
+ int i;
+
+ for (i = 0; i < LCD_MAKER_MAX; i++) {
+ 	if (!strncmp(maker_id, panel_maker[i], 1)) {
+ 		lge_panel_maker = (lcd_maker_id) i;
+ 		break;
+ 	}
+ }
+
+ printk(KERN_DEBUG "MAKER : %s\n", panel_maker[lge_panel_maker]);
+ return 1;
+}
+__setup("lcd_maker_id=", board_panel_maker);
+
+lcd_maker_id lge_get_panel_maker(void)
+{
+ return lge_panel_maker;
+}
+#endif
 
 int android_dlcomplete;
 
@@ -610,9 +638,13 @@ int lge_get_factory_cable(void)
 static hw_rev_type lge_bd_rev = HW_REV_1_0; /* HW_REV_B; */
 
 /* CAUTION: These strings are come from LK. */
-#if defined (CONFIG_MACH_MSM8974_G3_GLOBAL_COM) || defined (CONFIG_MACH_MSM8974_G3_KDDI)
+#if defined (CONFIG_MACH_MSM8974_G3_GLOBAL_COM)
 char *rev_str[] = {"evb1", "evb2", "rev_a", "rev_a1", "rev_b", "rev_c", "rev_d",
 	"rev_e", "rev_g", "rev_h", "rev_10", "rev_11", "rev_12",
+	"reserved"};
+#elif defined (CONFIG_MACH_MSM8974_G3_KDDI) || defined (CONFIG_MACH_MSM8974_DZNY_DCM)
+char *rev_str[] = {"evb1", "evb2", "rev_a", "rev_a1", "rev_b", "rev_c", "rev_d",
+	"rev_e","rev_f", "rev_g", "rev_h", "rev_10", "rev_11", "rev_12",
 	"reserved"};
 #else
 char *rev_str[] = {"evb1", "evb2", "rev_a", "rev_b", "rev_c", "rev_d",

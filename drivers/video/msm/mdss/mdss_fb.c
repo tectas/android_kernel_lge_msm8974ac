@@ -219,7 +219,8 @@ static void mdss_fb_set_bl_brightness(struct led_classdev *led_cdev,
 		value = mfd->panel_info->brightness_max;
 
 #ifdef CONFIG_LGE_LCD_OFF_DIMMING
-	if(lge_get_bootreason() == 0x77665560 && !fb_blank_called){
+	if (((lge_get_bootreason() == 0x77665560) || (lge_get_bootreason() == 0x77665561))
+		&& !fb_blank_called) {
 		pr_info("%s : lcd dimming mode! minimum brightness.\n",__func__);
 		value = 50;
 	}

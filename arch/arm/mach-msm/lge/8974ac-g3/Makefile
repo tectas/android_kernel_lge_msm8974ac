@@ -17,5 +17,6 @@ obj-$(CONFIG_MACH_MSM8974_G3_KDDI) += board-8974-g3-kddi.o board-8974-g3-kddi-gp
 obj-$(CONFIG_MACH_MSM8974_G3_KDDI_EVB) += board-8974-g3-kddi.o board-8974-g3-kddi-evb-gpiomux.o
 obj-$(CONFIG_MACH_MSM8974_G3_GLOBAL_COM) += board-8974-g3-global.o board-8974-g3-global_com-gpiomux.o
 obj-$(CONFIG_MACH_MSM8974_G3_CA) += board-8974-g3-ca.o board-8974-g3-ca-gpiomux.o
+obj-$(CONFIG_MACH_MSM8974_DZNY_DCM) += board-8974-dzny-dcm.o board-8974-dzny-dcm-gpiomux.o
 
 obj-$(CONFIG_LGE_BLUETOOTH) += board-8974-g3-rfkill.o

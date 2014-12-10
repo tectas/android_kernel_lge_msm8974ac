@@ -71,7 +71,7 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata, int enable)
 		return 0;
 
 	if (enable) {
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8974_G3
 		mdss_dsi_panel_io(pdata, 1);
 #endif
 		ret = msm_dss_enable_vreg(
@@ -84,7 +84,18 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata, int enable)
 		}
 
 		if (!pdata->panel_info.mipi.lp11_init) {
+#ifdef CONFIG_MACH_MSM8974_G2
+			if (!pdata->panel_info.panel_power_on)
+				ret = mdss_dsi_panel_reset(pdata, 1);
+			else {
+				if (gpio_is_valid(ctrl_pdata->disp_en_gpio)) {
+					gpio_set_value((ctrl_pdata->disp_en_gpio), 1);
+					msleep(1);
+				}
+			}
+#else
 			ret = mdss_dsi_panel_reset(pdata, 1);
+#endif
 			if (ret) {
 				pr_err("%s: Panel reset failed. rc=%d\n",
 						__func__, ret);
@@ -96,13 +107,34 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata, int enable)
 			}
 		}
 	} else {
+#ifdef CONFIG_MACH_MSM8974_G2
+		ret = msm_dss_enable_vreg(
+			ctrl_pdata->power_data.vreg_config+1,
+			1, 0);
+		if (ret) {
+			pr_err("%s: Failed to disable vregs.rc=%d\n",
+				__func__, ret);
+		}
+
+		msleep(1);
+		mdss_dsi_panel_reset(pdata, 0);
+		msleep(1);
+
+		ret = msm_dss_enable_vreg(
+			ctrl_pdata->power_data.vreg_config,
+			1, 0);
+		if (ret) {
+			pr_err("%s: Failed to disable vregs.rc=%d\n",
+				__func__, ret);
+		}
+#else
 		ret = mdss_dsi_panel_reset(pdata, 0);
 		if (ret) {
 			pr_err("%s: Panel reset failed. rc=%d\n",
 					__func__, ret);
 			goto error;
 		}
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8974_G3
 		mdss_dsi_panel_io(pdata, 0);
 #endif
 		ret = msm_dss_enable_vreg(
@@ -112,6 +144,7 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata, int enable)
 			pr_err("%s: Failed to disable vregs.rc=%d\n",
 				__func__, ret);
 		}
+#endif
 	}
 error:
 	return ret;
@@ -137,6 +170,9 @@ static int mdss_dsi_get_dt_vreg_data(struct device *dev,
 {
 	int i = 0, rc = 0;
 	u32 tmp = 0;
+#ifdef CONFIG_MACH_MSM8974_G2
+	int mdss_dsi_use_supply;
+#endif
 	struct device_node *of_node = NULL, *supply_node = NULL;
 
 	if (!dev || !mp) {
@@ -149,6 +185,15 @@ static int mdss_dsi_get_dt_vreg_data(struct device *dev,
 
 	mp->num_vreg = 0;
 	for_each_child_of_node(of_node, supply_node) {
+#ifdef CONFIG_MACH_MSM8974_G2
+		mdss_dsi_use_supply = 1;
+		of_property_read_u32(supply_node,
+				"lge,mdss-dsi-use-supply",
+				&mdss_dsi_use_supply);
+
+		if (!mdss_dsi_use_supply)
+			continue;
+#endif
 		if (!strncmp(supply_node->name, "qcom,platform-supply-entry",
 						26))
 			++mp->num_vreg;
@@ -157,7 +202,7 @@ static int mdss_dsi_get_dt_vreg_data(struct device *dev,
 		pr_debug("%s: no vreg\n", __func__);
 		goto novreg;
 	} else {
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8974_G3
 		if (lge_get_board_revno() >= HW_REV_B && mp->num_vreg == NUM_MAX_VREG)
 					--mp->num_vreg;
 #endif
@@ -176,10 +221,19 @@ static int mdss_dsi_get_dt_vreg_data(struct device *dev,
 		if (!strncmp(supply_node->name, "qcom,platform-supply-entry",
 						26)) {
 			const char *st = NULL;
+#ifdef CONFIG_MACH_MSM8974_G2
+			mdss_dsi_use_supply = 1;
+			of_property_read_u32(supply_node,
+					"lge,mdss-dsi-use-supply",
+					&mdss_dsi_use_supply);
+
+			if (!mdss_dsi_use_supply)
+				continue;
+#endif
 			/* vreg-name */
 			rc = of_property_read_string(supply_node,
 				"qcom,supply-name", &st);
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8974_G3
 			if (lge_get_board_revno() >= HW_REV_B)
 				if (!strcmp(st, "vdd")) {
 					pr_info("%s : skip L10\n", __func__);
@@ -345,7 +399,7 @@ static int mdss_dsi_off(struct mdss_panel_data *pdata)
 	pr_info("%s+: ctrl=%p ndx=%d\n", __func__,
 				ctrl_pdata, ctrl_pdata->ndx);
 
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8974_G3
 	ret = mdss_dsi_panel_reset(pdata, 0);
 	if (ret) {
 		mutex_unlock(&ctrl_pdata->mutex);
@@ -365,7 +419,7 @@ static int mdss_dsi_off(struct mdss_panel_data *pdata)
 
 	mdss_dsi_clk_ctrl(ctrl_pdata, DSI_ALL_CLKS, 0);
 
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8974_G3
 	mdelay(5);
 	mdss_dsi_panel_io(pdata, 0);
 	ret = msm_dss_enable_vreg(ctrl_pdata->power_data.vreg_config,
@@ -741,14 +795,16 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 		pdata->panel_info.panel_power_on = 0;
 		return ret;
 	}
-#ifndef CONFIG_MACH_LGE
-	/*           
-                                     
-                                                     
-                                    
-  */
-	pdata->panel_info.panel_power_on = 1;
+#ifdef CONFIG_MACH_LGE
+	/* LGE_CHANGE
+	 * change position after panel reset
+	 * due to not get into reset sequence (in case lp11)
+	 * 2014-08-07, baryun.hwang@lge.com
+	 */
+	if (!mipi->lp11_init)
 #endif
+		pdata->panel_info.panel_power_on = 1;
+
 
 	mdss_dsi_phy_sw_reset((ctrl_pdata->ctrl_base));
 	mdss_dsi_phy_init(pdata);
@@ -766,11 +822,16 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 	 */
 #ifdef CONFIG_MACH_LGE
 	if (mipi->lp11_init) {
-		mdelay(10);
-		if (mdss_dsi_is_slave_ctrl(ctrl_pdata))
+		if(mdss_dsi_broadcast_mode_enabled()){
+			if (mdss_dsi_is_slave_ctrl(ctrl_pdata)) {
+				mdelay(10);
+				mdss_dsi_panel_reset(pdata, 1);
+			}
+		}
+		else
 			mdss_dsi_panel_reset(pdata, 1);
+		pdata->panel_info.panel_power_on = 1;
 	}
-	pdata->panel_info.panel_power_on = 1;
 #else
 	if (mipi->lp11_init)
 		mdss_dsi_panel_reset(pdata, 1);
@@ -1688,14 +1749,14 @@ int dsi_panel_device_register(struct device_node *pan_node,
 	pinfo->panel_max_fps = mdss_panel_get_framerate(pinfo);
 	pinfo->panel_max_vtotal = mdss_panel_get_vtotal(pinfo);
 
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8974_G3
 {
     u32 enable_array[13];
 
 	rc = of_property_read_u32_array(ctrl_pdev->dev.of_node, "lge,num-of-dsv-enable-gpio", enable_array, 13);
 	if (rc) {
 			pr_err("Error from prop num-of-dsv-enable-gpio : u32 array read\n");
-				return -EINVAL;
+			return -EINVAL;
 	}
 	ctrl_pdata->num_of_dsv_enable_pin = enable_array[lge_get_board_revno()];
     ctrl_pdata->disp_en_gpio = of_get_named_gpio(ctrl_pdev->dev.of_node, "qcom,platform-enable-gpio", lge_get_board_revno());
@@ -1827,7 +1888,7 @@ int dsi_panel_device_register(struct device_node *pan_node,
 				if (gpio_is_valid(ctrl_pdata->disp_en_gpio))
 					gpio_free(ctrl_pdata->disp_en_gpio);
 				if (ctrl_pdata->num_of_dsv_enable_pin > 1) {
-					if (!gpio_is_valid(ctrl_pdata->disp_en_gpio2))
+					if (gpio_is_valid(ctrl_pdata->disp_en_gpio2))
 						gpio_free(ctrl_pdata->disp_en_gpio2);
 				}
 				return -ENODEV;
@@ -1854,7 +1915,7 @@ int dsi_panel_device_register(struct device_node *pan_node,
 	} else {
 		ctrl_pdata->mode_gpio = -EINVAL;
 	}
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8974_G3
 	if (lge_get_board_revno() >= HW_REV_A)
 		ctrl_pdata->io_gpio = -EINVAL;
 	else

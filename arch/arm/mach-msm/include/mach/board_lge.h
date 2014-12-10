@@ -18,7 +18,7 @@ typedef enum {
 	HW_REV_1_2,
 	HW_REV_MAX
 } hw_rev_type;
-#elif defined (CONFIG_MACH_MSM8974_G3_KDDI)
+#elif defined (CONFIG_MACH_MSM8974_G3_KDDI) || defined (CONFIG_MACH_MSM8974_DZNY_DCM)
 typedef enum {
 	HW_REV_EVB1 = 0,
 	HW_REV_EVB2,
@@ -229,7 +229,7 @@ void __init lge_add_lcd_kcal_devices(void);
 void __init lge_add_qfprom_devices(void);
 #endif
 
-#ifdef CONFIG_LGE_DIAG_ENABLE_SYSFS
+#ifdef CONFIG_LGE_DIAG_USB_ACCESS_LOCK
 void __init lge_add_diag_devices(void);
 #endif
 #if defined(CONFIG_LGE_PM_BATTERY_ID_CHECKER)

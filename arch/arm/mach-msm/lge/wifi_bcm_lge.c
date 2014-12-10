@@ -111,7 +111,11 @@ static struct sk_buff *wlan_static_skb[WLAN_SKB_BUF_NUM];
 #define WLAN_SECTION_SIZE_5		(65536)
 #define WLAN_SECTION_SIZE_6		(65536)
 #define WLAN_SECTION_SIZE_7		(16 * 1024)
+#ifdef CONFIG_MACH_MSM8974_G3_KR
+#define WLAN_SECTION_SIZE_8		(64 * 1024) // 23032
+#else
 #define WLAN_SECTION_SIZE_8		(25 * 1024) // 23032
+#endif
 #ifdef CONFIG_BCMDHD_SDIO
 #define WLAN_SECTION_SIZE_9		0
 #define WLAN_SECTION_SIZE_10		0

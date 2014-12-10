@@ -516,6 +516,16 @@ config LGE_PM
 	  Power Management, Battery charging, Battery Monitoring System
 	  with battery FET and fuel gauge.
 
+config ADC_READY_CHECK_JB
+	tristate "PM8941 and PM8841 combibation JB ADC ready check feature"
+	depends on LGE_PM
+	help
+	  Say Y here to enable support for JB adc ready check feature
+	  QCT changed ADC read way in KK for next MSM8974 AC and later version
+	  thease platform have two channel ADC in each PMICs
+	  This Feature MUST used in MSM8974 AA/AB only
+
+
 config LGE_CHARGER_TEMP_SCENARIO
 	depends on LGE_PM
 	default n
@@ -566,6 +576,16 @@ config LGE_ONLY_READ_CURRENT
 	default n
 	help
 	  Say Y here to enable BMS current now reader
+
+config BQ24192_CHARGER
+	tristate "bq24192 charger"
+	depends on I2C
+	help
+	  Say Y to enable support for the BQ24192 switching mode based charger
+	  and sysfs. The driver supports controlling charger-enable and
+	  current limiting capabilities. The driver also lets the
+	  BQ24192 be operated as a slave device via the power supply
+	  framework.
 
 config BQ24296_CHARGER
 	tristate "bq24296 charger"

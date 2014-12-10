@@ -45,6 +45,7 @@
 	compatible = "qcom,dwc-usb3-msm";
 	reg = <0xf9200000 0xfc000>,
 				<0xfd4ab000 0x4>;
+	qcom,dwc-vadc = <&pm8941_vadc>;
 	qcom,dwc-hsphy-init = <0x00D1DDA4>;
 	#CONFIG_USB_LGE_USB3_REDRIVER;
 	redriver_3p3-supply = <&pm8941_l23>;
@@ -65,4 +66,10 @@
 			qcom,init-voltage = <3300000>;
 		};
 	};
+};
+
+&pm8941_lsid1 {
+    pm8941_mvs1: regulator@8300 {
+        parent-supply = <&pm8941_boost>;
+    };
 };

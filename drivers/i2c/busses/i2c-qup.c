@@ -146,6 +146,9 @@ enum msm_i2c_state {
 #if defined(CONFIG_CHARGER_MAX77819) || defined(CONFIG_BQ24192_CHARGER) || defined(CONFIG_INPUT_MAX14688)
 bool i2c_suspended;
 #endif
+#if defined(CONFIG_TOUCHSCREEN_ATMEL_S540) || defined(CONFIG_TOUCHSCREEN_SYNAPTICS_3404S)
+bool atmel_touch_i2c_suspended = false;		/* Use atme touch IC for checking i2c suspend */
+#endif
 static char const * const i2c_rsrcs[] = {"i2c_clk", "i2c_sda"};
 
 static struct gpiomux_setting recovery_config = {
@@ -1805,6 +1808,12 @@ static int i2c_qup_pm_suspend_sys(struct device *device)
 #if defined(CONFIG_CHARGER_MAX77819) || defined(CONFIG_BQ24192_CHARGER)|| defined(CONFIG_INPUT_MAX14688)
 	i2c_suspended = true;
 #endif
+#if defined(CONFIG_TOUCHSCREEN_ATMEL_S540)
+	if (!strncmp(dev_name(device), "f9924000.i2c", 12)){
+		atmel_touch_i2c_suspended = true;
+		dev_dbg(device, "lge_touch I2C Suspend!\n");
+	}
+#endif
 	#if !defined(CONFIG_CHARGER_MAX77819)
 	dev->pwr_state = MSM_I2C_SYS_SUSPENDING;
 	#endif
@@ -1861,6 +1870,12 @@ static int i2c_qup_pm_resume_sys(struct device *device)
 #endif /*                 */
 #if defined(CONFIG_CHARGER_MAX77819) || defined(CONFIG_BQ24192_CHARGER) || defined(CONFIG_INPUT_MAX14688)
 	i2c_suspended = false;
+#endif
+#if defined(CONFIG_TOUCHSCREEN_ATMEL_S540)
+	if (!strncmp(dev_name(device), "f9924000.i2c", 12)){
+		atmel_touch_i2c_suspended = false;
+		dev_dbg(device, "lge_touch I2C Resume!\n");
+	}
 #endif
 	return 0;
 }

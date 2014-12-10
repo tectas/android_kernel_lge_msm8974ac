@@ -307,6 +307,8 @@ static void msm_restart_prepare(const char *cmd)
 #ifdef CONFIG_LGE_LCD_OFF_DIMMING
         } else if (!strncmp(cmd, "FOTA LCD off", 12)) {
 			__raw_writel(0x77665560, restart_reason);
+        } else if (!strncmp(cmd, "FOTA OUT LCD off", 16)) {
+			__raw_writel(0x77665561, restart_reason);
 #endif
 		} else if (!strcmp(cmd, "aat_enter")) {
             __raw_writel(0x77665581, restart_reason);

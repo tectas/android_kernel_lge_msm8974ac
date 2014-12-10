@@ -45,7 +45,7 @@ static void dwc3_otg_reset(struct dwc3_otg *dotg);
 
 static void dwc3_otg_notify_host_mode(struct usb_otg *otg, int host_mode);
 static void dwc3_otg_reset(struct dwc3_otg *dotg);
-#if defined (CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4)
+#if defined (CONFIG_TOUCHSCREEN_SYNAPTICS_G3) && defined (CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4)
 void update_status(int code, int value);
 #endif
 #ifdef CONFIG_QPNP_CHARGER
@@ -618,7 +618,7 @@ static int dwc3_otg_set_power(struct usb_phy *phy, unsigned mA)
 	power_supply_set_supply_type(dotg->psy, power_supply_type);
 #endif
 
-#if defined (CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4)
+#if defined (CONFIG_TOUCHSCREEN_SYNAPTICS_G3) && defined (CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4)
 	update_status(1, dotg->charger->chg_type);
 #endif
 

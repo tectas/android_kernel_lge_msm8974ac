@@ -33,6 +33,7 @@
 		qcom,mdss_fb_primary {
 			qcom,memory-reservation-size = <0x1000000>;
 			qcom,mdss-pref-prim-intf = "dsi";
+			/delete-property/ qcom,memblock-reserve;
 		};
 
 mdss_dsi_g2_lgd_cmd: qcom,mdss_dsi_g2_lgd_cmd {
@@ -62,6 +63,7 @@ mdss_dsi_g2_lgd_cmd: qcom,mdss_dsi_g2_lgd_cmd {
 		qcom,mdss-dsi-underflow-clr = <0xff>;
 		qcom,mdss-dsi-border-color = <0>;
 		qcom,mdss-dsi-reset-sequence = <1 5>;
+		qcom,cont-splash-enabled;
 
 		qcom,mdss-dsi-on-command = [
 			29 01 00 00 00 00 02 b0 04
@@ -178,6 +180,8 @@ mdss_dsi_g2_lgd_cmd: qcom,mdss_dsi_g2_lgd_cmd {
 
 		qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
 		qcom,mdss-dsi-off-command-state = "dsi_hs_mode";
+		qcom,mdss-pan-physical-width-dimension = <65>;
+		qcom,mdss-pan-physical-height-dimension = <115>;
 		qcom,mdss-dsi-h-sync-pulse = <0>;
 		qcom,mdss-dsi-traffic-mode = "non_burst_sync_event";
 		qcom,mdss-dsi-lane-map = "lane_map_0123";
@@ -202,7 +206,7 @@ mdss_dsi_g2_lgd_cmd: qcom,mdss_dsi_g2_lgd_cmd {
 		qcom,mdss-dsi-bl-max-level = <255>;
 		qcom,mdss-dsi-dma-trigger = "trigger_sw";
 		qcom,mdss-dsi-mdp-trigger = "none";
-		qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
+		qcom,mdss-dsi-bl-pmic-control-type = "bl_others";
 		qcom,off-cmds-dsi-state = "dsi_hs_mode";
 		qcom,panel-ief-off-cmds = [
 			29 01 00 00 00 00 02 b0 04
@@ -303,6 +307,7 @@ mdss_dsi_g2_jdi_cmd: qcom,mdss_dsi_g2_jdi_cmd {
 		qcom,mdss-dsi-underflow-color = <0xff>;
 		qcom,mdss-dsi-border-color = <0>;
 		qcom,mdss-dsi-reset-sequence = <1 5>;
+		qcom,cont-splash-enabled;
 
 		qcom,mdss-dsi-on-command = [
 			39 01 00 00 00 00 05 2a
@@ -372,6 +377,8 @@ mdss_dsi_g2_jdi_cmd: qcom,mdss_dsi_g2_jdi_cmd {
 
 		qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
 		qcom,mdss-dsi-off-command-state = "dsi_hs_mode";
+		qcom,mdss-pan-physical-width-dimension = <65>;
+		qcom,mdss-pan-physical-height-dimension = <115>;
 		qcom,mdss-dsi-h-sync-pulse = <0>;
 		qcom,mdss-dsi-traffic-mode = "non_burst_sync_event";
 		qcom,mdss-dsi-lane-map = "lane_map_0123";
@@ -396,7 +403,7 @@ mdss_dsi_g2_jdi_cmd: qcom,mdss_dsi_g2_jdi_cmd {
 		qcom,mdss-dsi-bl-max-level = <255>;
 		qcom,mdss-dsi-dma-trigger = "trigger_sw";
 		qcom,mdss-dsi-mdp-trigger = "none";
-		qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
+		qcom,mdss-dsi-bl-pmic-control-type = "bl_others";
 		qcom,off-cmds-dsi-state = "dsi_hs_mode";
 		qcom,panel-ief-off-cmds = [
 			29 01 00 00 00 00 02 b0 04
@@ -496,6 +503,7 @@ mdss_dsi_tigers_lgd_cmd: qcom,mdss_dsi_tigers_lgd_cmd {
 		qcom,mdss-dsi-underflow-clr = <0xff>;
 		qcom,mdss-dsi-border-color = <0>;
 		qcom,mdss-dsi-reset-sequence = <1 5>;
+		qcom,cont-splash-enabled;
 
 		qcom,mdss-dsi-on-command = [
 			29 01 00 00 00 00 02 b0 04
@@ -638,7 +646,7 @@ mdss_dsi_tigers_lgd_cmd: qcom,mdss_dsi_tigers_lgd_cmd {
 		qcom,mdss-dsi-bl-max-level = <255>;
 		qcom,mdss-dsi-dma-trigger = "trigger_sw";
 		qcom,mdss-dsi-mdp-trigger = "none";
-		qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
+		qcom,mdss-dsi-bl-pmic-control-type = "bl_others";
 		qcom,off-cmds-dsi-state = "dsi_hs_mode";
 		qcom,panel-ief-off-cmds = [
 			29 01 00 00 00 00 02 b0 04
@@ -739,6 +747,7 @@ mdss_dsi_tigers_jdi_cmd: qcom,mdss_dsi_tigers_jdi_cmd {
 		qcom,mdss-dsi-underflow-color = <0xff>;
 		qcom,mdss-dsi-border-color = <0>;
 		qcom,mdss-dsi-reset-sequence = <1 5>;
+		qcom,cont-splash-enabled;
 
 		qcom,mdss-dsi-on-command = [
 			39 01 00 00 00 00 05 2a
@@ -832,7 +841,7 @@ mdss_dsi_tigers_jdi_cmd: qcom,mdss_dsi_tigers_jdi_cmd {
 		qcom,mdss-dsi-bl-max-level = <255>;
 		qcom,mdss-dsi-dma-trigger = "trigger_sw";
 		qcom,mdss-dsi-mdp-trigger = "none";
-		qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
+		qcom,mdss-dsi-bl-pmic-control-type = "bl_others";
 		qcom,off-cmds-dsi-state = "dsi_hs_mode";
 		qcom,panel-ief-off-cmds = [
 			29 01 00 00 00 00 02 b0 04
@@ -932,6 +941,7 @@ mdss_dsi_lgd_poled_720p_video: qcom,mdss_dsi_lgd_poled_720p_video {
 		qcom,mdss-dsi-underflow-clr = <0xff>;
 		qcom,mdss-dsi-border-color = <0>;
 		qcom,mdss-dsi-reset-sequence = <1 0>;
+		qcom,cont-splash-enabled;
 
 		qcom,mdss-dsi-on-command = [
 			15 01 00 00 12 00 02 B0 AC // MCS access
@@ -978,7 +988,7 @@ mdss_dsi_lgd_poled_720p_video: qcom,mdss_dsi_lgd_poled_720p_video {
 		qcom,mdss-dsi-bl-max-level = <255>;
 		qcom,mdss-dsi-dma-trigger = "trigger_sw";
 		qcom,mdss-dsi-mdp-trigger = "none";
-		qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_dcs";
+		qcom,mdss-dsi-bl-pmic-control-type = "bl_others";
 		qcom,off-cmds-dsi-state = "dsi_hs_mode";
 
 		/* image tuning cmds set */
@@ -1040,6 +1050,7 @@ mdss_dsi_b1_lgd_cmd: qcom,mdss_dsi_b1_lgd_cmd {
 		qcom,mdss-dsi-underflow-clr = <0xff>;
 		qcom,mdss-dsi-border-color = <0>;
 		qcom,mdss-dsi-reset-sequence = <0 5 1 1 0 3 1 10>;
+		qcom,cont-splash-enabled;
 
 		qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
 		qcom,mdss-dsi-off-command-state = "dsi_hs_mode";
@@ -1062,7 +1073,7 @@ mdss_dsi_b1_lgd_cmd: qcom,mdss_dsi_b1_lgd_cmd {
 		qcom,mdss-dsi-bl-max-level = <255>;
 		qcom,mdss-dsi-dma-trigger = "trigger_sw";
 		qcom,mdss-dsi-mdp-trigger = "none";
-		qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
+		qcom,mdss-dsi-bl-pmic-control-type = "bl_others";
 		qcom,off-cmds-dsi-state = "dsi_hs_mode";
 		qcom,mdss-dsi-panel-timings = [
 			D1 43 3A 00 5F 57
@@ -1824,7 +1835,8 @@ mdss_dsi_lgd_960p_video: qcom,mdss_dsi_lgd_960p_video {
 		qcom,mdss-dsi-color-order = <0>;
 		qcom,mdss-dsi-underflow-color = <0xff>;
 		qcom,mdss-dsi-border-color = <0>;
-        qcom,mdss-dsi-reset-sequence = <1 5>;
+        	qcom,mdss-dsi-reset-sequence = <1 5>;
+		qcom,cont-splash-enabled;
 
 		qcom,mdss-dsi-on-command = [ 29 01 00 00 00 00 02 b0 04
 			05 01 00 00 00 00 01 00
@@ -1961,7 +1973,7 @@ mdss_dsi_lgd_960p_video: qcom,mdss_dsi_lgd_960p_video {
 		qcom,mdss-dsi-bl-max-level = <255>;
 		qcom,mdss-dsi-dma-trigger = <4>;
 		qcom,mdss-dsi-mdp-trigger = <0>;
-		qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
+		qcom,mdss-dsi-bl-pmic-control-type = "bl_others";
 		qcom,panel-ief-off-cmds = [
 			29 01 00 00 00 00 02 b0 04
 			29 01 00 00 00 00 03 dd

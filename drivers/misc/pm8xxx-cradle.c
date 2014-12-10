@@ -45,6 +45,13 @@ struct pm8xxx_cradle {
 static struct workqueue_struct *cradle_wq;
 static struct pm8xxx_cradle *cradle;
 
+#if defined(CONFIG_TOUCHSCREEN_ATMEL_S540)
+static int is_smart_cover_closed = 0; /* check status of smart cover to resize quick window area */
+int cradle_smart_cover_status(void)
+{
+	return is_smart_cover_closed;/* check status of smart cover to resize quick window area */
+}
+#endif
 #if defined HALLIC_TOUCH_IF
 static int smartcover_status;
 
@@ -98,6 +105,9 @@ static void boot_cradle_det_func(void)
 	cradle->state = state;
 	wake_lock_timeout(&cradle->wake_lock, msecs_to_jiffies(3000));
 	switch_set_state(&cradle->sdev, cradle->state);
+#if defined(CONFIG_TOUCHSCREEN_ATMEL_S540)
+	is_smart_cover_closed = cradle->pouch;
+#endif
 }
 
 #if defined CONFIG_HALLIC_PEN
@@ -258,8 +268,17 @@ static irqreturn_t pm8xxx_pouch_irq_handler(int irq, void *handle)
 {
 	struct pm8xxx_cradle *cradle_handle = handle;
 	int v;
+#if defined(CONFIG_TOUCHSCREEN_ATMEL_S540)
+	int status;
+
+	status = !gpio_get_value(cradle->pdata->hallic_pouch_detect_pin);
+	printk("pouch irq!!!! %d\n", status);
+	v = 1 + 1*status;
+	is_smart_cover_closed = status;
+#else
 	printk("pouch irq!!!!\n");
 	v = 1 + 1*(!gpio_get_value(cradle->pdata->hallic_pouch_detect_pin));
+#endif
 	wake_lock_timeout(&cradle->wake_lock, msecs_to_jiffies(POUCH_DETECT_DELAY*v+5));
 	queue_delayed_work(cradle_wq, &cradle_handle->pouch_work, msecs_to_jiffies(POUCH_DETECT_DELAY*v));
 	return IRQ_HANDLED;

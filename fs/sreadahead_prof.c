@@ -94,13 +94,17 @@ static ssize_t sreadaheadflag_dbgfs_write(
 
 	if (state == PROF_INIT) {
 		mutex_lock(&prof_buf.ulock);
+		if (prof_buf.state != PROF_NOT) {
+			mutex_unlock(&prof_buf.ulock);
+			return 0;
+		}
 		_DBG("PROF_INT");
 		prof_buf.state = state;
-		mutex_unlock(&prof_buf.ulock);
 
 		_DBG("add timer");
 		prof_buf.timer.expires = get_jiffies_64() + (PROF_TIMEOUT * HZ);
 		add_timer(&prof_buf.timer);
+		mutex_unlock(&prof_buf.ulock);
 	} else if (state == PROF_DONE) {
 		mutex_lock(&prof_buf.ulock);
 		if (prof_buf.state != PROF_RUN) {
@@ -109,10 +113,10 @@ static ssize_t sreadaheadflag_dbgfs_write(
 		}
 		_DBG("PROF_DONE by user daemon(boot_completed)");
 		prof_buf.state = state;
-		mutex_unlock(&prof_buf.ulock);
 
 		_DBG("del timer");
 		del_timer(&prof_buf.timer);
+		mutex_unlock(&prof_buf.ulock);
 	}
 
 	(*ppos) = 0;
@@ -220,7 +224,7 @@ static int sreadahead_prof_RUN(struct file *filp, size_t len, loff_t pos)
 	data.procname[0] = '\0';
 	get_task_comm(data.procname, current);
 
-	buflen = FILE_PATHLEN + FILE_NAMELEN;
+	buflen = FILE_PATH_LEN;
 	if (get_absolute_path(data.name, buflen, filp) < 0)
 		return -ENOENT;
 	strlcat(data.name, filp->f_path.dentry->d_name.name, buflen);
@@ -237,17 +241,15 @@ static int sreadahead_prof_RUN(struct file *filp, size_t len, loff_t pos)
 	}
 
 	for (i = 0; i < prof_buf.file_cnt; ++i) {
-		if (strncmp(prof_buf.data[i].name, data.name,
-				FILE_PATHLEN + FILE_NAMELEN) == 0)
+		if (strncmp(prof_buf.data[i].name, data.name, FILE_PATH_LEN) == 0)
 			break;
 	}
 	/* add a new entry */
 	if (i == prof_buf.file_cnt && i < PROF_BUF_SIZE) {
-		strlcpy(prof_buf.data[i].procname, data.procname, PROC_NAMELEN);
-		prof_buf.data[i].procname[PROC_NAMELEN - 1] = '\0';
-		strlcpy(prof_buf.data[i].name, data.name, FILE_PATHLEN
-			+ FILE_NAMELEN);
-		prof_buf.data[i].name[FILE_PATHLEN + FILE_NAMELEN - 1] = '\0';
+		strlcpy(prof_buf.data[i].procname, data.procname, PROC_NAME_LEN);
+		prof_buf.data[i].procname[PROC_NAME_LEN - 1] = '\0';
+		strlcpy(prof_buf.data[i].name, data.name, FILE_PATH_LEN);
+		prof_buf.data[i].name[FILE_PATH_LEN - 1] = '\0';
 		prof_buf.data[i].pos[0] = prof_buf.data[i].pos[1]
 			= ALIGNPAGECACHE(data.pos[0]);
 		prof_buf.data[i].pos[1] +=

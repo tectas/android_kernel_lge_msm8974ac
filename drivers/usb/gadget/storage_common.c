@@ -926,7 +926,6 @@ static ssize_t fsg_store_perf(struct device *dev, struct device_attribute *attr,
 	return count;
 }
 #endif
-
 static ssize_t fsg_show_file(struct device *dev, struct device_attribute *attr,
 			     char *buf)
 {

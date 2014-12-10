@@ -460,7 +460,7 @@ static int lm3631_bl_probe(struct platform_device *pdev)
 	device_create_file(&pdev->dev, &dev_attr_bl_level);
 
 #ifdef CONFIG_LGE_LCD_OFF_DIMMING
-	if(lge_get_bootreason() == 0x77665560) {
+	if ((lge_get_bootreason() == 0x77665560) || (lge_get_bootreason() == 0x77665561)) {
 		lm3631_bl->bl_dev->props.brightness = 50;
 		pr_info("%s : fota reboot - backlight set 50\n", __func__);
 	}

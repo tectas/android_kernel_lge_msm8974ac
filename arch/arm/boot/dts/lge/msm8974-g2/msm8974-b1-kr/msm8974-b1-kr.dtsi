@@ -502,3 +502,9 @@
 &sdcc2 {
 	status = "disable";
 };
+
+&cci {
+	qcom,camera@1 {
+		status = "disable";
+	};
+};

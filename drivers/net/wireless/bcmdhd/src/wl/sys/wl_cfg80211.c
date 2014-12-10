@@ -4641,7 +4641,9 @@ wl_cfg80211_disconnect(struct wiphy *wiphy, struct net_device *dev,
 #if (defined(BCM4334_CHIP) || !defined(ESCAN_RESULT_PATCH) || defined(CUSTOMER_HW10))
 		/* Let scan aborted by F/W */
 		if (cfg->scan_request) {
+			mutex_lock(&cfg->usr_sync);
 			wl_notify_escan_complete(cfg, dev, true, true);
+			mutex_unlock(&cfg->usr_sync);
 		}
 #endif /* ESCAN_RESULT_PATCH */
 		wl_set_drv_status(cfg, DISCONNECTING, dev);
@@ -12984,6 +12986,16 @@ static s32 __wl_cfg80211_down(struct bcm_cfg80211 *cfg)
 		cfg->ap_info = NULL;
 	}
 	dhd_monitor_uninit();
+
+#ifdef WL11U
+	/* Clear interworking element. */
+	if (cfg->wl11u) {
+		cfg->wl11u = FALSE;
+		cfg->iw_ie_len = 0;
+		memset(cfg->iw_ie, 0, IW_IES_MAX_BUF_LEN);
+	}
+#endif /* WL11U */
+
 #ifdef WLAIBSS_MCHAN
 	bcm_cfg80211_del_ibss_if(cfg->wdev->wiphy, cfg->ibss_cfgdev);
 #endif /* WLAIBSS_MCHAN */
@@ -13028,8 +13040,10 @@ s32 wl_cfg80211_up(void *para)
 	dhd = (dhd_pub_t *)(cfg->pub);
 	if (!(dhd->op_mode & DHD_FLAG_HOSTAP_MODE)) {
 		err = wl_cfg80211_attach_post(bcmcfg_to_prmry_ndev(cfg));
-		if (unlikely(err))
+		if (unlikely(err)) {
+			mutex_unlock(&cfg->usr_sync);
 			return err;
+		}
 	}
 #if defined(BCMSUP_4WAY_HANDSHAKE) && defined(WLAN_AKM_SUITE_FT_8021X)
 	if (dhd->fw_4way_handshake)
