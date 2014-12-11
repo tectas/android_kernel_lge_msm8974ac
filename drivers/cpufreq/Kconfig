@@ -196,7 +196,7 @@ endchoice
 
 config CPU_FREQ_GOV_INTELLIACTIVE
 	tristate "'intelliactive' cpufreq policy governor"
-	default y
+	default n
 	help
 	  'intelliactive' - This driver adds a dynamic cpufreq policy governor
 	  designed for latency-sensitive workloads.
@@ -214,7 +214,7 @@ config CPU_FREQ_GOV_INTELLIACTIVE
 
 config CPU_FREQ_GOV_INTELLIDEMAND
 	tristate "'intellidemand' cpufreq policy governor"
-	default y
+	default n
 	select CPU_FREQ_TABLE
 	help
 	  'intellidemand' - This driver adds a dynamic cpufreq policy governor.
