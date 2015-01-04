@@ -219,10 +219,13 @@ void *data;
 };
 
 struct dsi_drv_cm_data {
-struct regulator *vdd_vreg;
-struct regulator *vdd_io_vreg;
-struct regulator *vdda_vreg;
-int broadcast_enable;
+	struct regulator *vdd_vreg;
+	struct regulator *vdd_io_vreg;
+	struct regulator *vdda_vreg;
+	int broadcast_enable;
+#ifdef CONFIG_LGE_SHARPENING
+	int sharpening_state;
+#endif
 };
 
 enum {
@@ -241,76 +244,87 @@ DSI_CTRL_MAX,
 #define DSI_FLAG_CLOCK_MASTER		0x80000000
 
 struct mdss_dsi_ctrl_pdata {
-int ndx;	/* panel_num */
-int (*on) (struct mdss_panel_data *pdata);
-int (*off) (struct mdss_panel_data *pdata);
-int (*partial_update_fnc) (struct mdss_panel_data *pdata);
-int (*check_status) (struct mdss_dsi_ctrl_pdata *pdata);
-int (*cmdlist_commit)(struct mdss_dsi_ctrl_pdata *ctrl, int from_mdp);
-struct mdss_panel_data panel_data;
-unsigned char *ctrl_base;
-int reg_size;
-u32 clk_cnt;
-int clk_cnt_sub;
-u32 flags;
-struct clk *mdp_core_clk;
-struct clk *ahb_clk;
-struct clk *axi_clk;
-struct clk *byte_clk;
-struct clk *esc_clk;
-struct clk *pixel_clk;
-u8 ctrl_state;
-int panel_mode;
-int irq_cnt;
-int mdss_dsi_clk_on;
-int rst_gpio;
-int disp_en_gpio;
-int disp_en_gpio2;
-int disp_te_gpio;
-int mode_gpio;
-int rst_gpio_requested;
-int disp_en_gpio_requested;
-int disp_te_gpio_requested;
-int mode_gpio_requested;
-int bklt_ctrl;	/* backlight ctrl */
-int pwm_period;
-int pwm_pmic_gpio;
-int pwm_lpg_chan;
-int bklt_max;
-int new_fps;
-int pwm_enabled;
-int io_gpio; /* for china model */
-struct pwm_device *pwm_bl;
-struct dsi_drv_cm_data shared_pdata;
-u32 pclk_rate;
-u32 byte_clk_rate;
-struct dss_module_power power_data;
-u32 dsi_irq_mask;
-struct mdss_hw *dsi_hw;
-struct mdss_panel_recovery *recovery;
-struct dsi_panel_cmds on_cmds;
-struct dsi_panel_cmds off_cmds;
+	int ndx;	/* panel_num */
+	int (*on) (struct mdss_panel_data *pdata);
+	int (*off) (struct mdss_panel_data *pdata);
+	int (*partial_update_fnc) (struct mdss_panel_data *pdata);
+	int (*check_status) (struct mdss_dsi_ctrl_pdata *pdata);
+	int (*cmdlist_commit)(struct mdss_dsi_ctrl_pdata *ctrl, int from_mdp);
+#ifdef CONFIG_LGE_SHARPENING
+	int (*set_sharpening)(struct mdss_dsi_ctrl_pdata *ctrl, int state,
+		void *resuming);
+	int (*get_sharpening)(struct mdss_dsi_ctrl_pdata *ctrl);
+	int (*queue_sharpening)(struct mdss_dsi_ctrl_pdata *ctrl, int state);
+#endif
+	struct mdss_panel_data panel_data;
+	unsigned char *ctrl_base;
+	int reg_size;
+	u32 clk_cnt;
+	int clk_cnt_sub;
+	u32 flags;
+	struct clk *mdp_core_clk;
+	struct clk *ahb_clk;
+	struct clk *axi_clk;
+	struct clk *byte_clk;
+	struct clk *esc_clk;
+	struct clk *pixel_clk;
+	u8 ctrl_state;
+	int panel_mode;
+	int irq_cnt;
+	int mdss_dsi_clk_on;
+	int rst_gpio;
+	int disp_en_gpio;
+	int disp_te_gpio;
+	int mode_gpio;
+	int rst_gpio_requested;
+	int disp_en_gpio_requested;
+	int disp_te_gpio_requested;
+	int mode_gpio_requested;
+	int bklt_ctrl;	/* backlight ctrl */
+	int pwm_period;
+	int pwm_pmic_gpio;
+	int pwm_lpg_chan;
+	int bklt_max;
+	int new_fps;
+	int pwm_enabled;
+	struct pwm_device *pwm_bl;
+	struct dsi_drv_cm_data shared_pdata;
+	u32 pclk_rate;
+	u32 byte_clk_rate;
+	struct dss_module_power power_data;
+	u32 dsi_irq_mask;
+	struct mdss_hw *dsi_hw;
+	struct mdss_panel_recovery *recovery;
+
+	struct dsi_panel_cmds on_cmds;
+	struct dsi_panel_cmds off_cmds;
+
 #ifdef CONFIG_MACH_LGE_G3_KDDI_LGD_FHD
-struct dsi_panel_cmds set_address_mode_cmds;
+	struct dsi_panel_cmds set_address_mode_cmds;
 #endif
 #ifdef CONFIG_MACH_LGE
-int num_of_dsv_enable_pin;
-int lm3697_start_rev;
+	int num_of_dsv_enable_pin;
+	int lm3697_start_rev;
 #endif
 
-struct dcs_cmd_list cmdlist;
-struct completion dma_comp;
-struct completion mdp_comp;
-struct completion video_comp;
-struct completion bta_comp;
-spinlock_t irq_lock;
-spinlock_t mdp_lock;
-int mdp_busy;
-struct mutex mutex;
-struct mutex cmd_mutex;
+	struct dcs_cmd_list cmdlist;
+	struct completion dma_comp;
+	struct completion mdp_comp;
+	struct completion video_comp;
+	struct completion bta_comp;
+	spinlock_t irq_lock;
+	spinlock_t mdp_lock;
+	int mdp_busy;
+	struct mutex mutex;
+	struct mutex cmd_mutex;
 
-struct dsi_buf tx_buf;
-struct dsi_buf rx_buf;
+	struct dsi_buf tx_buf;
+	struct dsi_buf rx_buf;
+
+#ifdef CONFIG_LGE_SHARPENING
+	struct dsi_panel_cmds sharpening_on;
+	struct dsi_panel_cmds sharpening_off;
+#endif
 };
 
 int dsi_panel_device_register(struct device_node *pan_node,
