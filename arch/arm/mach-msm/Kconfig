@@ -3072,3 +3072,6 @@ config KRAIT_REGULATOR
 	 regulators running in ganged mode inside the PMIC. Enable
 	 this option to support such configurations.
 endif
+
+config KEXEC_HARDBOOT_G3_3GB
+	bool "If the kexec patch for the 3GB or 2GB version should be used"
