@@ -274,6 +274,7 @@ struct mdss_dsi_ctrl_pdata {
 	int mdss_dsi_clk_on;
 	int rst_gpio;
 	int disp_en_gpio;
+	int disp_en_gpio2;
 	int disp_te_gpio;
 	int mode_gpio;
 	int rst_gpio_requested;
@@ -287,6 +288,7 @@ struct mdss_dsi_ctrl_pdata {
 	int bklt_max;
 	int new_fps;
 	int pwm_enabled;
+	int io_gpio; /* for china model */
 	struct pwm_device *pwm_bl;
 	struct dsi_drv_cm_data shared_pdata;
 	u32 pclk_rate;
