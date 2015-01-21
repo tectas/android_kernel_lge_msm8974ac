@@ -1880,12 +1880,12 @@ config MSM_CPU_FREQ_SET_MIN_MAX
 config MSM_CPU_FREQ_MAX
 	int "Max CPU Frequency"
 	depends on MSM_CPU_FREQ_SET_MIN_MAX
-	default 384000
+	default 2534400
 
 config MSM_CPU_FREQ_MIN
 	int "Min CPU Frequency"
 	depends on MSM_CPU_FREQ_SET_MIN_MAX
-	default 245760
+	default 300000
 
 endif # CPU_FREQ_MSM
 
@@ -3055,7 +3055,7 @@ config WALL_CLK_SYSFS
 
 config MSM_CPUFREQ_LIMITER
 	tristate "MSM CPU frequency limiter"
-	default y
+	default n
 	help
 	  This driver limits MSM CPU frequency through sysfs file system.
 
