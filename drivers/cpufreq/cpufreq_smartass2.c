@@ -794,8 +794,9 @@ static int __init cpufreq_smartass_init(void)
 		return -ENOMEM;
 
 	INIT_WORK(&freq_scale_work, cpufreq_smartass_freq_change_time_work);
-
+#ifdef CONFIG_HAS_EARLYSUSPEND
 	register_early_suspend(&smartass_power_suspend);
+#endif
 
 	return cpufreq_register_governor(&cpufreq_gov_smartassv2);
 }

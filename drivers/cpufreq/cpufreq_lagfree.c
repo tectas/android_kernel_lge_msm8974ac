@@ -619,7 +619,9 @@ struct cpufreq_governor cpufreq_gov_lagfree = {
 
 static int __init cpufreq_gov_dbs_init(void)
 {
+#ifdef CONFIG_HAS_EARLYSUSPEND
 	register_early_suspend(&lagfree_power_suspend);
+#endif
 	return cpufreq_register_governor(&cpufreq_gov_lagfree);
 }
 
@@ -627,8 +629,9 @@ static void __exit cpufreq_gov_dbs_exit(void)
 {
 	/* Make sure that the scheduled work is indeed not running */
 	flush_scheduled_work();
-
+#ifdef CONFIG_HAS_EARLYSUSPEND
 	unregister_early_suspend(&lagfree_power_suspend);
+#endif
 	cpufreq_unregister_governor(&cpufreq_gov_lagfree);
 }
 
